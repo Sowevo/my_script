@@ -55,7 +55,7 @@ else
     echo "$(date) - image saved as $file"
     
 fi
-osascript -e "tell application \"Finder\" to set desktop picture to POSIX file \"$fullpath\""
+osascript -e "tell application \"System Events\" to tell every desktop to set picture to \"$fullpath\""
 else
 echo "$(date) - connection failed"
 fi
