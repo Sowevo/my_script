@@ -2,7 +2,7 @@
 
 # 导出
 echo "开始导出..."
-mysqldump -h192.168.5.248 -P3306 -udatamainline -pdatamainline --databases datamainline_basicconfig datamainline_cat datamainline_objectbuilder datamainline_system >bak.sql
+mysqldump -h192.168.5.248 -P3306 -udigitalthread -pdigitalthread --databases digitalthread_objectbuilder digitalthread_basicconfig digitalthread_cat digitalthread_microservice digitalthread_system >bak.sql
 # 导入
 echo "开始导入..."
 mysql -h192.168.21.230 -P3306 -uroot -proot < bak.sql
