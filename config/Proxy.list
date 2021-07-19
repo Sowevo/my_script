@@ -1,0 +1,12 @@
+# git下载资源使用节点选择这个节点
+DOMAIN-KEYWORD,github-production-release-asset
+
+## 9DM走代理
+DOMAIN-SUFFIX,9damaomods.com
+
+## P站走节点选择
+DOMAIN-SUFFIX,pornhub.com
+DOMAIN-SUFFIX,pornhubpremium.com
+
+# 不知名小站
+DOMAIN-SUFFIX,saber.love
