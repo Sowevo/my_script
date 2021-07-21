@@ -9,7 +9,7 @@ source_db_port="3306"
 # 目标
 target_db_user="root"
 target_db_password="hsgz8bz"
-target_db_host="192.168.21.194"
+target_db_host="192.168.21.185"
 target_db_port="3306"
 
 time="$(date +"%Y%m%d%H%M%S")"
