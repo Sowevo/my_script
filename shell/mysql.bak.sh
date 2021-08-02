@@ -102,12 +102,12 @@ switch_env(){
         source_db_user="digitalthread"
         source_db_password="digitalthread"
         source_db_host="192.168.5.248"
-        source_db_port="3306"
+        source_db_port="33061"
       ;;
       "test")
         source_db_user="nancal"
         source_db_password="nancal.123"
-        source_db_host="192.168.5.248"
+        source_db_host="192.168.5.248.1"
         source_db_port="3307"
       ;;
       *)
