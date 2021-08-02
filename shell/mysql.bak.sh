@@ -4,13 +4,13 @@ backup_dir="/Users/sowevo/backup/mysql/"
 source_db_user="digitalthread"
 source_db_password="digitalthread"
 source_db_host="192.168.5.248"
-source_db_port="3306"
+source_db_port="33061"
 
 # 目标
 target_db_user="root"
 target_db_password="hsgz8bz"
 target_db_host="192.168.21.185"
-target_db_port="3306"
+target_db_port="33066"
 
 time="$(date +"%Y%m%d%H%M%S")"
 
