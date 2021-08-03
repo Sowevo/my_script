@@ -4,7 +4,7 @@ backup_dir="/Users/sowevo/backup/mysql/"
 source_db_user="digitalthread"
 source_db_password="digitalthread"
 source_db_host="192.168.5.248"
-source_db_port="33061"
+source_db_port="3306"
 
 # 目标
 target_db_user="root"
@@ -102,7 +102,7 @@ switch_env(){
         source_db_user="digitalthread"
         source_db_password="digitalthread"
         source_db_host="192.168.5.248"
-        source_db_port="33061"
+        source_db_port="3306"
       ;;
       "test")
         source_db_user="nancal"
