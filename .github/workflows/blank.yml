@@ -1,4 +1,4 @@
-name: GetRepo
+name: 哈哈
 on:
   workflow_dispatch:
   schedule:
