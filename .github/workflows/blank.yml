@@ -14,7 +14,7 @@ jobs:
         run: |
           cd config
           wget https://qnapclub.eu/en/repo.xml -O repo.xml
-          sed 's/cdn.qnapclub.eu/qnapclub.eu/g' repo.xml
+          sed -ri 's/cdn.qnapclub.eu/qnapclub.eu/g' repo.xml
           sed -ri "s|<cachechk>.*</cachechk>|<cachechk>$((`date '+%s'`*1000+`date '+%N'`/1000000))</cachechk>|g" repo.xml
       - name: 提交
         run: |
