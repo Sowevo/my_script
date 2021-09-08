@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <plugins>
-    <cachechk>${time}</cachechk>
+    <cachechk>$((`date +%s`*1000+`date +%N`/1000000))</cachechk>
     <item>
         <name>iPerf3</name>
         <internalName>iPerf3</internalName>
