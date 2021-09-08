@@ -1,0 +1,15 @@
+name: GetRepo
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout actions
+      - uses: actions/checkout@v2
+
+      - name: wget File
+        run: |
+          cd config
+          wget https://qnapclub.eu/en/repo.xml
