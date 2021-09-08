@@ -15,6 +15,7 @@ jobs:
           cd config
           wget https://qnapclub.eu/en/repo.xml -O repo.xml
           sed 's/cdn.qnapclub.eu/qnapclub.eu/g' repo.xml
+          sed -ri 's|<cachechk>.*</cachechk>|<cachechk>111</cachechk>|g' repo.xml
       - name: 提交
         run: |
           git add .
