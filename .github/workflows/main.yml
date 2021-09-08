@@ -12,10 +12,11 @@ jobs:
 
       - name: 改文件
         run: |
+          time=$((timeStamp*1000+`date "+%N"`/1000000)) 
           cd config
           wget https://qnapclub.eu/en/repo.xml -O repo.xml
           sed 's/cdn.qnapclub.eu/qnapclub.eu/g' repo.xml
-          sed -ri 's|<cachechk>.*</cachechk>|<cachechk>111</cachechk>|g' repo.xml
+          sed -ri 's|<cachechk>.*</cachechk>|<cachechk>${time}</cachechk>|g' repo.xml
       - name: 提交
         run: |
           git add .
