@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <plugins>
-    <cachechk>1631075307503</cachechk>
+    <cachechk>1631142248336</cachechk>
     <item>
         <name>iPerf3</name>
         <internalName>iPerf3</internalName>
@@ -1071,32 +1071,32 @@
                         <icon80>https://qnapclub.eu/storage/qpkg_artifacts/QMineCraft_1.16.0.0_arm_64/qpkg_icon_80.gif</icon80>
                     <description><![CDATA[MineCraft ServerTIP ME !!Your gratitude and finance will help me to continue integration of this QPKG and maintain up to date versions.        ]]></description>
         <fwVersion>4.2.1</fwVersion>
-        <version>1.17.0.1</version>
+        <version>1.17.1.0</version>
         <platform>
             <platformID>TS-NASARM_64</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475559/QMineCraft_1.17.0.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476732/QMineCraft_1.17.1.0_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475560/QMineCraft_1.17.0.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476733/QMineCraft_1.17.1.0_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X30</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475561/QMineCraft_1.17.0.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476734/QMineCraft_1.17.1.0_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475562/QMineCraft_1.17.0.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476735/QMineCraft_1.17.1.0_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32U</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475563/QMineCraft_1.17.0.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476736/QMineCraft_1.17.1.0_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-XA28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475564/QMineCraft_1.17.0.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476737/QMineCraft_1.17.1.0_arm_64.qpkg</location>
         </platform>
-        <publishedDate>2021/07/08</publishedDate>
+        <publishedDate>2021/09/08</publishedDate>
         <maintainer><![CDATA[Qoolbox]]></maintainer>
         <developer><![CDATA[Stephane Guerithault (QoolBox)]]></developer>
         <forumLink><![CDATA[]]></forumLink>
@@ -14123,36 +14123,36 @@
                         <icon80>https://qnapclub.eu/storage/qpkg_artifacts/Akaunting73_1.3.17_arm_64/qpkg_icon_80.gif</icon80>
                     <description><![CDATA[Online Accounting Software ( https://akaunting.com )Akaunting is a free, open source and online accounting software designed for small businesses and freelancers.It is built with modern technologies such as Laravel, Bootstrap, jQuery, RESTful API etc. Thanks to its modular structure, Akaunting provides an awesome App Store for users and developers.]]></description>
         <fwVersion>4.3.3</fwVersion>
-        <version>2.1.22</version>
+        <version>2.1.24</version>
+        <platform>
+            <platformID>TS-X41</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476745/Akaunting73_2.1.24_arm-x41.qpkg</location>
+        </platform>
         <platform>
             <platformID>TS-NASARM_64</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476161/Akaunting73_2.1.22_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476747/Akaunting73_2.1.24_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476162/Akaunting73_2.1.22_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476748/Akaunting73_2.1.24_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X30</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476163/Akaunting73_2.1.22_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476749/Akaunting73_2.1.24_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476164/Akaunting73_2.1.22_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476750/Akaunting73_2.1.24_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32U</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476165/Akaunting73_2.1.22_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476751/Akaunting73_2.1.24_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-XA28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476166/Akaunting73_2.1.22_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476752/Akaunting73_2.1.24_arm_64.qpkg</location>
         </platform>
-        <platform>
-            <platformID>TS-X41</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476173/Akaunting73_2.1.22_arm-x41.qpkg</location>
-        </platform>
-        <publishedDate>2021/08/12</publishedDate>
+        <publishedDate>2021/09/08</publishedDate>
         <maintainer><![CDATA[QoolBox]]></maintainer>
         <developer><![CDATA[QoolBox]]></developer>
         <forumLink><![CDATA[http://forum.qnapclub.fr/topic/10641-akaunting-apache73/]]></forumLink>
@@ -16673,36 +16673,36 @@
                         <icon80>https://qnapclub.eu/storage/qpkg_artifacts/Akaunting74_2.0.24_arm_64/qpkg_icon_80.gif</icon80>
                     <description><![CDATA[Online Accounting Software ( https://akaunting.com )Akaunting is a free, open source and online accounting software designed for small businesses and freelancers.It is built with modern technologies such as Laravel, Bootstrap, jQuery, RESTful API etc. Thanks to its modular structure, Akaunting provides an awesome App Store for users and developers.TIP ME !!Your gratitude and finance will help me to continue integration of this QPKG and maintain up to date versions.        ]]></description>
         <fwVersion>4.2.5</fwVersion>
-        <version>2.1.22</version>
+        <version>2.1.24</version>
         <platform>
             <platformID>TS-X41</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476159/Akaunting74_2.1.22_arm-x41.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476754/Akaunting74_2.1.24_arm-x41.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-NASARM_64</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476167/Akaunting74_2.1.22_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476755/Akaunting74_2.1.24_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476168/Akaunting74_2.1.22_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476756/Akaunting74_2.1.24_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X30</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476169/Akaunting74_2.1.22_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476757/Akaunting74_2.1.24_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476170/Akaunting74_2.1.22_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476758/Akaunting74_2.1.24_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32U</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476171/Akaunting74_2.1.22_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476759/Akaunting74_2.1.24_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-XA28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476172/Akaunting74_2.1.22_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476760/Akaunting74_2.1.24_arm_64.qpkg</location>
         </platform>
-        <publishedDate>2021/08/12</publishedDate>
+        <publishedDate>2021/09/08</publishedDate>
         <maintainer><![CDATA[QoolBox]]></maintainer>
         <developer><![CDATA[QoolBox]]></developer>
         <forumLink><![CDATA[]]></forumLink>
@@ -24923,36 +24923,36 @@
                         <icon80>https://qnapclub.eu/storage/qpkg_artifacts/Akaunting80_2.1.22_arm_64/qpkg_icon_80.gif</icon80>
                     <description><![CDATA[Online Accounting Software ( https://akaunting.com )Akaunting is a free, open source and online accounting software designed for small businesses and freelancers.It is built with modern technologies such as Laravel, Bootstrap, jQuery, RESTful API etc. Thanks to its modular structure, Akaunting provides an awesome App Store for users and developers.TIP ME !!Your gratitude and finance will help me to continue integration of this QPKG and maintain up to date versions.        ]]></description>
         <fwVersion>4.3.3</fwVersion>
-        <version>2.1.22</version>
+        <version>2.1.24</version>
         <platform>
             <platformID>TS-NASARM_64</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476174/Akaunting80_2.1.22_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476738/Akaunting80_2.1.24_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476175/Akaunting80_2.1.22_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476739/Akaunting80_2.1.24_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X30</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476176/Akaunting80_2.1.22_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476740/Akaunting80_2.1.24_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476177/Akaunting80_2.1.22_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476741/Akaunting80_2.1.24_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32U</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476178/Akaunting80_2.1.22_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476742/Akaunting80_2.1.24_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-XA28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476179/Akaunting80_2.1.22_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476743/Akaunting80_2.1.24_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X41</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476181/Akaunting80_2.1.22_arm-x41.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476746/Akaunting80_2.1.24_arm-x41.qpkg</location>
         </platform>
-        <publishedDate>2021/08/12</publishedDate>
+        <publishedDate>2021/09/08</publishedDate>
         <maintainer><![CDATA[QoolBox]]></maintainer>
         <developer><![CDATA[QoolBox]]></developer>
         <forumLink><![CDATA[]]></forumLink>
