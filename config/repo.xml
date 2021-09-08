@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <plugins>
-    <cachechk>111</cachechk>
+    <cachechk>${time}</cachechk>
     <item>
         <name>iPerf3</name>
         <internalName>iPerf3</internalName>
