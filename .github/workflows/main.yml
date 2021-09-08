@@ -14,5 +14,5 @@ jobs:
           cd config
           wget https://qnapclub.eu/en/repo.xml
           pwd
-          
+          sed 's/cdn.qnapclub.eu/qnapclub.eu/g' repo.xml
           cat repo.xml
