@@ -13,3 +13,6 @@ jobs:
         run: |
           cd config
           wget https://qnapclub.eu/en/repo.xml
+          pwd
+          
+          cat repo.xml
