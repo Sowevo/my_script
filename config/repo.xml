@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <plugins>
-    <cachechk>1631228601231</cachechk>
+    <cachechk>1631315017801</cachechk>
     <item>
         <name>iPerf3</name>
         <internalName>iPerf3</internalName>
@@ -13743,18 +13743,38 @@
 
         <type>Business</type>
                         <icon80>https://qnapclub.eu/storage/qpkg_artifacts/GravCMS_1.6.11_arm_64/qpkg_icon_80.gif</icon80>
-                    <description><![CDATA[Grav is a fast, simple, and flexible, file-based CMS platform. Grav comes with a powerful Package Management System to allow for simple installation and upgrading of plugins and themes, as well as simple updating of Grav itself.Apache73 version : https://www.qnapclub.eu/fr/qpkg/735The underlying architecture of Grav is designed to use well-established and best-in-class technologies to ensure that Grav is simple to use and easy to extend. Some of these key technologies include:Twig Templating: for robust control of the user interfaceMarkdown: for easy content creationYAML: for simple configurationParsedown: for fast Markdown and Markdown Extra supportDoctrine Cache: layer for performanceSimple Dependency Injection Container: for extensibility and maintainabilitySymfony Event Dispatcher: for plugin event handlingSymfony Console: for CLI interfaceGregwar Image Library: for dynamic image manipulation]]></description>
+                    <description><![CDATA[Grav is a fast, simple, and flexible, file-based CMS platform. Grav comes with a powerful Package Management System to allow for simple installation and upgrading of plugins and themes, as well as simple updating of Grav itself.Apache73 version : https://www.qnapclub.eu/fr/qpkg/735The underlying architecture of Grav is designed to use well-established and best-in-class technologies to ensure that Grav is simple to use and easy to extend. Some of these key technologies include:Twig Templating: for robust control of the user interfaceMarkdown: for easy content creationYAML: for simple configurationParsedown: for fast Markdown and Markdown Extra supportDoctrine Cache: layer for performanceSimple Dependency Injection Container: for extensibility and maintainabilitySymfony Event Dispatcher: for plugin event handlingSymfony Console: for CLI interfaceGregwar Image Library: for dynamic image manipulationTIP ME !!Your gratitude and finance will help me to continue integration of this QPKG and maintain up to date versions.        ]]></description>
         <fwVersion>4.3.3</fwVersion>
-        <version>1.6.11</version>
-        <platform>
-            <platformID>TS-X28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/466936/GravCMS_1.6.11_arm_64.qpkg</location>
-        </platform>
+        <version>1.7.20</version>
         <platform>
             <platformID>TS-X41</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/466937/GravCMS_1.6.11_arm-x41.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476797/GravCMS_1.7.20_arm-x41.qpkg</location>
         </platform>
-        <publishedDate>2019/06/22</publishedDate>
+        <platform>
+            <platformID>TS-NASARM_64</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476798/GravCMS_1.7.20_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X28A</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476799/GravCMS_1.7.20_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X30</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476800/GravCMS_1.7.20_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X32</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476801/GravCMS_1.7.20_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X32U</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476802/GravCMS_1.7.20_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-XA28A</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476803/GravCMS_1.7.20_arm_64.qpkg</location>
+        </platform>
+        <publishedDate>2021/09/10</publishedDate>
         <maintainer><![CDATA[Qoolbox]]></maintainer>
         <developer><![CDATA[Qoolbox]]></developer>
         <forumLink><![CDATA[http://forum.qnapclub.fr/topic/10612-gravcms-apache73/]]></forumLink>
@@ -15641,44 +15661,44 @@
                         <icon80>https://qnapclub.eu/storage/qpkg_artifacts/Komga_0.87.2_arm-x41/qpkg_icon_80.gif</icon80>
                     <description><![CDATA[Media server for comics/mangas/BDs with API and OPDS supportFeatures include:scan and index libraries (local folders) containing sub-folders with comic book archives in cbz and cbr format, as well as pdf. Rescan periodically.API to serve the individual pages of those books. It can convert pages to different image format on the fly.API to serve the complete file for downloadOPDS feedweb interfaceweb readeruser management, with per-library access control-- [ QPKG INTEGRATION ] --- At startup, if no user account exists in database, Komga will generate an initial administrator account with a random password, and will output the login and password in the logs: /opt/Komga/komga.log- DB + config file included in /opt/Komga- Listen on port 101102 TIP ME !!Your gratitude and finance will help me to continue integration of this QPKG and maintain up to date versions.]]></description>
         <fwVersion>4.2.6</fwVersion>
-        <version>0.121.0</version>
+        <version>0.125.2</version>
         <platform>
-            <platformID>TS-NASX86</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476680/Komga_0.121.0_x86.qpkg</location>
+            <platformID>TS-X31</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476822/Komga_0.125.2_arm-x31.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X41</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476681/Komga_0.121.0_arm-x41.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476823/Komga_0.125.2_arm-x41.qpkg</location>
         </platform>
         <platform>
-            <platformID>TS-X31</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476683/Komga_0.121.0_arm-x31.qpkg</location>
+            <platformID>TS-NASX86</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476824/Komga_0.125.2_x86.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-NASARM_64</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476684/Komga_0.121.0_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476826/Komga_0.125.2_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476685/Komga_0.121.0_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476827/Komga_0.125.2_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X30</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476686/Komga_0.121.0_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476828/Komga_0.125.2_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476687/Komga_0.121.0_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476829/Komga_0.125.2_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32U</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476688/Komga_0.121.0_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476830/Komga_0.125.2_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-XA28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476689/Komga_0.121.0_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476831/Komga_0.125.2_arm_64.qpkg</location>
         </platform>
-        <publishedDate>2021/09/04</publishedDate>
+        <publishedDate>2021/09/10</publishedDate>
         <maintainer><![CDATA[QoolBox]]></maintainer>
         <developer><![CDATA[QoolBox]]></developer>
         <forumLink><![CDATA[http://forum.qnapclub.fr/topic/10964-komga/]]></forumLink>
@@ -16293,36 +16313,36 @@
                         <icon80>https://qnapclub.eu/storage/qpkg_artifacts/OneDev_3.0.5_arm-x41/qpkg_icon_80.gif</icon80>
                     <description><![CDATA[Super Easy All-In-One DevOps Platform, With Issue Tracking, Git Management, Pull Request, and Build Farm. Simple yet Powerful.]]></description>
         <fwVersion>4.3.3</fwVersion>
-        <version>4.9.1</version>
+        <version>4.10.3</version>
         <platform>
             <platformID>TS-X41</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476007/OneDev_4.9.1_arm-x41.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476775/OneDev_4.10.3_arm-x41.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-NASARM_64</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476017/OneDev_4.9.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476776/OneDev_4.10.3_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476018/OneDev_4.9.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476777/OneDev_4.10.3_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X30</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476019/OneDev_4.9.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476778/OneDev_4.10.3_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476020/OneDev_4.9.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476779/OneDev_4.10.3_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32U</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476021/OneDev_4.9.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476780/OneDev_4.10.3_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-XA28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476022/OneDev_4.9.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476781/OneDev_4.10.3_arm_64.qpkg</location>
         </platform>
-        <publishedDate>2021/08/06</publishedDate>
+        <publishedDate>2021/09/10</publishedDate>
         <maintainer><![CDATA[QoolBox]]></maintainer>
         <developer><![CDATA[QoolBox]]></developer>
         <forumLink><![CDATA[http://forum.qnapclub.fr/topic/11018-onedev/]]></forumLink>
@@ -22059,36 +22079,36 @@
                         <icon80>https://qnapclub.eu/storage/qpkg_artifacts/OneDev74_4.1.6_x86_64/qpkg_icon_80.gif</icon80>
                     <description><![CDATA[Super Easy All-In-One DevOps Platform, With Issue Tracking, Git Management, Pull Request, and Build Farm. Simple yet Powerful.]]></description>
         <fwVersion>4.2.6</fwVersion>
-        <version>4.9.1</version>
+        <version>4.10.3</version>
         <platform>
             <platformID>TS-X41</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476006/OneDev74_4.9.1_arm-x41.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476764/OneDev74_4.10.3_arm-x41.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-NASARM_64</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476008/OneDev74_4.9.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476768/OneDev74_4.10.3_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476009/OneDev74_4.9.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476769/OneDev74_4.10.3_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X30</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476010/OneDev74_4.9.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476770/OneDev74_4.10.3_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476011/OneDev74_4.9.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476771/OneDev74_4.10.3_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32U</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476012/OneDev74_4.9.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476772/OneDev74_4.10.3_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-XA28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476013/OneDev74_4.9.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476773/OneDev74_4.10.3_arm_64.qpkg</location>
         </platform>
-        <publishedDate>2021/08/06</publishedDate>
+        <publishedDate>2021/09/10</publishedDate>
         <maintainer><![CDATA[QoolBox]]></maintainer>
         <developer><![CDATA[QoolBox]]></developer>
         <forumLink><![CDATA[]]></forumLink>
@@ -22109,36 +22129,36 @@
                         <icon80>https://qnapclub.eu/storage/qpkg_artifacts/OneDev80_4.1.6_arm-x41/qpkg_icon_80.gif</icon80>
                     <description><![CDATA[Super Easy All-In-One DevOps Platform, With Issue Tracking, Git Management, Pull Request, and Build Farm. Simple yet Powerful.]]></description>
         <fwVersion>4.2.6</fwVersion>
-        <version>4.9.1</version>
+        <version>4.10.3</version>
         <platform>
             <platformID>TS-X41</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476016/OneDev80_4.9.1_arm-x41.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476766/OneDev80_4.10.3_arm-x41.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-NASARM_64</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476023/OneDev80_4.9.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476782/OneDev80_4.10.3_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476024/OneDev80_4.9.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476783/OneDev80_4.10.3_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X30</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476025/OneDev80_4.9.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476784/OneDev80_4.10.3_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476026/OneDev80_4.9.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476785/OneDev80_4.10.3_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32U</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476027/OneDev80_4.9.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476786/OneDev80_4.10.3_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-XA28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476028/OneDev80_4.9.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476787/OneDev80_4.10.3_arm_64.qpkg</location>
         </platform>
-        <publishedDate>2021/08/06</publishedDate>
+        <publishedDate>2021/09/10</publishedDate>
         <maintainer><![CDATA[QoolBox]]></maintainer>
         <developer><![CDATA[QoolBox]]></developer>
         <forumLink><![CDATA[]]></forumLink>
@@ -25396,5 +25416,209 @@
         <bannerImg></bannerImg>
         <changeLog></changeLog>
         <tutorialLink><![CDATA[https://github.com/ampache/ampache]]></tutorialLink>
+    </item>
+    <item>
+        <name>Notifiarr</name>
+        <internalName>Notifiarr</internalName>
+        <changeLog>https://qnapclub.eu/en/qpkg/releasenotes/1186</changeLog>
+        <category>QnapClub</category>
+
+        <type>Entertainment</type>
+                        <icon80>https://qnapclub.eu/storage/qpkg_artifacts/Notifiarr_0.1.15_x86/qpkg_icon_80.gif</icon80>
+                    <description><![CDATA[Client for Notifiarr.comThis is the unified client for Notifiarr.com. The client enables content requests from Media Bot in your Discord Server. It also provides reports for Plex usage and system health.before use please setup notifiarr.conf within /opt/Notifiarr/etc/notifiarr.conf and restart qpkgTIP ME !!Your gratitude and finance will help me to continue integration of this QPKG and maintain up to date versions.        ]]></description>
+        <fwVersion>4.2.6</fwVersion>
+        <version>0.1.15</version>
+        <platform>
+            <platformID>TS-NASX86</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476788/Notifiarr_0.1.15_x86.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-NASARM_64</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476789/Notifiarr_0.1.15_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X28A</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476790/Notifiarr_0.1.15_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X30</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476791/Notifiarr_0.1.15_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X32</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476792/Notifiarr_0.1.15_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X32U</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476793/Notifiarr_0.1.15_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-XA28A</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476794/Notifiarr_0.1.15_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X41</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476795/Notifiarr_0.1.15_arm-x41.qpkg</location>
+        </platform>
+        <publishedDate>2021/09/10</publishedDate>
+        <maintainer><![CDATA[QoolBox]]></maintainer>
+        <developer><![CDATA[QoolBox]]></developer>
+        <forumLink><![CDATA[]]></forumLink>
+        <icon100></icon100>
+        <language><![CDATA[English]]></language>
+        <snapshot></snapshot>
+        <bannerImg></bannerImg>
+        <changeLog></changeLog>
+        <tutorialLink><![CDATA[https://github.com/Notifiarr/notifiarr]]></tutorialLink>
+    </item>
+    <item>
+        <name>GravCMS (Apache74)</name>
+        <internalName>GravCMS74</internalName>
+        <changeLog>https://qnapclub.eu/en/qpkg/releasenotes/1187</changeLog>
+        <category>QnapClub</category>
+
+        <type>Dev tools</type>
+                        <icon80>https://qnapclub.eu/storage/qpkg_artifacts/GravCMS74_1.7.20_arm-x41/qpkg_icon_80.gif</icon80>
+                    <description><![CDATA[Grav is a fast, simple, and flexible, file-based CMS platform. Grav comes with a powerful Package Management System to allow for simple installation and upgrading of plugins and themes, as well as simple updating of Grav itself.Apache74 version The underlying architecture of Grav is designed to use well-established and best-in-class technologies to ensure that Grav is simple to use and easy to extend. Some of these key technologies include:Twig Templating: for robust control of the user interfaceMarkdown: for easy content creationYAML: for simple configurationParsedown: for fast Markdown and Markdown Extra supportDoctrine Cache: layer for performanceSimple Dependency Injection Container: for extensibility and maintainabilitySymfony Event Dispatcher: for plugin event handlingSymfony Console: for CLI interfaceGregwar Image Library: for dynamic image manipulationTIP ME !!Your gratitude and finance will help me to continue integration of this QPKG and maintain up to date versions.        ]]></description>
+        <fwVersion>4.3.3</fwVersion>
+        <version>1.7.20</version>
+        <platform>
+            <platformID>TS-X41</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476804/GravCMS74_1.7.20_arm-x41.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-NASARM_64</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476806/GravCMS74_1.7.20_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X28A</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476807/GravCMS74_1.7.20_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X30</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476808/GravCMS74_1.7.20_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X32</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476809/GravCMS74_1.7.20_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X32U</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476810/GravCMS74_1.7.20_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-XA28A</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476811/GravCMS74_1.7.20_arm_64.qpkg</location>
+        </platform>
+        <publishedDate>2021/09/10</publishedDate>
+        <maintainer><![CDATA[Qoolbox]]></maintainer>
+        <developer><![CDATA[Qoolbox]]></developer>
+        <forumLink><![CDATA[]]></forumLink>
+        <icon100></icon100>
+        <language><![CDATA[English]]></language>
+        <snapshot></snapshot>
+        <bannerImg></bannerImg>
+        <changeLog></changeLog>
+        <tutorialLink><![CDATA[https://getgrav.org]]></tutorialLink>
+    </item>
+    <item>
+        <name>GravCMS (Apache80)</name>
+        <internalName>GravCMS80</internalName>
+        <changeLog>https://qnapclub.eu/en/qpkg/releasenotes/1188</changeLog>
+        <category>QnapClub</category>
+
+        <type>Dev tools</type>
+                        <icon80>https://qnapclub.eu/storage/qpkg_artifacts/GravCMS80_1.7.20_arm_64/qpkg_icon_80.gif</icon80>
+                    <description><![CDATA[Grav is a fast, simple, and flexible, file-based CMS platform. Grav comes with a powerful Package Management System to allow for simple installation and upgrading of plugins and themes, as well as simple updating of Grav itself.Apache80 version The underlying architecture of Grav is designed to use well-established and best-in-class technologies to ensure that Grav is simple to use and easy to extend. Some of these key technologies include:Twig Templating: for robust control of the user interfaceMarkdown: for easy content creationYAML: for simple configurationParsedown: for fast Markdown and Markdown Extra supportDoctrine Cache: layer for performanceSimple Dependency Injection Container: for extensibility and maintainabilitySymfony Event Dispatcher: for plugin event handlingSymfony Console: for CLI interfaceGregwar Image Library: for dynamic image manipulationTIP ME !!Your gratitude and finance will help me to continue integration of this QPKG and maintain up to date versions.        ]]></description>
+        <fwVersion>4.3.3</fwVersion>
+        <version>1.7.20</version>
+        <platform>
+            <platformID>TS-NASARM_64</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476813/GravCMS80_1.7.20_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X28A</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476814/GravCMS80_1.7.20_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X30</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476815/GravCMS80_1.7.20_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X32</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476816/GravCMS80_1.7.20_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X32U</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476817/GravCMS80_1.7.20_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-XA28A</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476818/GravCMS80_1.7.20_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X41</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476819/GravCMS80_1.7.20_arm-x41.qpkg</location>
+        </platform>
+        <publishedDate>2021/09/10</publishedDate>
+        <maintainer><![CDATA[Qoolbox]]></maintainer>
+        <developer><![CDATA[Qoolbox]]></developer>
+        <forumLink><![CDATA[]]></forumLink>
+        <icon100></icon100>
+        <language><![CDATA[English]]></language>
+        <snapshot></snapshot>
+        <bannerImg></bannerImg>
+        <changeLog></changeLog>
+        <tutorialLink><![CDATA[https://getgrav.org]]></tutorialLink>
+    </item>
+    <item>
+        <name>Lychee (Apache80)</name>
+        <internalName>Lychee80</internalName>
+        <changeLog>https://qnapclub.eu/en/qpkg/releasenotes/1189</changeLog>
+        <category>QnapClub</category>
+
+        <type>Entertainment</type>
+                        <icon80>https://qnapclub.eu/storage/qpkg_artifacts/Lychee80_4.3.4_arm_64/qpkg_icon_80.gif</icon80>
+                    <description><![CDATA[A great looking and easy-to-use photo-management-system you can run on your server, to manage and share photos.Lychee is a free photo-management tool, which runs on your server or web-space. Installing is a matter of seconds. Upload, manage and share photos like from a native application. Lychee comes with everything you need and all your photos are stored securely.TIP ME !!Your gratitude and finance will help me to continue integration of this QPKG and maintain up to date versions.        ]]></description>
+        <fwVersion>4.3.3</fwVersion>
+        <version>4.3.4</version>
+        <platform>
+            <platformID>TS-NASARM_64</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476832/Lychee80_4.3.4_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X28A</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476833/Lychee80_4.3.4_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X30</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476834/Lychee80_4.3.4_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X32</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476835/Lychee80_4.3.4_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X32U</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476836/Lychee80_4.3.4_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-XA28A</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476837/Lychee80_4.3.4_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X41</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476838/Lychee80_4.3.4_arm-x41.qpkg</location>
+        </platform>
+        <publishedDate>2021/09/10</publishedDate>
+        <maintainer><![CDATA[QoolBox]]></maintainer>
+        <developer><![CDATA[QoolBox]]></developer>
+        <forumLink><![CDATA[]]></forumLink>
+        <icon100></icon100>
+        <language><![CDATA[English]]></language>
+        <snapshot></snapshot>
+        <bannerImg></bannerImg>
+        <changeLog></changeLog>
+        <tutorialLink><![CDATA[https://github.com/LycheeOrg/Lychee]]></tutorialLink>
     </item>
 </plugins>
