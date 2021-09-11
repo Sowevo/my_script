@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <plugins>
-    <cachechk>1631315017801</cachechk>
+    <cachechk>1631401405599</cachechk>
     <item>
         <name>iPerf3</name>
         <internalName>iPerf3</internalName>
@@ -5209,72 +5209,72 @@
                         <icon80>https://qnapclub.eu/storage/qpkg_artifacts/Duplicati_2.0.1.64/qpkg_icon_80.gif</icon80>
                     <description><![CDATA[Free backup software to store backups online with strong encryption. Works with FTP, SSH, WebDAV, OneDrive, Amazon S3, Google Drive and many othersPlease consider install CACert Package asideTIP ME !!Your gratitude and finance will help me to continue integration of this QPKG and maintain up to date versions.        ]]></description>
         <fwVersion>4.2.6</fwVersion>
-        <version>2.0.6..3</version>
+        <version>2.0.6.100.</version>
         <platform>
             <platformID>TS-269H</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475667/Duplicati_2.0.6..3.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476841/Duplicati_2.0.6.100..qpkg</location>
         </platform>
         <platform>
             <platformID>TS-ARM-X09</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475668/Duplicati_2.0.6..3.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476842/Duplicati_2.0.6.100..qpkg</location>
         </platform>
         <platform>
             <platformID>TS-ARM-X19</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475669/Duplicati_2.0.6..3.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476843/Duplicati_2.0.6.100..qpkg</location>
         </platform>
         <platform>
             <platformID>TS-NASARM</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475670/Duplicati_2.0.6..3.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476844/Duplicati_2.0.6.100..qpkg</location>
         </platform>
         <platform>
             <platformID>TS-NASARM_64</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475671/Duplicati_2.0.6..3.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476845/Duplicati_2.0.6.100..qpkg</location>
         </platform>
         <platform>
             <platformID>TS-NASX86</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475672/Duplicati_2.0.6..3.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476846/Duplicati_2.0.6.100..qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X28</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475674/Duplicati_2.0.6..3.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476848/Duplicati_2.0.6.100..qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475675/Duplicati_2.0.6..3.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476849/Duplicati_2.0.6.100..qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X30</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475676/Duplicati_2.0.6..3.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476850/Duplicati_2.0.6.100..qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X31</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475677/Duplicati_2.0.6..3.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476851/Duplicati_2.0.6.100..qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X31U</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475678/Duplicati_2.0.6..3.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476852/Duplicati_2.0.6.100..qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475679/Duplicati_2.0.6..3.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476853/Duplicati_2.0.6.100..qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32U</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475680/Duplicati_2.0.6..3.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476854/Duplicati_2.0.6.100..qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X41</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475681/Duplicati_2.0.6..3.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476855/Duplicati_2.0.6.100..qpkg</location>
         </platform>
         <platform>
             <platformID>TS-XA28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475682/Duplicati_2.0.6..3.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476856/Duplicati_2.0.6.100..qpkg</location>
         </platform>
         <platform>
             <platformID>X86_SKYLAKE</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/475683/Duplicati_2.0.6..3.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476857/Duplicati_2.0.6.100..qpkg</location>
         </platform>
-        <publishedDate>2021/07/17</publishedDate>
+        <publishedDate>2021/09/11</publishedDate>
         <maintainer><![CDATA[Guerithault Stephane (QoolBox)]]></maintainer>
         <developer><![CDATA[Guerithault Stephane (QoolBox)]]></developer>
         <forumLink><![CDATA[http://forum.qnapclub.fr/topic/8881-duplicati/]]></forumLink>
@@ -9349,16 +9349,36 @@
                         <icon80>https://qnapclub.eu/storage/qpkg_artifacts/Tautulli_2.5.2_x86_64/qpkg_icon_80.gif</icon80>
                     <description><![CDATA[Monitoring and tracking tool for Plex Media Serverweb application for monitoring, analytics and notifications for Plex Media Server.FeaturesResponsive web design viewable on desktop, tablet and mobile web browsers.Themed to complement Plex/Web.Easy configuration setup (no separate web server required).Monitor current Plex Media Server activity.Fully customizable notifications for stream activity and recently added media.Top statistics on home page with configurable duration and measurement metric.Global watching history with search/filtering &amp;amp; dynamic column sorting.Full user list with general information and comparison stats.Individual user information including devices IP addresses.Complete library statistics and media file information.Rich analytics presented using Highcharts graphing.Beautiful content information pages.Full sync list data on all users syncing items from your library.And many more!!TIP ME !!Your gratitude and finance will help me to continue integration of this QPKG and maintain up to date versions.        ]]></description>
         <fwVersion>4.3.3</fwVersion>
-        <version>2.7.3.0</version>
-        <platform>
-            <platformID>TS-XA28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/474608/Tautulli_2.7.3.0_arm_64.qpkg</location>
-        </platform>
+        <version>2.7.6.0</version>
         <platform>
             <platformID>TS-X41</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/474609/Tautulli_2.7.3.0_arm-x41.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476858/Tautulli_2.7.6.0_arm-x41.qpkg</location>
         </platform>
-        <publishedDate>2021/05/24</publishedDate>
+        <platform>
+            <platformID>TS-NASARM_64</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476860/Tautulli_2.7.6.0_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X28A</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476861/Tautulli_2.7.6.0_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X30</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476862/Tautulli_2.7.6.0_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X32</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476863/Tautulli_2.7.6.0_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X32U</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476864/Tautulli_2.7.6.0_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-XA28A</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476865/Tautulli_2.7.6.0_arm_64.qpkg</location>
+        </platform>
+        <publishedDate>2021/09/11</publishedDate>
         <maintainer><![CDATA[QoolBox]]></maintainer>
         <developer><![CDATA[QoolBox]]></developer>
         <forumLink><![CDATA[http://forum.qnapclub.fr/topic/9908-tautulli/]]></forumLink>
