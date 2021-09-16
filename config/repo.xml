@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <plugins>
-    <cachechk>1631747036897</cachechk>
+    <cachechk>1631833445725</cachechk>
     <item>
         <name>iPerf3</name>
         <internalName>iPerf3</internalName>
@@ -19863,40 +19863,40 @@
                         <icon80>https://www.qnapclub.eu/storage/qpkg_artifacts/Authelia_4.21.0_x86_64/qpkg_icon_80.gif</icon80>
                     <description><![CDATA[The Single Sign-On Multi-Factor portal for web apps, Authelia authentication and authorization serverAuthelia is an open-source authentication and authorization server providing 2-factor authentication and single sign-on (SSO) for your applications via a web portal. It acts as a companion of reverse proxies like nginx, Traefik or HAProxy to let them know whether queries should pass through. Unauthenticated user are redirected to Authelia Sign-in portal instead.Documentation is available at https://docs.authelia.com.The architecture is shown in the diagram below. QPKG INtegration Auhtelia service start automatically if your /opt/Authelia/config.yml is well setupFeatures summaryHere is the list of the main available features:Several kind of second factor:Security Key (U2F) with Yubikey.Time-based One-Time password with Google Authenticator.Mobile Push Notifications with Duo.Password reset with identity verification using email confirmation.Single-factor only authentication method available.Access restriction after too many authentication attempts.Fine-grained access control per subdomain, user, resource and network.Support of basic authentication for endpoints protected by single factor.Highly available using a remote database and Redis as a highly available KV store.Compatible with Kubernetes ingress-nginx controller out of the box.For more details about the features, follow Features.If you want to know more about the roadmap, follow Roadmap.Proxy supportAuthelia works in combination with nginx, Traefik or HAProxy. It can be deployed on bare metal with Docker or on top of Kubernetes.TIP ME !!Your gratitude and finance will help me to continue integration of this QPKG and maintain up to date versions.        ]]></description>
         <fwVersion>4.3.3</fwVersion>
-        <version>4.30.1</version>
+        <version>4.30.5</version>
         <platform>
             <platformID>TS-X31</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476050/Authelia_4.30.1_arm-x31.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476898/Authelia_4.30.5_arm-x31.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-NASARM_64</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476052/Authelia_4.30.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476899/Authelia_4.30.5_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476053/Authelia_4.30.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476900/Authelia_4.30.5_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X30</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476054/Authelia_4.30.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476901/Authelia_4.30.5_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476055/Authelia_4.30.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476902/Authelia_4.30.5_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X32U</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476056/Authelia_4.30.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476903/Authelia_4.30.5_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-XA28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476057/Authelia_4.30.1_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476904/Authelia_4.30.5_arm_64.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X41</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476058/Authelia_4.30.1_arm-x41.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476905/Authelia_4.30.5_arm-x41.qpkg</location>
         </platform>
-        <publishedDate>2021/08/06</publishedDate>
+        <publishedDate>2021/09/16</publishedDate>
         <maintainer><![CDATA[QoolBox]]></maintainer>
         <developer><![CDATA[QoolBox]]></developer>
         <forumLink><![CDATA[http://forum.qnapclub.fr/topic/11229-authelia/]]></forumLink>
@@ -22411,48 +22411,48 @@
                         <icon80>https://www.qnapclub.eu/storage/qpkg_artifacts/CloudFlared_2021.2.5_x86_64/qpkg_icon_80.gif</icon80>
                     <description><![CDATA[Argo Tunnel clientContains the command-line client for Argo Tunnel, a tunneling daemon that proxies any local webserver through the Cloudflare network. Extensive documentation can be found in the Argo Tunnel section of the Cloudflare Docs.TIP ME !!Your gratitude and finance will help me to continue integration of this QPKG and maintain up to date versions.        ]]></description>
         <fwVersion>4.2.6</fwVersion>
-        <version>2021.8.7</version>
+        <version>2021.9.0</version>
         <platform>
             <platformID>TS-X41</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476485/CloudFlared_2021.8.7_arm-x41.qpkg</location>
-        </platform>
-        <platform>
-            <platformID>TS-NASARM_64</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476487/CloudFlared_2021.8.7_arm_64.qpkg</location>
-        </platform>
-        <platform>
-            <platformID>TS-X28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476488/CloudFlared_2021.8.7_arm_64.qpkg</location>
-        </platform>
-        <platform>
-            <platformID>TS-X30</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476489/CloudFlared_2021.8.7_arm_64.qpkg</location>
-        </platform>
-        <platform>
-            <platformID>TS-X32</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476490/CloudFlared_2021.8.7_arm_64.qpkg</location>
-        </platform>
-        <platform>
-            <platformID>TS-X32U</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476491/CloudFlared_2021.8.7_arm_64.qpkg</location>
-        </platform>
-        <platform>
-            <platformID>TS-XA28A</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476492/CloudFlared_2021.8.7_arm_64.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476907/CloudFlared_2021.9.0_arm-x41.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-X31</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476493/CloudFlared_2021.8.7_arm-x31.qpkg</location>
-        </platform>
-        <platform>
-            <platformID>TS-ARM-X19</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476494/CloudFlared_2021.8.7_arm-x19.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476908/CloudFlared_2021.9.0_arm-x31.qpkg</location>
         </platform>
         <platform>
             <platformID>TS-NASX86</platformID>
-            <location>https://qnapclub.eu/en/qpkg/model/download/476495/CloudFlared_2021.8.7_x86.qpkg</location>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476910/CloudFlared_2021.9.0_x86.qpkg</location>
         </platform>
-        <publishedDate>2021/08/30</publishedDate>
+        <platform>
+            <platformID>TS-NASARM_64</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476911/CloudFlared_2021.9.0_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X28A</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476912/CloudFlared_2021.9.0_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X30</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476913/CloudFlared_2021.9.0_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X32</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476914/CloudFlared_2021.9.0_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X32U</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476915/CloudFlared_2021.9.0_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-XA28A</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476916/CloudFlared_2021.9.0_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-ARM-X19</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476917/CloudFlared_2021.9.0_arm-x19.qpkg</location>
+        </platform>
+        <publishedDate>2021/09/16</publishedDate>
         <maintainer><![CDATA[QoolBox]]></maintainer>
         <developer><![CDATA[QoolBox]]></developer>
         <forumLink><![CDATA[]]></forumLink>
@@ -25702,5 +25702,63 @@
         <bannerImg></bannerImg>
         <changeLog></changeLog>
         <tutorialLink><![CDATA[https://github.com/qdm12/ddns-updater]]></tutorialLink>
+    </item>
+    <item>
+        <name>HD Idle</name>
+        <internalName>HDIdle</internalName>
+        <changeLog>https://qnapclub.eu/en/qpkg/releasenotes/1192</changeLog>
+        <category>QnapClub</category>
+
+        <type>Dev tools</type>
+                        <icon80>https://www.qnapclub.eu/storage/qpkg_artifacts/HDIdle_1.16_arm_64/qpkg_icon_80.gif</icon80>
+                    <description><![CDATA[Hard Disk Idle Spin-Down Utilityhd-idle is a utility program for spinning-down external disks after a period of idle time. Since most external IDE disk enclosures don&#039;t support setting the IDE idle timer, a program like hd-idle is required to spin down idle disks automatically.https://github.com/adelolmo/hd-idleTIP ME !!Your gratitude and finance will help me to continue integration of this QPKG and maintain up to date versions.        ]]></description>
+        <fwVersion>4.2.6</fwVersion>
+        <version>1.16</version>
+        <platform>
+            <platformID>TS-NASARM_64</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476888/HDIdle_1.16_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X28A</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476889/HDIdle_1.16_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X30</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476890/HDIdle_1.16_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X32</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476891/HDIdle_1.16_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X32U</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476892/HDIdle_1.16_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-XA28A</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476893/HDIdle_1.16_arm_64.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X41</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476895/HDIdle_1.16_arm-x41.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-NASX86</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476896/HDIdle_1.16_x86.qpkg</location>
+        </platform>
+        <platform>
+            <platformID>TS-X31</platformID>
+            <location>https://qnapclub.eu/en/qpkg/model/download/476897/HDIdle_1.16_arm-x31.qpkg</location>
+        </platform>
+        <publishedDate>2021/09/16</publishedDate>
+        <maintainer><![CDATA[QoolBox]]></maintainer>
+        <developer><![CDATA[QoolBox]]></developer>
+        <forumLink><![CDATA[]]></forumLink>
+        <icon100></icon100>
+        <language><![CDATA[English]]></language>
+        <snapshot></snapshot>
+        <bannerImg></bannerImg>
+        <changeLog></changeLog>
+        <tutorialLink><![CDATA[https://github.com/adelolmo/hd-idle]]></tutorialLink>
     </item>
 </plugins>
