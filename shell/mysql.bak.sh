@@ -77,7 +77,7 @@ mysql_backup()
     
 
     echo $(date +'%Y-%m-%d %T')"  开始备份:${all_db}"
-    mysqldump -u${source_db_user} -P${source_db_port} -h${source_db_host} -p${source_db_password} --databases ${all_db} > ${dumpfile}.sql 2>/dev/null
+    mysqldump -u${source_db_user} -P${source_db_port} -h${source_db_host} -p${source_db_password} --column-statistics=0 --databases ${all_db} > ${dumpfile}.sql 2>/dev/null
     #迁移到目标库
     echo $(date +'%Y-%m-%d %T')"  开始导入"
     mysql -h${target_db_host} -P${target_db_port} -u${target_db_user} -p${target_db_password} < ${dumpfile}.sql 2>/dev/null
@@ -107,7 +107,7 @@ switch_env(){
       "test")
         source_db_user="nancal"
         source_db_password="nancal.123"
-        source_db_host="192.168.5.248.1"
+        source_db_host="192.168.5.248"
         source_db_port="3307"
       ;;
       *)
