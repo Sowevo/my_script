@@ -9,5 +9,5 @@ SRC-IP-CIDR,10.0.0.17/32
 # 获取本机ip接口
 DOMAIN,ip.istatmenus.app,DIRECT
 ## 自己的域名直连
-# DOMAIN-SUFFIX,sowevo.com
+DOMAIN-SUFFIX,sowevo.com
 DOMAIN-SUFFIX,nancal.co
