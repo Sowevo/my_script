@@ -1,0 +1,97 @@
+version: "3.7"
+# 服务
+services:
+  # 下载器 qbittorrent
+  qbittorrent:
+    image: linuxserver/qbittorrent
+    container_name: qbittorrent
+    restart: unless-stopped
+    environment:
+      - PUID=1000  # 用户id
+      - PGID=100   # 用户组id
+      - TZ=Asia/Shanghai
+      - WEBUI_PORT=8080 # QB webui的端口，你可以换成其他端口
+    volumes:
+      - ./qbittorrent:/config
+      - /share/Vol1/media_volume/downloads:/share/Vol1/media_volume/downloads    # 下载文件夹
+    ports:
+      - "50026:50026"
+      - "50026:50026/udp"
+      - "8080:8080"
+  # 资源索引中心 jackett
+  jackett:
+    image: linuxserver/jackett
+    container_name: jackett
+    restart: unless-stopped
+    environment:
+      - PUID=1000  # 用户id
+      - PGID=100   # 用户组id
+      - TZ=Asia/Shanghai
+      - AUTO_UPDATE=true
+    volumes:
+      - ./jackett:/config
+      - /share/Vol1/media_volume/downloads:/share/Vol1/media_volume/downloads   # 下载文件夹
+    ports:
+      - "9117:9117"
+  # 解决CF DDOS 
+  flaresolverr:
+    image: flaresolverr/flaresolverr
+    container_name: flaresolverr
+    restart: unless-stopped
+    ports:
+      - 8191:8191    
+  # 资源周转中心radarr
+  radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000  # 用户id
+      - PGID=100   # 用户组id
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./radarr:/config
+      - /share/Vol1/media_volume:/share/Vol1/media_volume    # 媒体文件夹
+    ports:  
+      - "7878:7878"
+  # 资源周转中心sonarr
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000  # 用户id
+      - PGID=100   # 用户组id
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./sonarr:/config
+      - /share/Vol1/media_volume:/share/Vol1/media_volume    # 媒体文件夹
+    ports:
+      - "8989:8989" 
+  # 影视库 jellyfin
+  jellyfin:
+    image: nyanmisaka/jellyfin
+    container_name: jellyfin
+    restart: unless-stopped
+    environment:
+      - PUID=1000  # 用户id
+      - PGID=100   # 用户组id
+      - TZ=Asia/Shanghai
+    devices:
+      - /dev/dri:/dev/dri
+    volumes:
+      - ./jellyfin:/config                                      # 配置文件夹
+      - /share/Vol1/media_volume/movies:/media_volume/movies    # 电影文件夹
+      - /share/Vol1/media_volume/series:/media_volume/series    # 剧集文件夹
+      - /share/Vol1/media_volume/bangumi:/media_volume/bangumi  # 番剧文件夹
+    ports:
+      - "8096:8096" # HTTP port
+
+
+
+
+# mkdir /share/Vol1/media_volume
+# mkdir /share/Vol1/media_volume/downloads
+# mkdir /share/Vol1/media_volume/movies
+# mkdir /share/Vol1/media_volume/series
+# mkdir /share/Vol1/media_volume/bangumi
