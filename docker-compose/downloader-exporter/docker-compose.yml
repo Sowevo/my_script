@@ -13,7 +13,7 @@ services:
     volumes:
       - ./downloader-exporter.yml:/config/downloader-exporter.yml
     ports:
-      - "9000:9009"
+      - "9009:9000"
   prometheus:
     image: prom/prometheus
     container_name: prometheus
