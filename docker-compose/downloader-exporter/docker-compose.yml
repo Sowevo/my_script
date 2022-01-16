@@ -7,13 +7,11 @@ services:
     container_name: downloader-exporter
     restart: unless-stopped
     environment:
-      - PUID=1000  # 用户id
-      - PGID=100   # 用户组id
-      - TZ=Asia/Shanghai
+      - EXPORTER_PORT=9009
     volumes:
-      - ./downloader-exporter.yml:/config/downloader-exporter.yml
+      - ./downloader-exporter.yml:/config/config.yml
     ports:
-      - "9009:9000"
+      - "9009:9009"
   prometheus:
     image: prom/prometheus
     container_name: prometheus
