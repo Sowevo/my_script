@@ -1,7 +1,7 @@
 version: "3.7"
 # 服务
 services:
-#  影视库 jellyfin
+  # 影视库 jellyfin
   jellyfin:
     image: nyanmisaka/jellyfin
     container_name: jellyfin
@@ -19,6 +19,7 @@ services:
       - /share/Vol1/media_volume/bangumi:/media_volume/bangumi  # 番剧文件夹
     ports:
       - "8096:8096" # HTTP port
+  # 字幕下载
   chinesesubfinder:
     image: allanpk716/chinesesubfinder
     container_name: chinesesubfinder
@@ -32,6 +33,7 @@ services:
       - ./chinesesubfinder/log:/app/Logs                        # 日志
       - /share/Vol1/media_volume/movies:/media_volume/movies    # 电影文件夹
       - /share/Vol1/media_volume/series:/media_volume/series    # 剧集文件夹
+  # 字幕下载 2
   chinesesubfinder-bangumi:
     image: allanpk716/chinesesubfinder
     container_name: chinesesubfinder-bangumi
@@ -44,6 +46,7 @@ services:
       - ./chinesesubfinder-bangumi:/config
       - ./chinesesubfinder-bangumi/log:/app/Logs                # 日志
       - /share/Vol1/media_volume/bangumi:/media_volume/bangumi  # 番剧文件夹
+  # nginx
   nginxWebUI:
     image: cym1102/nginxwebui
     container_name: nginxWebUI
@@ -57,6 +60,7 @@ services:
     privileged: true
     volumes:
       - ./nginxWebUI:/home/nginxWebUI
+  # tmm刮削器()
   tinymediamanager:
     image: tinymediamanager/tinymediamanager
     container_name: tinymediamanager
@@ -72,6 +76,20 @@ services:
       - TZ=Asis/Shanghai
     ports:
       - "4000:4000" # HTTP port
+  # 自动辅种
+  iyuuplus:
+    image: iyuucn/iyuuplus
+    container_name: iyuuplus
+    restart: unless-stopped
+    volumes:
+      - ./iyuuplus:/IYUU/db
+    environment:
+      - PUID=1000  # 用户id
+      - PGID=100   # 用户组id
+      - TZ=Asis/Shanghai
+    ports:
+      - "8787:8787" # HTTP port
+
 
 
 
