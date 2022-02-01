@@ -1,9 +1,9 @@
 # xbox不走代理
 SRC-IP-CIDR,10.0.0.18/32
-# NAS不用代理
+# NAS不用代理(PT的流量好贵的)
 SRC-IP-CIDR,10.0.0.2/32
 SRC-IP-CIDR,10.0.0.4/32
-# SRC-IP-CIDR,10.0.0.5/32
+SRC-IP-CIDR,10.0.0.5/32
 # 机顶盒不代理
 SRC-IP-CIDR,10.0.0.17/32
 # 获取本机ip接口
