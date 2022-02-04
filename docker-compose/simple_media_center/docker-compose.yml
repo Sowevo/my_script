@@ -17,35 +17,10 @@ services:
       - /share/Vol1/media_volume/movies:/media_volume/movies    # 电影文件夹
       - /share/Vol1/media_volume/series:/media_volume/series    # 剧集文件夹
       - /share/Vol1/media_volume/bangumi:/media_volume/bangumi  # 番剧文件夹
+      - /share/Vol2/media_volume/recordings:/media_volume/recordings # IPTV节目录制
+      - /share/Public/bj-unicom-iptv.m3u:/media_volume/bj-unicom-iptv.m3u # IPTV视频源
     ports:
       - "8096:8096" # HTTP port
-  # 字幕下载
-  chinesesubfinder:
-    image: allanpk716/chinesesubfinder
-    container_name: chinesesubfinder
-    restart: unless-stopped
-    environment:
-      - PUID=1000  # 用户id
-      - PGID=100   # 用户组id
-      - TZ=Asis/Shanghai
-    volumes:
-      - ./chinesesubfinder:/config
-      - ./chinesesubfinder/log:/app/Logs                        # 日志
-      - /share/Vol1/media_volume/movies:/media_volume/movies    # 电影文件夹
-      - /share/Vol1/media_volume/series:/media_volume/series    # 剧集文件夹
-  # 字幕下载 2
-  chinesesubfinder-bangumi:
-    image: allanpk716/chinesesubfinder
-    container_name: chinesesubfinder-bangumi
-    restart: unless-stopped
-    environment:
-      - PUID=1000  # 用户id
-      - PGID=100   # 用户组id
-      - TZ=Asis/Shanghai
-    volumes:
-      - ./chinesesubfinder-bangumi:/config
-      - ./chinesesubfinder-bangumi/log:/app/Logs                # 日志
-      - /share/Vol1/media_volume/bangumi:/media_volume/bangumi  # 番剧文件夹
   # nginx
   nginxWebUI:
     image: cym1102/nginxwebui
@@ -60,7 +35,7 @@ services:
     privileged: true
     volumes:
       - ./nginxWebUI:/home/nginxWebUI
-  # tmm刮削器()
+  # tmm刮削器
   tinymediamanager:
     image: tinymediamanager/tinymediamanager
     container_name: tinymediamanager

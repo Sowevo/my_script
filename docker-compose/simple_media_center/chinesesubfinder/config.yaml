@@ -1,9 +1,0 @@
-UseProxy: false
-HttpProxy: http://127.0.0.1:10809
-EveryTime: 6h
-Threads: 2
-RunAtStartup: true
-SubNameFormatter: 1
-MovieFolder: /media_volume/movies
-SeriesFolder: /media_volume/series
-FixTimeLine: true
