@@ -18,7 +18,7 @@ services:
       - /share/Vol1/media_volume/series:/media_volume/series    # 剧集文件夹
       - /share/Vol1/media_volume/bangumi:/media_volume/bangumi  # 番剧文件夹
       - /share/Vol2/media_volume/recordings:/media_volume/recordings # IPTV节目录制
-      - /share/Public/bj-unicom-iptv.m3u:/media_volume/bj-unicom-iptv.m3u # IPTV视频源
+      - /share/Public/bj-unicom-iptv.m3u:/iptv/bj-unicom-iptv.m3u # IPTV视频源
     ports:
       - "8096:8096" # HTTP port
   # nginx
