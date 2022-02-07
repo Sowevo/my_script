@@ -14,9 +14,9 @@ RUN set -x \
         git \
  && python3 -m pip install --no-cache-dir --upgrade pip \
  && pip3 install --no-cache-dir --upgrade git+https://github.com.cnpmjs.org/Sowevo/iptvtools.git \
-    # Requires python -> python3.
+ # Requires python -> python3.
  && ln -s /usr/bin/python3 /usr/bin/python \
- # Create directory to hold downloads.
+ # Create a directory to hold the output.
  && mkdir /out \
  && chmod a+rw /out
 
