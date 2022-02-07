@@ -3,20 +3,6 @@ FROM alpine:3.15.0
 # https://github.com/Yelp/dumb-init/releases
 ARG DUMB_INIT_VERSION=1.2.5
 
-#RUN \
-#  apk update && \
-#  build_pkgs="build-base dumb-init python3-dev py3-pip" && \
-#  runtime_pkgs="dumb-init python3 ffmpeg" && \
-#  apk --no-cache add --virtual build-dependencies ${build_pkgs} && \
-#  apk --no-cache add ${runtime_pkgs} && \
-#  ln -s /usr/bin/python3 /usr/bin/python && \
-#  python3 -m pip install --no-cache-dir --upgrade pip && \
-#  pip3 install --no-cache-dir --upgrade iptvtools && \
-#  apk del build-dependencies && \
-#  rm -rf /var/cache/apk/* && \
-#  rm -rf /root/.cache/pip && \
-#	find /usr/lib/ -name '__pycache__' -print0 | xargs -0 -n1 rm -rf && \
-#	find /usr/lib/ -name '*.pyc' -print0 | xargs -0 -n1 rm -rf
 
 RUN set -x \
  && apk update  \
