@@ -30,3 +30,8 @@ RUN dumb-init iptv-filter --version
 
 ENTRYPOINT ["dumb-init", "iptv-filter"]
 CMD ["--help"]
+
+
+# use
+# docker build -t iptvtools:test .
+# docker run --rm -v "$(pwd)":/out:rw iptvtools:test -i https://ghproxy.com/https://raw.githubusercontent.com/qwerttvv/Beijing-IPTV/master/IPTV-Unicom-Multicast.m3u -t http://epg.51zmt.top:8000/test.m3u -u http://10.0.0.1:4022 -s template-order -o out.m3u
