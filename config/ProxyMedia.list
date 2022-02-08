@@ -1,4 +1,4 @@
 # 火棒强制走这个分组
 SRC-IP-CIDR,10.0.0.14/32
 # AppleTv也走这个
-SRC-IP-CIDR,10.0.0.19/32
+# SRC-IP-CIDR,10.0.0.19/32
