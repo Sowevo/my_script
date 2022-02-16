@@ -105,8 +105,8 @@ switch_env(){
         source_db_port="3306"
       ;;
       "test")
-        source_db_user="nancal"
-        source_db_password="nancal.123"
+        source_db_user="model"
+        source_db_password="nancal.62ea"
         source_db_host="192.168.5.248"
         source_db_port="3307"
       ;;
