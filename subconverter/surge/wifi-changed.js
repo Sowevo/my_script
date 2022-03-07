@@ -9,7 +9,7 @@ if (wifiChanged()) {
   $notification.post(
     'Surge',
     `网络切换为 ${$network.wifi.ssid || '蜂窝'}`,
-    `使用 ${mode} 模式`
+    `使用 ${mode === 'direct' ? '直接链接':'规则模式' }`
   );
 }
 
