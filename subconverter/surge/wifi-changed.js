@@ -1,5 +1,5 @@
 const WIFI_DONT_NEED_PROXYS = ['NETGEAR_5G','NETGEAR','ASUS_b'];
-const WIFI_NEED_AUTH = ['OoO','nancal','ASUS_b'];
+const WIFI_NEED_AUTH = ['OoO','nancal'];
 const CURRENT_WIFI_SSID_KEY = 'current_wifi_ssid';
 
 if (wifiChanged()) {
@@ -12,7 +12,7 @@ if (wifiChanged()) {
         },(error, response, data) => {
             $notification.post(
                 'Surge',
-                '666',
+                '网络认证成功',
                 data
             );
             setOutboundMode()
