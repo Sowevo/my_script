@@ -13,7 +13,7 @@ if (wifiChanged()) {
       $notification.post(
         'Surge',
         `123`,
-        `${res}`
+        `${res.data}`
       );
     })
   }
