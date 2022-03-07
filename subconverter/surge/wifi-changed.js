@@ -9,7 +9,7 @@ if (wifiChanged()) {
         //进行网络认证
         $httpClient.get({
             url: "http://1.1.1.3/ac_portal/login.php?opr=pwdLogin&userName=dongjq&pwd=123456&rememberPwd=1",
-        },(error, response, body) => {
+        },(error, response, data) => {
             $notification.post(
                 'Surge',
                 '666',
