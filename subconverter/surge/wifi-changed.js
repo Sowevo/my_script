@@ -8,7 +8,7 @@ if (wifiChanged()) {
     $surge.setOutboundMode('direct');
     //进行网络认证
     $httpClient.post({
-      url: "http://www.example.com/?opr=pwdLogin&userName=dongjq&pwd=123456&rememberPwd=1",
+      url: "http://1.1.1.3/ac_portal/login.php?opr=pwdLogin&userName=dongjq&pwd=123456&rememberPwd=1",
     },(res,data) => {
       $notification.post(
         'Surge',
