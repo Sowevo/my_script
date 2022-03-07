@@ -1,10 +1,23 @@
 const WIFI_DONT_NEED_PROXYS = ['NETGEAR_5G','NETGEAR','ASUS_b'];
+const WIFI_NEED_AUTH = ['OoO','nancal','ASUS_b'];
 const CURRENT_WIFI_SSID_KEY = 'current_wifi_ssid';
 
 if (wifiChanged()) {
-  const mode = WIFI_DONT_NEED_PROXYS.includes($network.wifi.ssid)
-    ? 'direct'
-    : 'rule';
+  if(WIFI_DONT_NEED_PROXYS.includes($network.wifi.ssid)){
+    //先关掉代理(使用direct模式)
+    $surge.setOutboundMode('direct');
+    //进行网络认证
+    $httpClient.post({
+      url: "http://www.example.com/?opr=pwdLogin&userName=dongjq&pwd=123456&rememberPwd=1",
+    },res => {
+      $notification.post(
+        'Surge',
+        `123`,
+        `456`
+      );
+    })
+  }
+  const mode = WIFI_DONT_NEED_PROXYS.includes($network.wifi.ssid) ? 'direct' : 'rule';
   $surge.setOutboundMode(mode);
   $notification.post(
     'Surge',
