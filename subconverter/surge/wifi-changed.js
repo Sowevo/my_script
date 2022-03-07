@@ -9,11 +9,11 @@ if (wifiChanged()) {
     //进行网络认证
     $httpClient.post({
       url: "http://www.example.com/?opr=pwdLogin&userName=dongjq&pwd=123456&rememberPwd=1",
-    },res => {
+    },(res,data) => {
       $notification.post(
         'Surge',
         `123`,
-        `${res.data}`
+        `${data}`
       );
     })
   }
