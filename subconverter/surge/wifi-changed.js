@@ -12,7 +12,7 @@ if (wifiChanged()) {
         },(res,data) => {
             $notification.post(
                 'Surge',
-                `1234567890`,
+                `${data.msg}`,
                 `${data}`
             );
             setOutboundMode()
