@@ -1,4 +1,4 @@
-const WIFI_DONT_NEED_PROXYS = ['xiaomi_Alan_5G_1'];
+const WIFI_DONT_NEED_PROXYS = ['NETGEAR_5G','NETGEAR'];
 const CURRENT_WIFI_SSID_KEY = 'current_wifi_ssid';
 
 if (wifiChanged()) {
@@ -8,8 +8,8 @@ if (wifiChanged()) {
   $surge.setOutboundMode(mode);
   $notification.post(
     'Surge',
-    `Wi-Fi changed to ${$network.wifi.ssid || 'cellular'}`,
-    `use ${mode} mode`
+    `网络切换为 ${$network.wifi.ssid || '蜂窝'}`,
+    `使用 ${mode} 模式`
   );
 }
 
