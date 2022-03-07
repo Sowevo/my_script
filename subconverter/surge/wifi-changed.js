@@ -1,4 +1,4 @@
-const WIFI_DONT_NEED_PROXYS = ['NETGEAR_5G','NETGEAR','ASUS_b'];
+const WIFI_DONT_NEED_PROXYS = ['NETGEAR_5G','NETGEAR'];
 const WIFI_NEED_AUTH = ['OoO','nancal'];
 const CURRENT_WIFI_SSID_KEY = 'current_wifi_ssid';
 
