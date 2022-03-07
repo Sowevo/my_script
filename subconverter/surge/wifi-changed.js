@@ -3,7 +3,7 @@ const WIFI_NEED_AUTH = ['OoO','nancal','ASUS_b'];
 const CURRENT_WIFI_SSID_KEY = 'current_wifi_ssid';
 
 if (wifiChanged()) {
-  if(WIFI_DONT_NEED_PROXYS.includes($network.wifi.ssid)){
+  if(WIFI_NEED_AUTH.includes($network.wifi.ssid)){
     //先关掉代理(使用direct模式)
     $surge.setOutboundMode('direct');
     //进行网络认证
