@@ -6,6 +6,11 @@ if (wifiChanged()) {
     if(WIFI_NEED_AUTH.includes($network.wifi.ssid)){
         //先关掉代理(使用direct模式)
         $surge.setOutboundMode('direct');
+        $notification.post(
+            'Surge',
+            `网络切换为 ${$network.wifi.ssid || '蜂窝'}`,
+            '进行网络认证'
+        );
         //进行网络认证
         $httpClient.post({
             url: "http://1.1.1.3/ac_portal/login.php?opr=pwdLogin&userName=dongjq&pwd=123456&rememberPwd=1"
