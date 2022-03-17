@@ -1,5 +1,8 @@
 #!/bin/bash
-backup_dir="/Users/sowevo/backup/mysql/"
+# 需要安装 mysql-client
+# mac: brew install mysql-client
+# arch: sudo pacman -S mariadb-clients
+backup_dir="${HOME}/backup/mysql/"
 # 来源
 source_db_user="digitalthread"
 source_db_password="digitalthread"
