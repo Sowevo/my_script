@@ -1,7 +1,7 @@
 #!/bin/bash
 # 需要安装 mysql-client
 # mac: brew install mysql-client
-# arch: sudo pacman -S mariadb-clients
+# arch: yay -s mysql-clients
 backup_dir="${HOME}/backup/mysql/"
 # 来源
 source_db_user="digitalthread"
