@@ -17,7 +17,7 @@ time="$(date +"%Y%m%d%H%M%S")"
 env="dev"
 
 # 要保留的备份天数 #
-backup_day=10
+backup_day=30
 
 Usage() {
     echo "使用帮助:"

@@ -6,7 +6,7 @@
 
   下载bing壁纸并设置为桌面壁纸(Mac)
 
-- [mysql.bak.sh](./shell/mysql.bak.sh)
+- [mysql.bak.sh](./shell/mysql.sync.sh)
 
   开发环境数据同步
 
