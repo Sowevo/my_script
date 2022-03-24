@@ -114,6 +114,12 @@ switch_env(){
         source_db_host="192.168.5.248"
         source_db_port="3307"
       ;;
+      "211")
+        source_db_user="nancal"
+        source_db_password="nancal.123"
+        source_db_host="192.168.5.211"
+        source_db_port="3307"
+      ;;
       *)
         echo "参数env错误!,默认使用dev环境!!!"
       ;;
