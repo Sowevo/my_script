@@ -40,6 +40,7 @@ services:
     image: tinymediamanager/tinymediamanager
     container_name: tinymediamanager
     restart: unless-stopped
+    network_mode: host
     volumes:
       - ./tinymediamanager:/data
       - /share/Vol1/media_volume/movies:/media_volume/movies    # 电影文件夹
