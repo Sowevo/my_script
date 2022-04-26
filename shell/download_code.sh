@@ -28,7 +28,8 @@ else
   echo "获取成功...链接为:"$url
 fi
 
-
+filename=$(basename ${url} .zip)
+echo $filename
 
 echo "开始下载..."
 wget $url -q -O $base_path"code.zip"
@@ -41,12 +42,14 @@ fi
 
 
 echo "开始解压..."
-rm -rf $base_path"code"
-unzip -q $base_path"code.zip" -d $base_path"code"
+unzip -o -q $base_path"code.zip" -d $base_path$filename
 if [ $? -ne 0 ];then
   echo "解压失败..."
   exit 1
 else
   echo "解压成功..."
-  exit 0
 fi
+
+# 使用idea启动项目
+echo "启动项目..."
+idea $base_path$filename"/code"
