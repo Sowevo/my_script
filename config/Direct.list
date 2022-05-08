@@ -5,7 +5,7 @@ SRC-IP-CIDR,10.0.0.2/32
 SRC-IP-CIDR,10.0.0.4/32
 SRC-IP-CIDR,10.0.0.5/32
 # 机顶盒不代理
-SRC-IP-CIDR,10.0.0.17/32
+# SRC-IP-CIDR,10.0.0.17/32
 # 获取本机ip接口
 DOMAIN,ip.istatmenus.app,DIRECT
 ## 自己的域名直连
