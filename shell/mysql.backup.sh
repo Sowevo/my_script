@@ -3,28 +3,14 @@
 # mac: brew install mysql-client
 # arch: yay -s mysql-clients
 backup_dir="${HOME}/backup/mysql/"
-# 来源
-source_db_user="digitalthread"
-source_db_password="digitalthread"
-source_db_host="192.168.5.248"
-source_db_port="3306"
-
-# 目标
-target_db_user="root"
-target_db_password="hsgz8bz"
-target_db_host="192.168.21.185"
-target_db_port="33066"
-
-time="$(date +"%Y%m%d%H%M%S")"
-
-env="dev"
 
 # 要保留的备份天数 #
 backup_day=30
 
 Usage() {
     echo "使用帮助:"
-    echo "  -e 备份环境,可选dev,test"
+    echo "  -e 备份环境,可选dev,test,my,211"
+    echo "  -o 保存文件名,非必填"
     exit 1
 }
 
@@ -57,13 +43,6 @@ mysql_backup()
     echo $(date +'%Y-%m-%d %T')"  备份目录${backup_dir}"
     echo $(date +'%Y-%m-%d %T')"  开始备份"
 
-    # 要备份的数据库名
-    # all_db="$(mysql -u${source_db_user} -P${source_db_port} -h${source_db_host} -p${source_db_password} -Bse 'show databases' 2>/dev/null |grep digitalthread|tr '\n' ' ')"
-    all_db="digitalthread_basicconfig digitalthread_objectbuilder digitalthread_system"
-    backname=${source_db_host}.${source_db_port}.${time}
-    dumpfile=${backup_dir}${backname}
-
-
     echo $(date +'%Y-%m-%d %T')"  开始备份:${all_db}"
     mysqldump -u${source_db_user} -P${source_db_port} -h${source_db_host} -p${source_db_password} --column-statistics=0 --add-drop-database --databases ${all_db} > ${dumpfile}.sql 2>/dev/null
     #将备份数据库文件库压成ZIP文件，并删除先前的SQL文件. #
@@ -80,8 +59,9 @@ delete_old_backup()
     find ${backup_dir} -type f -mtime +${backup_day} | xargs rm -rf
 }
 
-# 切换来源的mysql
-switch_env(){
+# 处理参数
+switch_param(){
+    # 处理来源数据库信息
     case $env in
       "dev")
         source_db_user="digitalthread"
@@ -101,21 +81,42 @@ switch_env(){
         source_db_host="192.168.5.211"
         source_db_port="3307"
       ;;
+      "my")
+        source_db_user="root"
+        source_db_password="hsgz8bz"
+        source_db_host="192.168.21.185"
+        source_db_port="33066"
+      ;;
       *)
-        echo "参数env错误!,默认使用dev环境!!!"
+        echo "参数env错误!"
+        exit 1
       ;;
     esac
+
+    # 处理-o参数,设置到备份路径中
+    if [ ! $backname ]; then
+      time="$(date +"%Y%m%d%H%M%S")"
+      backname=${source_db_host}.${source_db_port}.${time}
+    fi
+
+
+    # 备份文件的路径(不含后缀)
+    dumpfile=${backup_dir}${backname}
+
+    # 要备份的数据库名称
+    all_db="digitalthread_basicconfig digitalthread_objectbuilder digitalthread_system"
 }
 
-while getopts "e:" opt
+while getopts "e:o:" opt
 do
     case $opt in
         e) env=$OPTARG;;
+        o) backname=$OPTARG;;
         ?) echo "参数错误!" Usage ;;
     esac
 done
 
-switch_env
+switch_param
 info
 test_mysql
 mysql_backup
