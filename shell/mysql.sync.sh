@@ -24,7 +24,7 @@ backup_day=30
 
 Usage() {
     echo "使用帮助:"
-    echo "  -e 备份环境,可选dev,test"
+    echo "  -e 备份环境,可选dev,test,211"
     echo "  -h 目标MYSQL主机地址,eg:192.168.1.1"
     echo "  -u 目标MYSQL账号,eg:root"
     echo "  -p 目标MYSQL密码,eg:root"
