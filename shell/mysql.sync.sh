@@ -2,6 +2,7 @@
 # 需要安装 mysql-client
 # mac: brew install mysql-client
 # arch: yay -s mysql-clients
+# fedora: sudo yum install mysql -y
 backup_dir="${HOME}/backup/mysql/"
 # 来源
 source_db_user="digitalthread"
