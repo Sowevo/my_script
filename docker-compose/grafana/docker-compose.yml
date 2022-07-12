@@ -1,0 +1,35 @@
+version: "3.7"
+# 服务
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    hostname: prometheus
+    restart: always
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    hostname: grafana
+    restart: always
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=hsgz8bz
+      - GF_SECURITY_ADMIN_USER=root
+    volumes:
+      - ./grafana:/var/lib/grafana              # 配置文件夹
+      - ./datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+      - ./dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - ./Speedtest-Exporter.json:/etc/grafana/provisioning/dashboards/Speedtest-Exporter.json
+    ports:
+        - "3000:3000"
+  speedtest-exporter:
+    image: miguelndecarvalho/speedtest-exporter
+    container_name: speedtest-exporter
+    ports:
+      - "9798:9798"
+# TODO prometheus 持久化
+# TODO 配置文件结构整理
+# TODO dashboards中文?
