@@ -2,29 +2,37 @@
 
 ## [shell](./shell):一些脚本
 
-- [bing.wallpapers.sh](./shell/bing.wallpapers.sh)
+  - [bing.wallpapers.sh](./shell/bing.wallpapers.sh)
 
-  下载bing壁纸并设置为桌面壁纸(Mac)
+    下载bing壁纸并设置为桌面壁纸(Mac)
 
-- [mysql.bak.sh](./shell/mysql.sync.sh)
+  - [mysql.sync.sh](./shell/mysql.sync.sh)
 
-  开发环境数据同步
+    开发环境数据同步
+
+  - [mysql.backup.sh](./shell/mysql.backup.sh)
+
+    开发环境数据备份
 
 ## [postfix-templates](./postfix-templates)
 
   idea自定义补全,使用[Custom Postfix Templates](https://plugins.jetbrains.com/plugin/9862-custom-postfix-templates)插件
 
-## [config](./config)
+## [subconverter](./subconverter)
 
-  clash的自定义配置
+  [subconverter](https://github.com/tindy2013/subconverter/blob/master/README-cn.md)的自定义转换配置,包含clash与surge
 
 ## [docker-compose](./docker-compose):一些docker-compose配置
 
-- [media_center](./docker-compose/media_center/docker-compose.yml)
+  - [simple_media_center](./docker-compose/simple_media_center/docker-compose.yml)
 
-  自动下载电影电视剧
+    Nas中的资源管理工具
 
-- [downloader-exporter](./docker-compose/downloader-exporter/docker-compose.yml)
+  - [grafana](./docker-compose/grafana/docker-compose.yml)
 
-  下载监控.
+    无聊的监控,可视化.
+## [m3u](./m3u)
+  - ~~北京联通IPTV的m3u配置,最近好像失效了,有空处理下~~
+## [python](./python) 一些python脚本
+  - [gycq](./python/gycq.py) 共有产权房监控提醒,可以丢到[青龙面板](https://github.com/whyour/qinglong)中使用.
 
