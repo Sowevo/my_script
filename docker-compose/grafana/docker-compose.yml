@@ -7,7 +7,8 @@ services:
     hostname: prometheus
     restart: always
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus-data:/prometheus
     ports:
       - "9090:9090"
   grafana:
@@ -18,18 +19,37 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=hsgz8bz
       - GF_SECURITY_ADMIN_USER=root
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_SECURITY_ALLOW_EMBEDDING=true
     volumes:
-      - ./grafana:/var/lib/grafana              # 配置文件夹
-      - ./datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
-      - ./dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
-      - ./Speedtest-Exporter.json:/etc/grafana/provisioning/dashboards/Speedtest-Exporter.json
+      - ./grafana-data:/var/lib/grafana              # 配置文件夹
+      - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+      - ./grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - ./grafana/dashboards-json:/etc/grafana/provisioning/dashboards-json
     ports:
         - "3000:3000"
+
+
+
+
+
+
   speedtest-exporter:
     image: miguelndecarvalho/speedtest-exporter
     container_name: speedtest-exporter
     ports:
       - "9798:9798"
-# TODO prometheus 持久化
-# TODO 配置文件结构整理
+  cadvisor:
+    # 这个镜像好难拉取
+    image: gcr.io/cadvisor/cadvisor
+    container_name: cadvisor
+    hostname: cadvisor
+    restart: always
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - "6688:8080"
 # TODO dashboards中文?
