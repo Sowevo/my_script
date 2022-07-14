@@ -6,6 +6,8 @@ services:
     container_name: prometheus
     hostname: prometheus
     restart: always
+    environment:
+      - TZ=Asia/Shanghai
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./prometheus-data:/prometheus
@@ -17,6 +19,7 @@ services:
     hostname: grafana
     restart: always
     environment:
+      - TZ=Asia/Shanghai
       - GF_SECURITY_ADMIN_PASSWORD=hsgz8bz
       - GF_SECURITY_ADMIN_USER=root
       - GF_AUTH_ANONYMOUS_ENABLED=true
@@ -37,6 +40,10 @@ services:
   speedtest-exporter:
     image: miguelndecarvalho/speedtest-exporter
     container_name: speedtest-exporter
+    hostname: speedtest-exporter
+    restart: always
+    entrypoint:
+      - TZ=Asia/Shanghai
     ports:
       - "9798:9798"
   cadvisor:
@@ -45,6 +52,8 @@ services:
     container_name: cadvisor
     hostname: cadvisor
     restart: always
+    entrypoint:
+      - TZ=Asia/Shanghai
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:rw
