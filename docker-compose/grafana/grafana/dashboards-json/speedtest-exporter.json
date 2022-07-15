@@ -23,8 +23,8 @@
   "fiscalYearStartMonth": 0,
   "gnetId": 13665,
   "graphTooltip": 0,
-  "id": 1,
-  "iteration": 1657629302798,
+  "id": 2,
+  "iteration": 1657851297059,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -105,7 +105,7 @@
           "refId": "A"
         }
       ],
-      "title": "Status of the Speedtest-Exporter",
+      "title": "Speedtest-Exporter状态",
       "type": "stat"
     },
     {
@@ -163,7 +163,7 @@
           "refId": "A"
         }
       ],
-      "title": "ServerID (Last test done)",
+      "title": "服务ID (最后一次成功)",
       "type": "stat"
     },
     {
@@ -176,7 +176,7 @@
       },
       "id": 8,
       "panels": [],
-      "title": "Gauges",
+      "title": "仪表",
       "type": "row"
     },
     {
@@ -234,7 +234,7 @@
           "refId": "A"
         }
       ],
-      "title": "Download Speed",
+      "title": "下载速度",
       "type": "gauge"
     },
     {
@@ -291,7 +291,7 @@
           "refId": "A"
         }
       ],
-      "title": "Upload Speed",
+      "title": "上传速度",
       "type": "gauge"
     },
     {
@@ -348,7 +348,7 @@
           "refId": "A"
         }
       ],
-      "title": "Ping",
+      "title": "延迟",
       "type": "gauge"
     },
     {
@@ -405,7 +405,7 @@
           "refId": "A"
         }
       ],
-      "title": "Jitter",
+      "title": "抖动",
       "type": "gauge"
     },
     {
@@ -418,7 +418,7 @@
       },
       "id": 6,
       "panels": [],
-      "title": "Graphics",
+      "title": "图形",
       "type": "row"
     },
     {
@@ -429,7 +429,7 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisLabel": "Download Speed",
+            "axisLabel": "下载速度",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
@@ -504,13 +504,13 @@
             "uid": "Prometheus"
           },
           "exemplar": true,
-          "expr": "speedtest_download_bits_per_second{instance=\"$instance\", job=\"$job\"}*10^-6",
+          "expr": "speedtest_download_bits_per_second{instance=\"$instance\", job=\"$job\"}*10^-6>0",
           "interval": "",
-          "legendFormat": "Download Speed (Mbits/s)",
+          "legendFormat": "下载速度 (Mbits/s)",
           "refId": "A"
         }
       ],
-      "title": "Download Speed (Mbits/s)",
+      "title": "下载速度 (Mbits/s)",
       "type": "timeseries"
     },
     {
@@ -520,7 +520,7 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisLabel": "Upload Speed",
+            "axisLabel": "上传速度",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
@@ -595,13 +595,13 @@
             "uid": "Prometheus"
           },
           "exemplar": true,
-          "expr": "speedtest_upload_bits_per_second{instance=\"$instance\", job=\"$job\"}*10^-6",
+          "expr": "speedtest_upload_bits_per_second{instance=\"$instance\", job=\"$job\"}*10^-6>0",
           "interval": "",
-          "legendFormat": "Upload Speed (Mbits/s)",
+          "legendFormat": "上传速度 (Mbits/s)",
           "refId": "A"
         }
       ],
-      "title": "Upload Speed (Mbits/s)",
+      "title": "上传速度 (Mbits/s)",
       "type": "timeseries"
     },
     {
@@ -611,7 +611,7 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisLabel": "Time",
+            "axisLabel": "时间",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
@@ -688,7 +688,7 @@
           "exemplar": true,
           "expr": "speedtest_ping_latency_milliseconds{instance=\"$instance\", job=\"$job\"}",
           "interval": "",
-          "legendFormat": "Ping (ms)",
+          "legendFormat": "延迟 (ms)",
           "refId": "A"
         },
         {
@@ -700,11 +700,11 @@
           "expr": "speedtest_jitter_latency_milliseconds{instance=\"$instance\", job=\"$job\"}",
           "instant": false,
           "interval": "",
-          "legendFormat": "Jitter (ms)",
+          "legendFormat": "抖动 (ms)",
           "refId": "B"
         }
       ],
-      "title": "Ping and Jitter (ms)",
+      "title": "延迟与抖动 (ms)",
       "type": "timeseries"
     }
   ],
