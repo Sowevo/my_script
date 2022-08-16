@@ -18,8 +18,8 @@ services:
       - "443:443"
     volumes:
       - ./nginx-config/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./nginx/fullchain.pem:/etc/nginx/certs/fullchain.pem
-      - ./nginx/privkey.pem:/etc/nginx/certs/privkey.pem
+      - ./nginx-config/fullchain.pem:/etc/nginx/certs/fullchain.pem
+      - ./nginx-config/privkey.pem:/etc/nginx/certs/privkey.pem
     environment:
       - REGISTRY_TITLE=Private Docker Registry
       - DELETE_IMAGES=true
