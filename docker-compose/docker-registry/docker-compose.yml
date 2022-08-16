@@ -4,7 +4,10 @@ services:
     image: registry:2.7
     restart: always
     volumes:
-      - /docker-volumes/registry/data:/var/lib/registry
+      - registry-data:/var/lib/registry
+      - ./config.yml:/etc/docker/registry/config.yml:ro
+    networks:
+      - registry-ui-net
     container_name: registry
 
   ui:
@@ -18,5 +21,11 @@ services:
       - DELETE_IMAGES=true
       - SINGLE_REGISTRY=true
     container_name: registry-ui
+    networks:
+      - registry-ui-net
     depends_on:
       - registry
+volumes:
+    registry-data:
+networks:
+    registry-ui-net:
