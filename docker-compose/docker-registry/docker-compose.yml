@@ -5,7 +5,7 @@ services:
     restart: always
     volumes:
       - registry-data:/var/lib/registry
-      - ./config.yml:/etc/docker/registry/config.yml:ro
+      - ./registry-config/config.yml:/etc/docker/registry/config.yml:ro
     networks:
       - registry-ui-net
     container_name: registry
@@ -15,9 +15,13 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx-config/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/fullchain.pem:/etc/nginx/certs/fullchain.pem
+      - ./nginx/privkey.pem:/etc/nginx/certs/privkey.pem
     environment:
       - REGISTRY_TITLE=Private Docker Registry
-      - NGINX_PROXY_PASS_URL=http://registry:5000
       - DELETE_IMAGES=true
       - SINGLE_REGISTRY=true
     container_name: registry-ui
