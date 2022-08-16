@@ -32,7 +32,7 @@
 
     无聊的监控,可视化.
 ## [m3u](./m3u)
-  - ~~北京联通IPTV的m3u配置,最近好像失效了,有空处理下~~
+  - 北京联通IPTV的m3u配置
 ## [python](./python) 一些python脚本
   - [gycq](./python/gycq.py) 共有产权房监控提醒,可以丢到[青龙面板](https://github.com/whyour/qinglong)中使用.
 
