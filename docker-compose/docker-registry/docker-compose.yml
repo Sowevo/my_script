@@ -1,0 +1,22 @@
+version: '2.0'
+services:
+  registry:
+    image: registry:2.7
+    restart: always
+    volumes:
+      - /docker-volumes/registry/data:/var/lib/registry
+    container_name: registry
+
+  ui:
+    image: joxit/docker-registry-ui:latest
+    restart: always
+    ports:
+      - "80:80"
+    environment:
+      - REGISTRY_TITLE=Private Docker Registry
+      - NGINX_PROXY_PASS_URL=http://registry:5000
+      - DELETE_IMAGES=true
+      - SINGLE_REGISTRY=true
+    container_name: registry-ui
+    depends_on:
+      - registry
