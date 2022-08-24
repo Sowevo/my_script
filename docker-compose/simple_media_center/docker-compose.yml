@@ -8,8 +8,6 @@ services:
     restart: always
     environment:
       - TZ=Asia/Shanghai
-      - PUID=1000  # 用户id
-      - PGID=100   # 用户组id
     devices:
       - /dev/dri:/dev/dri
     volumes:
@@ -22,7 +20,6 @@ services:
   # nginx
   nginxWebUI:
     image: cym1102/nginxwebui
-    user: "1000:100"
     container_name: nginxWebUI
     restart: always
     environment:
@@ -38,7 +35,6 @@ services:
   # tmm刮削器
   tinymediamanager:
     image: tinymediamanager/tinymediamanager
-    user: "1000:100"
     container_name: tinymediamanager
     restart: always
     environment:
