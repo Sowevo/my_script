@@ -1,0 +1,35 @@
+version: '2.0'
+services:
+  registry:
+    image: registry:2.7
+    restart: always
+    volumes:
+      - registry-data:/var/lib/registry
+      - ./registry-config/config.yml:/etc/docker/registry/config.yml:ro
+    networks:
+      - registry-ui-net
+    container_name: registry
+
+  ui:
+    image: joxit/docker-registry-ui:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx-config/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx-config/fullchain.pem:/etc/nginx/certs/fullchain.pem
+      - ./nginx-config/privkey.pem:/etc/nginx/certs/privkey.pem
+    environment:
+      - REGISTRY_TITLE=Private Docker Registry
+      - DELETE_IMAGES=true
+      - SINGLE_REGISTRY=true
+    container_name: registry-ui
+    networks:
+      - registry-ui-net
+    depends_on:
+      - registry
+volumes:
+    registry-data:
+networks:
+    registry-ui-net:
