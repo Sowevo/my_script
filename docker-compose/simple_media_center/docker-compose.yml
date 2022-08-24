@@ -4,6 +4,7 @@ services:
   # 影视库 jellyfin
   jellyfin:
     image: nyanmisaka/jellyfin
+    user: "1000:100"
     container_name: jellyfin
     restart: always
     environment:
@@ -20,6 +21,7 @@ services:
   # nginx
   nginxWebUI:
     image: cym1102/nginxwebui
+    user: "1000:100"
     container_name: nginxWebUI
     restart: always
     environment:
@@ -35,6 +37,7 @@ services:
   # tmm刮削器
   tinymediamanager:
     image: tinymediamanager/tinymediamanager
+    user: "1000:100"
     container_name: tinymediamanager
     restart: always
     environment:
