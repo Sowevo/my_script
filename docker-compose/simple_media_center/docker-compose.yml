@@ -47,13 +47,12 @@ services:
       - "4000:4000" # HTTP port
   hlink:
     image: likun7981/hlink # docker镜像名称
+    user: "1000:100"
     container_name: hlink
     restart: always
     environment:
       # 指定配置文件位置
       - HLINK_HOME=/share/Container/docker-volumes/hlink
-      - PUID=1000  # 用户id
-      - PGID=100   # 用户组id
     volumes:
       # 威联通的路径完全映射
       - /share:/share
