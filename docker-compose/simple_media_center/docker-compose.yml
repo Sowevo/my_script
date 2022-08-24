@@ -4,11 +4,12 @@ services:
   # 影视库 jellyfin
   jellyfin:
     image: nyanmisaka/jellyfin
-    user: "1000:100"
     container_name: jellyfin
     restart: always
     environment:
       - TZ=Asia/Shanghai
+      - PUID=1000  # 用户id
+      - PGID=100   # 用户组id
     devices:
       - /dev/dri:/dev/dri
     volumes:
