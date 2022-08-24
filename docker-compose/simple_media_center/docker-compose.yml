@@ -52,6 +52,8 @@ services:
     environment:
       # 指定配置文件位置
       - HLINK_HOME=/share/Container/docker-volumes/hlink
+      - PUID=1000  # 用户id
+      - PGID=100   # 用户组id
     volumes:
       # 威联通的路径完全映射
       - /share:/share
