@@ -1,76 +1,112 @@
 version: "3"
 services:
+  # 核心服务  nas-tools
   nas-tools:
     image: jxxghp/nas-tools
     container_name: nas-tools
     restart: always
     environment:
       - TZ=Asia/Shanghai
-      - PUID=0    # 想切换为哪个用户来运行程序，该用户的uid
-      - PGID=0    # 想切换为哪个用户来运行程序，该用户的gid
-      - NASTOOL_AUTO_UPDATE=false  # 如需在启动容器时自动升级程程序请设置为true
-      - UMASK=000 # 掩码权限，默认000，可以考虑设置为022
-     #- REPO_URL=https://ghproxy.com/https://github.com/jxxghp/nas-tools.git  # 当你访问github网络很差时，可以考虑解释本行注释
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
+      # 如需在启动容器时自动升级程程序请设置为true
+      - NASTOOL_AUTO_UPDATE=false
+      # 掩码权限，默认000，可以考虑设置为022
+      - UMASK=022
+      # 当你访问github网络很差时，可以考虑解释本注释
+      # - REPO_URL=https://ghproxy.com/https://github.com/jxxghp/nas-tools.git
     volumes:
-      - /docker-volumes/nas-tools/config:/config   # 冒号左边请修改为你想保存配置的路径
-      - /share:/share      # 媒体目录
+      # 配置文件夹
+      - /share/Container/docker-volumes/nas-tools/config:/config
+      # 媒体目录
+      - /share:/share
     ports:
-      - "3000:3000"        # 默认的webui控制端口
+      - "3000:3000"
 
-
+  # 索引
   jackett:
     image: linuxserver/jackett
     container_name: jackett
-    restart: unless-stopped
+    restart: always
     environment:
       - TZ=Asia/Shanghai
-      - PUID=0  # 用户id
-      - PGID=0   # 用户组id
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
       - AUTO_UPDATE=true
     volumes:
-      - /docker-volumes/jackett/config:/config
+      - /share/Container/docker-volumes/jackett/config:/config
       - /share:/share
     ports:
       - "9117:9117"
 
-  # 解决CF DDOS
+  # 解决  jackett遇到 CF DDOS的问题
   flaresolverr:
     image: flaresolverr/flaresolverr
     container_name: flaresolverr
-    restart: unless-stopped
+    restart: always
     ports:
       - "8191:8191"
 
+
+  # 媒体库
   jellyfin:
     image: nyanmisaka/jellyfin
     container_name: jellyfin
-    restart: unless-stopped
+    restart: always
     environment:
-      - PUID=0  # 用户id
-      - PGID=0   # 用户组id
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
       - TZ=Asia/Shanghai
-    #devices:
-    #  - /dev/dri:/dev/dri
+    devices:
+      - /dev/dri:/dev/dri
     volumes:
-      - /docker-volumes/jellyfin/config:/config                   # 配置文件夹
-      - /share:/share                                             # 媒体目录
+      # 配置文件夹
+      - /share/Container/docker-volumes/jellyfin/config:/config
+      # 媒体目录
+      - /share:/share
     ports:
-      - "8096:8096" # HTTP port
+      - "8096:8096"
 
 
-  qbittorrent:
-    image: linuxserver/qbittorrent
-    container_name: qbittorrent
-    restart: unless-stopped
+
+  # nginx
+  nginxWebUI:
+    image: cym1102/nginxwebui
+    container_name: nginxWebUI
+    restart: always
     environment:
-      - PUID=0  # 用户id
-      - PGID=0   # 用户组id
-      - TZ=Asia/Shanghai
-      - WEBUI_PORT=8080 # QB webui的端口，你可以换成其他端口
+      - TZ=Asis/Shanghai
+      - BOOT_OPTIONS=--server.port=8866
+    privileged: true
     volumes:
-      - /docker-volumes/qbittorrent/config:/config
-      - /share:/share                                             # 媒体目录
+      # 配置文件夹
+      - /share/Container/docker-volumes/nginxWebUI:/home/nginxWebUI
     ports:
-      - "50126:50126"
-      - "50126:50126/udp"
-      - "8080:8080"
+      # HTTP port
+      - "1443:1443"
+      - "8866:8866"
+
+
+#  # 下载器,使用外部的
+#  qbittorrent:
+#    image: linuxserver/qbittorrent
+#    container_name: qbittorrent
+#    restart: unless-stopped
+#    environment:
+#      - PUID=0  # 用户id
+#      - PGID=0   # 用户组id
+#      - TZ=Asia/Shanghai
+#      - WEBUI_PORT=8080 # QB webui的端口，你可以换成其他端口
+#    volumes:
+#      - /docker-volumes/qbittorrent/config:/config
+#      - /share:/share                                             # 媒体目录
+#    ports:
+#      - "50126:50126"
+#      - "50126:50126/udp"
+#      - "8080:8080"
