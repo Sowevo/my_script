@@ -33,6 +33,14 @@ services:
     ports:
       - "9117:9117"
 
+  # 解决CF DDOS
+  flaresolverr:
+    image: flaresolverr/flaresolverr
+    container_name: flaresolverr
+    restart: unless-stopped
+    ports:
+      - 8191:8191
+
   jellyfin:
     image: nyanmisaka/jellyfin
     container_name: jellyfin
