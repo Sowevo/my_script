@@ -5,13 +5,64 @@ services:
     container_name: nas-tools
     restart: always
     environment:
+      - TZ=Asia/Shanghai
       - PUID=0    # 想切换为哪个用户来运行程序，该用户的uid
       - PGID=0    # 想切换为哪个用户来运行程序，该用户的gid
-      - UMASK=000 # 掩码权限，默认000，可以考虑设置为022
       - NASTOOL_AUTO_UPDATE=false  # 如需在启动容器时自动升级程程序请设置为true
+      - UMASK=000 # 掩码权限，默认000，可以考虑设置为022
      #- REPO_URL=https://ghproxy.com/https://github.com/jxxghp/nas-tools.git  # 当你访问github网络很差时，可以考虑解释本行注释
     volumes:
       - /docker-volumes/nas-tools/config:/config   # 冒号左边请修改为你想保存配置的路径
-      - /share:/share      # 媒体目录，多个目录需要分别映射进来，需要满足配置文件说明中的要求
+      - /share:/share      # 媒体目录
     ports:
       - "3000:3000"        # 默认的webui控制端口
+
+
+  jackett:
+    image: linuxserver/jackett
+    container_name: jackett
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+      - PUID=0  # 用户id
+      - PGID=0   # 用户组id
+      - AUTO_UPDATE=true
+    volumes:
+      - /docker-volumes/jackett/config:/config
+      - /share:/share
+    ports:
+      - "9117:9117"
+
+  jellyfin:
+    image: nyanmisaka/jellyfin
+    container_name: jellyfin
+    restart: unless-stopped
+    environment:
+      - PUID=0  # 用户id
+      - PGID=0   # 用户组id
+      - TZ=Asia/Shanghai
+    devices:
+      - /dev/dri:/dev/dri
+    volumes:
+      - /docker-volumes/jellyfin/config:/config                   # 配置文件夹
+      - /share:/share                                             # 媒体目录
+    ports:
+      - "8096:8096" # HTTP port
+
+
+  qbittorrent:
+    image: linuxserver/qbittorrent
+    container_name: qbittorrent
+    restart: unless-stopped
+    environment:
+      - PUID=0  # 用户id
+      - PGID=0   # 用户组id
+      - TZ=Asia/Shanghai
+      - WEBUI_PORT=8080 # QB webui的端口，你可以换成其他端口
+    volumes:
+      - /docker-volumes/qbittorrent/config:/config
+      - /share:/share                                             # 媒体目录
+    ports:
+      - "50126:50126"
+      - "50126:50126/udp"
+      - "8080:8080"
