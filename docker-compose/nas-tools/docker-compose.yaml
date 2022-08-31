@@ -41,8 +41,8 @@ services:
       - PUID=0  # 用户id
       - PGID=0   # 用户组id
       - TZ=Asia/Shanghai
-    devices:
-      - /dev/dri:/dev/dri
+    #devices:
+    #  - /dev/dri:/dev/dri
     volumes:
       - /docker-volumes/jellyfin/config:/config                   # 配置文件夹
       - /share:/share                                             # 媒体目录
