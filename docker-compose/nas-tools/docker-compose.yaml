@@ -93,20 +93,36 @@ services:
       - "8866:8866"
 
 
-#  # 下载器,使用外部的
-#  qbittorrent:
-#    image: linuxserver/qbittorrent
-#    container_name: qbittorrent
-#    restart: unless-stopped
-#    environment:
-#      - PUID=0  # 用户id
-#      - PGID=0   # 用户组id
-#      - TZ=Asia/Shanghai
-#      - WEBUI_PORT=8080 # QB webui的端口，你可以换成其他端口
-#    volumes:
-#      - /docker-volumes/qbittorrent/config:/config
-#      - /share:/share                                             # 媒体目录
-#    ports:
-#      - "50126:50126"
-#      - "50126:50126/udp"
-#      - "8080:8080"
+  # 下载器
+  # 下载器使用macvlan的网络,使得容器获得独立的ip
+  # 方便做流量控制
+  qbittorrent:
+    image: linuxserver/qbittorrent
+    container_name: qbittorrent
+    restart: unless-stopped
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.151
+    environment:
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
+      - TZ=Asia/Shanghai
+      - WEBUI_PORT=8080 # QB webui的端口，你可以换成其他端口
+    volumes:
+      - /docker-volumes/qbittorrent/config:/config
+      - /share:/share
+    ports:
+      - "50126:50126"
+      - "50126:50126/udp"
+      - "8080:8080"
+networks:
+  macvlan:
+    driver: macvlan
+    driver_opts:
+      parent: qvs0
+    ipam:
+      config:
+        - subnet: 10.0.0.0/24
+          gateway: 10.0.0.1
