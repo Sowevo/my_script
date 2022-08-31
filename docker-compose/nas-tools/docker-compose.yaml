@@ -1,10 +1,17 @@
 version: "3"
 services:
+  # 使用macvlan的网络,使得容器获得独立的ip
+  # 方便做流量控制
+
   # 核心服务  nas-tools
   nas-tools:
-    image: jxxghp/nas-tools
+    image: jxxghp/nas-tools:latest
     container_name: nas-tools
+    hostname: nas-tools
     restart: always
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.156
     environment:
       - TZ=Asia/Shanghai
       # 用户id
@@ -29,7 +36,11 @@ services:
   jackett:
     image: linuxserver/jackett
     container_name: jackett
+    hostname: jackett
     restart: always
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.155
     environment:
       - TZ=Asia/Shanghai
       # 用户id
@@ -47,7 +58,11 @@ services:
   flaresolverr:
     image: flaresolverr/flaresolverr
     container_name: flaresolverr
+    hostname: flaresolverr
     restart: always
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.154
     ports:
       - "8191:8191"
 
@@ -56,7 +71,11 @@ services:
   jellyfin:
     image: nyanmisaka/jellyfin
     container_name: jellyfin
+    hostname: jellyfin
     restart: always
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.153
     environment:
       # 用户id
       - PUID=1000
@@ -79,7 +98,11 @@ services:
   nginxWebUI:
     image: cym1102/nginxwebui
     container_name: nginxWebUI
+    hostname: nginxWebUI
     restart: always
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.152
     environment:
       - TZ=Asis/Shanghai
       - BOOT_OPTIONS=--server.port=8866
@@ -94,11 +117,10 @@ services:
 
 
   # 下载器
-  # 下载器使用macvlan的网络,使得容器获得独立的ip
-  # 方便做流量控制
   qbittorrent:
     image: linuxserver/qbittorrent
     container_name: qbittorrent
+    hostname: qbittorrent
     restart: unless-stopped
     networks:
       macvlan:
