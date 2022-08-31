@@ -5,86 +5,56 @@ services:
   jellyfin:
     image: nyanmisaka/jellyfin
     container_name: jellyfin
-    restart: unless-stopped
+    restart: always
     environment:
-      - PUID=1000  # 用户id
-      - PGID=100   # 用户组id
       - TZ=Asia/Shanghai
     devices:
       - /dev/dri:/dev/dri
     volumes:
-      - ./jellyfin:/config                                      # 配置文件夹
-      - /share/Vol1/media_volume/movies:/media_volume/movies    # 电影文件夹
-      - /share/Vol1/media_volume/series:/media_volume/series    # 剧集文件夹
-      - /share/Vol1/media_volume/bangumi:/media_volume/bangumi  # 番剧文件夹
-      - /share/Vol2/media_volume/recordings:/media_volume/recordings # IPTV节目录制
-      - /share/Vol2/media_volume/m3u:/media_volume/m3u          # IPTV视频源文件夹
+      # 配置文件夹
+      - /share/Container/docker-volumes/jellyfin:/config
+      # 威联通的路径完全映射
+      - /share:/share
     ports:
       - "8096:8096" # HTTP port
   # nginx
   nginxWebUI:
     image: cym1102/nginxwebui
     container_name: nginxWebUI
-    restart: unless-stopped
-    network_mode: host
+    restart: always
     environment:
-      - PUID=1000  # 用户id
-      - PGID=100   # 用户组id
       - TZ=Asis/Shanghai
       - BOOT_OPTIONS=--server.port=8866
     privileged: true
     volumes:
-      - ./nginxWebUI:/home/nginxWebUI
+      - /share/Container/docker-volumes/nginxWebUI:/home/nginxWebUI
+    ports:
+      # HTTP port
+      - "1443:1443"
+      - "8866:8866"
   # tmm刮削器
   tinymediamanager:
     image: tinymediamanager/tinymediamanager
     container_name: tinymediamanager
-    restart: unless-stopped
-    volumes:
-      - ./tinymediamanager:/data
-      - /share/Vol1/media_volume/movies:/media_volume/movies    # 电影文件夹
-      - /share/Vol1/media_volume/series:/media_volume/series    # 剧集文件夹
-      - /share/Vol1/media_volume/bangumi:/media_volume/bangumi  # 番剧文件夹
+    restart: always
     environment:
-      - PUID=1000  # 用户id
-      - PGID=100   # 用户组id
       - TZ=Asis/Shanghai
+    volumes:
+      - /share/Container/docker-volumes/tinymediamanager:/data
+      # 威联通的路径完全映射
+      - /share:/share
     ports:
       - "4000:4000" # HTTP port
-  # 自动辅种
-  iyuuplus:
-    image: iyuucn/iyuuplus
-    container_name: iyuuplus
-    restart: unless-stopped
-    volumes:
-      - ./iyuuplus:/IYUU/db
+  hlink:
+    image: likun7981/hlink # docker镜像名称
+    user: "1000:100"
+    container_name: hlink
+    restart: always
     environment:
-      - PUID=1000  # 用户id
-      - PGID=100   # 用户组id
-      - TZ=Asis/Shanghai
-    ports:
-      - "8787:8787" # HTTP port
-
-
-
-
-#  emby:
-#    image: emby/embyserver:4.6.7.0
-#    container_name: emby
-#    restart: unless-stopped
-#    privileged: true
-#    environment:
-#      - PUID=1000  # 用户id
-#      - PGID=100   # 用户组id
-#      - GIDLIST=100
-#    devices:
-#      - /dev/dri:/dev/dri
-#    volumes:
-#      # 配置
-#      - ./emby:/config
-#      # 媒体文件
-#      - /share/Vol1/media_volume/movies:/media_volume/movies    # 电影文件夹
-#      - /share/Vol1/media_volume/series:/media_volume/series    # 剧集文件夹
-#      - /share/Vol1/media_volume/bangumi:/media_volume/bangumi  # 番剧文件夹
-#    ports:
-#      - "8096:8096" # HTTP port
+      # 指定配置文件位置
+      - HLINK_HOME=/share/Container/docker-volumes/hlink
+    volumes:
+      # 威联通的路径完全映射
+      - /share:/share
+    ports: # 这个端口映射
+      - "9090:9090"
