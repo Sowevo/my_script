@@ -6,6 +6,10 @@
 
     下载bing壁纸并设置为桌面壁纸(Mac)
 
+  - [find_hardlink.sh](./shell/find_hardlink.sh)
+    
+    查找硬链接
+
   - [mysql.sync.sh](./shell/mysql.sync.sh)
 
     开发环境数据同步
@@ -13,6 +17,10 @@
   - [mysql.backup.sh](./shell/mysql.backup.sh)
 
     开发环境数据备份
+
+  - [download_code.sh](./shell/download_code.sh)
+    
+    下载代码并用idea打开
 
 ## [postfix-templates](./postfix-templates)
 
