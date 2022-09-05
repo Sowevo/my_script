@@ -133,7 +133,7 @@ services:
       - TZ=Asia/Shanghai
       - WEBUI_PORT=8080 # QB webui的端口，你可以换成其他端口
     volumes:
-      - /docker-volumes/qbittorrent/config:/config
+      - /share/Container/docker-volumes/qbittorrent/config:/config
       - /share:/share
     ports:
       - "50126:50126"
