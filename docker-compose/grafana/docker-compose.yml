@@ -24,7 +24,7 @@ services:
     volumes:
       - ./grafana-data:/var/lib/grafana              # 配置文件夹
       - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
-      # - ./grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - ./grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
       - ./grafana/dashboards-json:/etc/grafana/provisioning/dashboards-json
     ports:
         - "3000:3000"
