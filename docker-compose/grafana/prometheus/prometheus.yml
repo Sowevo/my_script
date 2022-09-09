@@ -21,7 +21,7 @@ scrape_configs:
     metrics_path: /probe
     static_configs:
       - targets:
-          - iperf3-exporter:9579
+          - 10.0.0.5
     params:
       port: [ '5201' ]
     relabel_configs:
