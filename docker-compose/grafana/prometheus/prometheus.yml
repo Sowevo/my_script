@@ -19,6 +19,8 @@ scrape_configs:
 #          - speedtest-exporter:9798
   - job_name: 'iperf3'
     metrics_path: /probe
+    scrape_interval: 3m
+    scrape_timeout: 1m
     static_configs:
       - targets:
           - 10.0.0.5
