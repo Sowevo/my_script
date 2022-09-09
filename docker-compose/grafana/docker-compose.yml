@@ -24,7 +24,7 @@ services:
     volumes:
       - ./grafana-data:/var/lib/grafana              # 配置文件夹
       - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
-      - ./grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      # - ./grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
       - ./grafana/dashboards-json:/etc/grafana/provisioning/dashboards-json
     ports:
         - "3000:3000"
@@ -33,24 +33,34 @@ services:
 
 
 
-
-  speedtest-exporter:
-    image: miguelndecarvalho/speedtest-exporter
-    container_name: speedtest-exporter
-    hostname: speedtest-exporter
+  # 监控iperf3(内网速度)
+  iperf3-exporter:
+    image: edgard/iperf3-exporter
+    container_name: iperf3-exporter
+    hostname: iperf3-exporter
     restart: always
     ports:
-      - "9798:9798"
-  cadvisor:
-    # 这个镜像好难拉取
-    image: gcr.io/cadvisor/cadvisor
-    container_name: cadvisor
-    hostname: cadvisor
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-    ports:
-      - "6688:8080"
-# TODO dashboards中文?
+      - "9579:9579"
+
+
+#  # 监控speedtest(外网速度)
+#  speedtest-exporter:
+#    image: miguelndecarvalho/speedtest-exporter
+#    container_name: speedtest-exporter
+#    hostname: speedtest-exporter
+#    restart: always
+#    ports:
+#      - "9798:9798"
+#  # 监控主机信息
+#  cadvisor:
+#    # 这个镜像好难拉取
+#    image: gcr.io/cadvisor/cadvisor
+#    container_name: cadvisor
+#    hostname: cadvisor
+#    volumes:
+#      - /:/rootfs:ro
+#      - /var/run:/var/run:rw
+#      - /sys:/sys:ro
+#      - /var/lib/docker/:/var/lib/docker:ro
+#    ports:
+#      - "6688:8080"
