@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 user='root'
 password='hsgz8bz'
 port='33066'
@@ -42,7 +43,7 @@ fi
 
 
 echo "开始解压..."
-unzip -o -q $base_path"code.zip" -d $base_path$filename
+unar $base_path"code.zip" -D -q -f -o $base_path$filename
 if [ $? -ne 0 ];then
   echo "解压失败..."
   exit 1
