@@ -2,13 +2,13 @@
 # 在线执行
 # This script should be run via curl:
 #   sh -c "$(curl -fsSL https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
-#   sh -c "$(curl -fsSL https://raw.fastgit.org/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
+#   sh -c "$(curl -fsSL https://jsd.eagleyao.com/gh/Sowevo/my_script@main/shell/CloudflareSpeedTest.sh)"
 # or via wget:
 #   sh -c "$(wget -qO- https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
-#   sh -c "$(wget -qO- https://raw.fastgit.org/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
+#   sh -c "$(wget -qO- https://jsd.eagleyao.com/gh/Sowevo/my_script@main/shell/CloudflareSpeedTest.sh)"
 # or via fetch:
 #   sh -c "$(fetch -o - https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
-#   sh -c "$(fetch -o - https://raw.fastgit.org/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
+#   sh -c "$(fetch -o - https://jsd.eagleyao.com/gh/Sowevo/my_script@main/shell/CloudflareSpeedTest.sh)"
 work_path='/tmp'
 # 创建并进入工作目录
 mkdir -p ${work_path}&&cd $work_path
