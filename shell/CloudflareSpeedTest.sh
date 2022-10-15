@@ -52,6 +52,7 @@ ${BESTIP}    t.audiences.me
 ${BESTIP}    www.pttime.org
 ${BESTIP}    tracker.m-team.cc
 ${BESTIP}    kp.m-team.cc
+${BESTIP}    pt.btschool.club
 # CloudflareST_HOST_END
 EOF
 # 处理完成
