@@ -52,7 +52,7 @@ else
 fi
 
 # echo "修改配置..."
-# find $base_path$filename"/code" -name "application-dev.yml" -path "*resources*" -exec sed -i "" 's/nacos:8848/192.168.21.185:8848/g;s/password: root/password: hsgz8bz/g;s/localhost:3306/192.168.21.185:33066/g;s/host: redis/host: 192.168.21.185/g;s/password: 1@#4/password: hsgz8bz/g' {} \;
+find $base_path$filename"/code" -name "application-dev.yml" -path "*resources*" -exec sed -i "" 's/nacos:8848/192.168.21.185:8848/g;s/password: root/password: hsgz8bz/g;s/localhost:3306/192.168.21.185:33066/g;s/host: redis/host: 192.168.21.185/g;s/password: 1@#4/password: hsgz8bz/g' {} \;
 
 # 使用idea启动项目
 echo "启动项目..."
