@@ -1,0 +1,54 @@
+version: "3"
+services:
+
+  # icloud 同步
+  icloudpd:
+    image: sowevo/icloudpd:latest
+    container_name: icloudpd
+    hostname: icloudpd
+    restart: always
+    environment:
+      # appleId
+      - apple_id=i@abc.com
+      # 时区
+      - TZ=Asia/Shanghai
+      # 照片存储结构
+      - folder_structure={:%Y-%m}
+      # 同步间隔
+      - synchronisation_interval=43200
+      # 照片存储位置
+      - download_path=/iCloud
+      # 使用中国icloud
+      - icloud_china=True
+
+      # notification_type 通知类型设置为 WeCom
+      - notification_type=WeCom
+      # wecom_proxy
+      - wecom_proxy=https://wx.proxy.com
+      # wecom_id 企业微信通知，企业微信通知，企业ID
+      - wecom_id=ashfkhakfhkahk
+      # wecom_secret 企业微信通知，企业应用的Secret
+      - wecom_secret=NeZxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxY44
+      # agentid 企业微信通知，企业应用的id
+      - agentid=1000006
+      # touser 企业微信通知，接收通知的对象
+      - touser=Sowevo
+      # content_source_url 企业微信通知，阅读原文跳转链接
+      - content_source_url=
+      # name 企业微信通知，当前 Apple ID 所有人
+      - name=Sowevo
+      # media_id_startup 企业微信通知，启动成功通知封面
+      - media_id_startup=2msxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx7mR
+      # media_id_download 企业微信通知，下载通知封面
+      - media_id_download=2Y6xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxkLj
+      # media_id_delete 企业微信通知，删除文件通知封面
+      - media_id_delete=2K9xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxgPo
+      # media_id_expiration 企业微信通知，cookie即将过期通知封面
+      - media_id_expiration=2mQxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxoLA
+      # media_id_warning 企业微信通知，同步失败、cookiey已过期通知封面
+      - media_id_warning=2mQxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxoLA
+    volumes:
+      # 配置文件夹
+      - /share/Container/docker-volumes/icloudpd:/config
+      # 媒体目录
+      - /share/CACHEDEV2_DATA/Vol2/照片/iCloud:/iCloud
