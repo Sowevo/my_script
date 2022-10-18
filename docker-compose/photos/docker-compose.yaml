@@ -21,6 +21,8 @@ services:
       # 使用中国icloud
       - icloud_china=True
 
+      # notification_title 通知中发送的标题
+      - notification_title=iCloudPD
       # notification_type 通知类型设置为 WeCom
       - notification_type=WeCom
       # wecom_proxy
