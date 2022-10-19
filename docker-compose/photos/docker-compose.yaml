@@ -19,6 +19,7 @@ services:
       - group=everyone
       # 权限相关:组id
       - group_id=100
+      - force_gid=True
 
       # 时区
       - TZ=Asia/Shanghai
