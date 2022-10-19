@@ -10,6 +10,16 @@ services:
     environment:
       # appleId
       - apple_id=i@abc.com
+
+      # 权限相关:用户名
+      - user=sowevo
+      # 权限相关:用户id
+      - user_id=1000
+      # 权限相关:组名
+      - group=everyone
+      # 权限相关:组id
+      - group_id=100
+
       # 时区
       - TZ=Asia/Shanghai
       # 照片存储结构
@@ -21,6 +31,7 @@ services:
       # 使用中国icloud
       - icloud_china=True
 
+      # 通知配置
       # notification_title 通知中发送的标题
       - notification_title=iCloudPD
       # notification_type 通知类型设置为 WeCom
