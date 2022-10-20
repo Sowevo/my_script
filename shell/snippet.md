@@ -34,9 +34,13 @@
   $ exiftool -d %Y-%m-%d/%Y-%m-%d_%H%M%S.%%ue "-filename<datetimeoriginal" -r .
   
   # 在Docker中运行
-  # -v /home/sowevo/图片/tmp:/work 需要将要处理的文件夹映射到/work中
-  # --rm 用完就删掉这个容器
-  # -e PUID=1000 -e PGID=100 指定权限
-  $ docker run -v /share/CACHEDEV2_DATA/Vol2/照片/D5300:/work --rm -e PUID=1000 -e PGID=100 ltdgbchedu/exiftool \
-      -d %Y-%m-%d/%Y-%m-%d_%H%M%S.%%ue  "-filename<datetimeoriginal" -r .
+  # --rm                                               用完就删掉这个容器
+  # -e PUID=1000 -e PGID=100                           指定权限
+  # -v /share/CACHEDEV2_DATA/Vol2/自动导入:/work         要操作的目录,映射到/work
+  # -v /share/CACHEDEV2_DATA/Vol2/照片/D5300:/target    目标目录,处理完会同步到/target
+  $ docker run \
+      -v /share/CACHEDEV2_DATA/Vol2/自动导入:/work \
+      -v /share/CACHEDEV2_DATA/Vol2/照片/D5300:/target \
+      --rm -e PUID=1000 -e PGID=100 ltdgbchedu/exiftool \
+      -d /target/%Y-%m-%d/%Y-%m-%d_%H%M%S.%%ue  "-filename<datetimeoriginal" -r .
   ```
