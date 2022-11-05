@@ -77,7 +77,7 @@ if [[ "$UNAME_MACHINE" == "arm64" ]]; then
 fi
 
 # 5.判断brew是否安装,没安装的话喊用户安装
-source ${SHELL_PROFILE}2>/dev/null # 可能刚装的,source一下试试
+source ${SHELL_PROFILE} 2>/dev/null # 可能刚装的,source一下试试
 brew --version > /dev/null 2>&1
 if [ $? -ne 0 ];then
   echo -e "brew未安装!请安装后再运行此脚本"
