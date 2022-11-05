@@ -58,6 +58,8 @@ if [ $? -ne 0 ];then
   2)
     echo "你选择了自动安装brew"
     zsh -c "$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/Homebrew.sh)"
+    # 需要执行 source
+    # 需要处理 Warning: No remote 'origin' in /opt/homebrew/Library/Taps/homebrew/homebrew-services, skipping update!
   ;;
   *)
     echo -e "您选择了手动安装brew\n请执行以下脚本安装\n"
