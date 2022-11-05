@@ -1,4 +1,12 @@
 # Mac初试化脚本
+# 在线执行
+# 解决 pt站 tracker 连不上的问题...
+# This script should be run via curl:
+#   zsh -c "$(curl -fsSL https://raw.githubusercontent.com/Sowevo/my_script/main/shell/mac_init.sh)"
+#   zsh -c "$(curl -fsSL https://jsd.eagleyao.com/gh/Sowevo/my_script@main/shell/mac_init.sh)"
+
+
+
 
 # 0.初始化用到的变量
 # 系统名称
