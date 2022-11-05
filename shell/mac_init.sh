@@ -21,6 +21,24 @@ UNIQUE_NAME="${MODEL_NAME}_${SERIAL_NUMBER}"
 RECOMMEND_APPS=(mas utools)
 
 
+#判断下mac os终端是Bash还是zsh
+case "$SHELL" in
+  */bash*)
+    if [[ -r "$HOME/.bash_profile" ]]; then
+      shell_profile="${HOME}/.bash_profile"
+    else
+      shell_profile="${HOME}/.profile"
+    fi
+    ;;
+  */zsh*)
+    shell_profile="${HOME}/.zprofile"
+    ;;
+  *)
+    shell_profile="${HOME}/.profile"
+    ;;
+esac
+
+
 
 # 1.获取sudo权限
 sudo -v -p "请输入开机密码，输入过程不显示，输入完后回车:"
@@ -58,7 +76,7 @@ if [ $? -ne 0 ];then
   2)
     echo "你选择了自动安装brew"
     zsh -c "$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/Homebrew.sh)"
-    # 需要执行 source
+    source ${shell_profile}
     # 需要处理 Warning: No remote 'origin' in /opt/homebrew/Library/Taps/homebrew/homebrew-services, skipping update!
   ;;
   *)
