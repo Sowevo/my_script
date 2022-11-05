@@ -68,7 +68,7 @@ fi
 if [[ "$UNAME_MACHINE" == "arm64" ]]; then
   HAS_ROSETTA=$(/usr/bin/pgrep -q oahd && echo Y || echo N)
   if [[ "$HAS_ROSETTA" == "N" ]]; then
-    echo -e "rosetta未安装,自动为您安装!"
+    echo -e "开始安装rosetta!"
     echo -e "\n\n==================================="
     softwareupdate --install-rosetta --agree-to-license
     echo -e "===================================\n\n"
@@ -86,7 +86,8 @@ if [ $? -ne 0 ];then
   read MY_DOWN_NUM
   case $MY_DOWN_NUM in
   2)
-    echo "你选择了自动安装brew"
+    echo -e "开始安装brew!"
+    echo -e "\n\n==================================="
     git config --global --add safe.directory /opt/homebrew/Library/Taps/homebrew/homebrew-core
     git config --global --add safe.directory /opt/homebrew/Library/Taps/homebrew/homebrew-cask
     git config --global --add safe.directory /opt/homebrew/Library/Taps/homebrew/homebrew-services
@@ -94,13 +95,13 @@ if [ $? -ne 0 ];then
     zsh -c "$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/Homebrew.sh)"
     
     source ${SHELL_PROFILE}
-    
-
+    echo -e "===================================\n\n"
+    echo -e "brew安装完成"
   ;;
   *)
-    echo -e "您选择了手动安装brew\n请执行以下脚本安装\n"
+    echo -e "请执行以下脚本手动安装\n"
     echo -e "/bin/zsh -c \"\$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/Homebrew.sh)\"\n"
-    echo -e "本脚本将退出,安装完成再来执行!"
+    echo -e "此脚本将退出,安装完成再来执行!"
     exit 0
   ;;
   esac
@@ -127,11 +128,11 @@ echo -e "请输入序号:"
 read BREW_INSTALL
 case $BREW_INSTALL in
   2)
-    echo -e "你选择了自动安装,将自动安装以下软件:\n${RECOMMEND_APPS[@]}"
+    echo -e "开始安装推荐的软件!:\n${RECOMMEND_APPS[@]}"
     echo -e "\n\n==================================="
     brew install "${RECOMMEND_APPS[@]}"
     echo -e "===================================\n\n"
-    echo -e "安装完成"
+    echo -e "推荐的软件安装完成!"
   ;;
   3)
     echo -e "你选择了brew bundle恢复"
@@ -141,26 +142,26 @@ case $BREW_INSTALL in
     echo -e "\n\n==================================="
     brew bundle --file="${BREW_FILE}"
     echo -e "===================================\n\n"
-    echo -e "恢复完成"
+    echo -e "brew bundle恢复完成!"
   ;;
   esac
 
-# TODO
-# 加个自动生成brew bundle备份的脚本
-# mackup的使用...
-
-# Oh My Zsh 得放最后...
+# 8.安装Oh My Zsh
 echo -e "是否安装 Oh My Zsh"
 echo -e "1、不安装\n2、安装\n"
 echo -e "请输入序号:"
 read OH_MY_ZSH_INSTALL
 case $OH_MY_ZSH_INSTALL in
   2)
-    echo -e "你选择了安装,开始安装 Oh My Zsh!"
+    echo -e "开始安装 Oh My Zsh!"
     echo -e "\n\n==================================="
     export RUNZSH=no
     sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
     echo -e "===================================\n\n"
-    echo -e " Oh My Zsh 安装完成!"
+    echo -e "Oh My Zsh 安装完成!"
   ;;
 esac
+
+# TODO
+# 加个自动生成brew bundle备份的脚本
+# mackup的使用...
