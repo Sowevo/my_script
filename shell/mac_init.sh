@@ -158,7 +158,7 @@ case $OH_MY_ZSH_INSTALL in
   2)
     echo -e "你选择了安装,开始安装 Oh My Zsh!"
     echo -e "\n\n==================================="
-    RUNZSH=no
+    export RUNZSH=no
     sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
     echo -e "===================================\n\n"
     echo -e " Oh My Zsh 安装完成!"
