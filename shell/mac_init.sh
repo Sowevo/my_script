@@ -67,7 +67,7 @@ fi
 # 4.判断rosetta是否安装
 if [[ "$UNAME_MACHINE" == "arm64" ]]; then
   HAS_ROSETTA=$(/usr/bin/pgrep -q oahd && echo Y || echo N)
-  if [[ "$HAS_ROSETTA" == "Y" ]]; then
+  if [[ "$HAS_ROSETTA" == "N" ]]; then
     echo -e "rosetta未安装,自动为您安装!"
     echo -e "\n\n==================================="
     softwareupdate --install-rosetta --agree-to-license
