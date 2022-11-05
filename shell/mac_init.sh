@@ -20,7 +20,10 @@ SERIAL_NUMBER="$(system_profiler SPHardwareDataType | grep "Serial Number"| cut 
 # 型号+序列号拼出来唯一名称
 UNIQUE_NAME="${MODEL_NAME}_${SERIAL_NUMBER}"
 # 自动安装brew的软件列表
-RECOMMEND_APPS=(mas utools)
+RECOMMEND_APPS=(
+  git mas maven telnet unar vim wget zsh ffmpeg android-platform-tools
+  google-chrome iina jetbrains-toolbox keka openinterminal-lite qlvideo utools
+)
 
 #判断下mac os终端是Bash还是zsh
 case "$SHELL" in
