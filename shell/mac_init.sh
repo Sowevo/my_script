@@ -54,7 +54,7 @@ fi
 
 echo -e "开始执行\n"
 
-# 3.判断Git是否安装,没安装的话喊他安装...
+# 3.判断Git是否安装,没安装的话喊用户安装...
 git --version > /dev/null 2>&1
 if [ $? -ne 0 ];then
   sudo rm -rf "/Library/Developer/CommandLineTools/"
@@ -76,7 +76,7 @@ if [[ "$UNAME_MACHINE" == "arm64" ]]; then
   fi
 fi
 
-# 5.判断brew是否安装,没安装的话喊他安装
+# 5.判断brew是否安装,没安装的话喊用户安装
 source ${SHELL_PROFILE} # 可能刚装的,source一下试试
 brew --version > /dev/null 2>&1
 if [ $? -ne 0 ];then
@@ -102,12 +102,13 @@ if [ $? -ne 0 ];then
   ;;
   esac
 fi
+
+
 # 6.查看brew update 是否正常
 echo -e "尝试执行brew update\n\n==================================="
 brew update&&brew upgrade
 echo -e "===================================\n\n"
-echo -e "请检查brew update是否正常运行,是否有报错?"
-echo -e "执行是否正常(Y/N)"
+echo -e "请检查brew update是否正常执行(Y/N)?"
 read UPDATE_SUCCESS
 case $UPDATE_SUCCESS in
 n|N)
@@ -116,14 +117,14 @@ n|N)
 ;;
 esac
 
-
+# 7.安装常用软件
 echo -e "brew安装成功,是否安装常用软件"
 echo -e "1、不安装\n2、安装推荐的软件\n3、使用brew bundle恢复软件\n"
 echo -e "请输入序号:"
 read BREW_INSTALL
 case $BREW_INSTALL in
   2)
-    echo -e "你选择了自动安装,经自动安装以下软件:\n${RECOMMEND_APPS[@]}"
+    echo -e "你选择了自动安装,将自动安装以下软件:\n${RECOMMEND_APPS[@]}"
     echo -e "\n\n==================================="
     brew install "${RECOMMEND_APPS[@]}"
     echo -e "===================================\n\n"
@@ -131,7 +132,7 @@ case $BREW_INSTALL in
   ;;
   3)
     echo -e "你选择了brew bundle恢复"
-    echo -e "请输入Brewfile的路径:"
+    echo -e "请输入Brewfile的路径(可以直接将文件拖入终端):"
     read BREW_FILE
     echo -e "从${BREW_FILE}恢复软件"
     echo -e "\n\n==================================="
@@ -144,3 +145,19 @@ case $BREW_INSTALL in
 # TODO
 # 加个自动生成brew bundle备份的脚本
 # mackup的使用...
+
+# Oh My Zsh 得放最后...
+echo -e "是否安装 Oh My Zsh"
+echo -e "1、不安装\n2、安装\n"
+echo -e "请输入序号:"
+read OH_MY_ZSH_INSTALL
+case $OH_MY_ZSH_INSTALL in
+  2)
+    echo -e "你选择了安装,开始安装 Oh My Zsh!"
+    echo -e "\n\n==================================="
+    RUNZSH=no
+    sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    echo -e "===================================\n\n"
+    echo -e " Oh My Zsh 安装完成!"
+  ;;
+esac
