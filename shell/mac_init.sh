@@ -64,7 +64,7 @@ if [ $? -ne 0 ];then
   exit 0
 fi
 
-# 判断rosetta是否安装
+# 4.判断rosetta是否安装
 if [[ "$UNAME_MACHINE" == "arm64" ]]; then
   HAS_ROSETTA=$(/usr/bin/pgrep -q oahd && echo Y || echo N)
   if [[ "$HAS_ROSETTA" == "Y" ]]; then
@@ -76,7 +76,8 @@ if [[ "$UNAME_MACHINE" == "arm64" ]]; then
   fi
 fi
 
-# 4.判断brew是否安装,没安装的话喊他安装
+# 5.判断brew是否安装,没安装的话喊他安装
+source ${SHELL_PROFILE} # 可能刚装的,source一下试试
 brew --version > /dev/null 2>&1
 if [ $? -ne 0 ];then
   echo -e "brew未安装!请安装后再运行此脚本"
@@ -101,7 +102,7 @@ if [ $? -ne 0 ];then
   ;;
   esac
 fi
-# 5.查看brew update 是否正常
+# 6.查看brew update 是否正常
 echo -e "尝试执行brew update\n\n==================================="
 brew update&&brew upgrade
 echo -e "===================================\n\n"
