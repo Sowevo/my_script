@@ -11,6 +11,8 @@
 # 0.初始化用到的变量
 # 系统名称
 OS="$(uname)"
+# 获取硬件信息 判断inter还是苹果M
+UNAME_MACHINE="$(uname -m)"
 # 型号
 MODEL_NAME="$(system_profiler SPHardwareDataType | grep "Model Name"| cut -f 2 -d:|sed 's/[ ][ ]*//g')"
 # 序列号
@@ -20,21 +22,20 @@ UNIQUE_NAME="${MODEL_NAME}_${SERIAL_NUMBER}"
 # 自动安装brew的软件列表
 RECOMMEND_APPS=(mas utools)
 
-
 #判断下mac os终端是Bash还是zsh
 case "$SHELL" in
   */bash*)
     if [[ -r "$HOME/.bash_profile" ]]; then
-      shell_profile="${HOME}/.bash_profile"
+      SHELL_PROFILE="${HOME}/.bash_profile"
     else
-      shell_profile="${HOME}/.profile"
+      SHELL_PROFILE="${HOME}/.profile"
     fi
     ;;
   */zsh*)
-    shell_profile="${HOME}/.zprofile"
+    SHELL_PROFILE="${HOME}/.zprofile"
     ;;
   *)
-    shell_profile="${HOME}/.profile"
+    SHELL_PROFILE="${HOME}/.profile"
     ;;
 esac
 
@@ -51,9 +52,7 @@ if [[ "$OS" != "Darwin" ]]; then
   exit 0
 fi
 
-
 echo -e "开始执行\n"
-
 
 # 3.判断Git是否安装,没安装的话喊他安装...
 git --version > /dev/null 2>&1
@@ -63,6 +62,18 @@ if [ $? -ne 0 ];then
   echo -e "如果没有弹窗的老系统,需要自己下载安装\nhttps://sourceforge.net/projects/git-osx-installer/"
   xcode-select --install > /dev/null 2>&1
   exit 0
+fi
+
+# 判断rosetta是否安装
+if [[ "$UNAME_MACHINE" == "arm64" ]]; then
+  HAS_ROSETTA=$(/usr/bin/pgrep -q oahd && echo Y || echo N)
+  if [[ "$HAS_ROSETTA" == "Y" ]]; then
+    echo -e "rosetta未安装,自动为您安装!"
+    echo -e "\n\n==================================="
+    softwareupdate --install-rosetta --agree-to-license
+    echo -e "===================================\n\n"
+    echo -e "rosetta安装完成"
+  fi
 fi
 
 # 4.判断brew是否安装,没安装的话喊他安装
@@ -76,7 +87,7 @@ if [ $? -ne 0 ];then
   2)
     echo "你选择了自动安装brew"
     zsh -c "$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/Homebrew.sh)"
-    source ${shell_profile}
+    source ${SHELL_PROFILE}
     
     git config --global --add safe.directory /opt/homebrew/Library/Taps/homebrew/homebrew-core
     git config --global --add safe.directory /opt/homebrew/Library/Taps/homebrew/homebrew-cask
