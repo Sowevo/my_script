@@ -15,7 +15,7 @@ work_path='/tmp'
 mkdir -p ${work_path}&&cd $work_path
 
 # 下载
-wget https://download.fastgit.org/XIU2/CloudflareSpeedTest/releases/download/v2.0.3/CloudflareST_linux_amd64.tar.gz \
+wget https://github.com/XIU2/CloudflareSpeedTest/releases/download/v2.1.0/CloudflareST_linux_amd64.tar.gz \
    -O CloudflareST_linux_amd64.tar.gz
 # 解压（不需要删除旧文件，会直接覆盖，自行根据需求替换 文件名）
 tar -zxf CloudflareST_linux_amd64.tar.gz
