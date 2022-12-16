@@ -3,19 +3,19 @@
 # 解决 pt站 tracker 连不上的问题...
 # This script should be run via curl:
 #   sh -c "$(curl -fsSL https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
-#   sh -c "$(curl -fsSL https://jsd.eagleyao.com/gh/Sowevo/my_script@main/shell/CloudflareSpeedTest.sh)"
+#   sh -c "$(curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
 # or via wget:
 #   sh -c "$(wget -qO- https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
-#   sh -c "$(wget -qO- https://jsd.eagleyao.com/gh/Sowevo/my_script@main/shell/CloudflareSpeedTest.sh)"
+#   sh -c "$(wget -qO- https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
 # or via fetch:
 #   sh -c "$(fetch -o - https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
-#   sh -c "$(fetch -o - https://jsd.eagleyao.com/gh/Sowevo/my_script@main/shell/CloudflareSpeedTest.sh)"
+#   sh -c "$(fetch -o - https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
 work_path='/tmp'
 # 创建并进入工作目录
 mkdir -p ${work_path}&&cd $work_path
 
 # 下载
-wget https://download.fastgit.org/XIU2/CloudflareSpeedTest/releases/download/v2.0.3/CloudflareST_linux_amd64.tar.gz \
+wget https://ghproxy.com/https://github.com/XIU2/CloudflareSpeedTest/releases/download/v2.1.0/CloudflareST_linux_amd64.tar.gz \
    -O CloudflareST_linux_amd64.tar.gz
 # 解压（不需要删除旧文件，会直接覆盖，自行根据需求替换 文件名）
 tar -zxf CloudflareST_linux_amd64.tar.gz
