@@ -7,7 +7,7 @@ services:
     hostname: homeassistant
     restart: always
     networks:
-      macvlan:
+      macvlan2:
         ipv4_address: 10.0.0.161
     volumes:
       # 配置文件夹
@@ -17,7 +17,7 @@ services:
 
 networks:
   macvlan:
-    driver: macvlan
+    driver: macvlan2
     driver_opts:
       parent: qvs0
     ipam:
