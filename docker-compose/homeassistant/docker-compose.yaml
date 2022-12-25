@@ -16,8 +16,8 @@ services:
       - "8123:8123"
 
 networks:
-  macvlan:
-    driver: macvlan2
+  macvlan2:
+    driver: macvlan
     driver_opts:
       parent: qvs0
     ipam:
