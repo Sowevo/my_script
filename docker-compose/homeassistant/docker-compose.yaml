@@ -6,8 +6,21 @@ services:
     container_name: homeassistant
     hostname: homeassistant
     restart: always
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.161
     volumes:
       # 配置文件夹
-      - /share/Container/docker-volumes/homeassistant:/config
+      - /share/Container/docker-volumes/homeassistant/config:/config
     ports:
       - "8123:8123"
+
+networks:
+  macvlan:
+    driver: macvlan
+    driver_opts:
+      parent: qvs0
+    ipam:
+      config:
+        - subnet: 10.0.0.0/24
+          gateway: 10.0.0.1
