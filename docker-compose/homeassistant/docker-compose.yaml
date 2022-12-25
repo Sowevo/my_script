@@ -1,0 +1,13 @@
+version: "3"
+services:
+  # homeassistant
+  homeassistant:
+    image: homeassistant/home-assistant:latest
+    container_name: homeassistant
+    hostname: homeassistant
+    restart: always
+    volumes:
+      # 配置文件夹
+      - /share/Container/docker-volumes/homeassistant:/config
+    ports:
+      - "8123:8123"
