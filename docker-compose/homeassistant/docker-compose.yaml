@@ -1,0 +1,12 @@
+version: "3"
+services:
+  # homeassistant
+  homeassistant:
+    image: homeassistant/home-assistant:latest
+    container_name: homeassistant
+    hostname: homeassistant
+    restart: always
+    network_mode: "host"
+    volumes:
+      # 配置文件夹
+      - /share/Container/docker-volumes/homeassistant/config:/config
