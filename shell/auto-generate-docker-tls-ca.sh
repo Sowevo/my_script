@@ -1,10 +1,15 @@
 # !/bin/bash
 
 # 一键生成TLS和CA证书
-
-# Create : 2021-08-25
-# Update : 2021-08-25
-# @Autor : wuduoqiang
+# This script should be run via curl:
+#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/Sowevo/my_script/main/shell/auto-generate-docker-tls-ca.sh)"
+#   sh -c "$(curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/auto-generate-docker-tls-ca.sh)"
+# or via wget:
+#   sh -c "$(wget -qO- https://raw.githubusercontent.com/Sowevo/my_script/main/shell/auto-generate-docker-tls-ca.sh)"
+#   sh -c "$(wget -qO- https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/auto-generate-docker-tls-ca.sh)"
+# or via fetch:
+#   sh -c "$(fetch -o - https://raw.githubusercontent.com/Sowevo/my_script/main/shell/auto-generate-docker-tls-ca.sh)"
+#   sh -c "$(fetch -o - https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/auto-generate-docker-tls-ca.sh)"
 
 # 服务器主机名
 SERVER="172.16.20.126"
