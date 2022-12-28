@@ -104,7 +104,7 @@ switch_param(){
     dumpfile=${backup_dir}${backname}
 
     # 要备份的数据库名称
-    all_db="digitalthread_basicconfig digitalthread_objectbuilder digitalthread_system"
+    all_db="digitalthread_basicconfig digitalthread_objectbuilder digitalthread_system model_objectbuilder"
 }
 
 while getopts "e:o:" opt
