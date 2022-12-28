@@ -12,7 +12,7 @@
 #   sh -c "$(fetch -o - https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/auto-generate-docker-tls-ca.sh)"
 
 # 服务器主机名
-SERVER="172.16.20.126"
+SERVER="10.0.8.11"
 # 密码
 PASSWORD="Super#Geostar,5"
 # 国家
