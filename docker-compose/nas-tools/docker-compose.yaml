@@ -3,6 +3,25 @@ services:
   # 使用macvlan的网络,使得容器获得独立的ip
   # 方便做流量控制
 
+
+
+  # 自动辅种
+  iyuuplus:
+    image: iyuucn/iyuuplus
+    container_name: iyuuplus
+    hostname: iyuuplus
+    restart: always
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.157
+    volumes:
+      - /share/Container/docker-volumes/iyuuplus:/IYUU/db
+    environment:
+      - PUID=1000  # 用户id
+      - PGID=100   # 用户组id
+      - TZ=Asis/Shanghai
+    ports:
+      - "8787:8787" # HTTP port
   # 核心服务  nas-tools
   nas-tools:
     image: jxxghp/nas-tools:latest
@@ -31,42 +50,23 @@ services:
       - /share:/share
     ports:
       - "3000:3000"
-
-#  # 索引
-#  jackett:
-#    image: linuxserver/jackett
-#    container_name: jackett
-#    hostname: jackett
-#    restart: always
-#    networks:
-#      macvlan:
-#        ipv4_address: 10.0.0.155
-#    environment:
-#      - TZ=Asia/Shanghai
-#      # 用户id
-#      - PUID=1000
-#      # 用户组id
-#      - PGID=100
-#      - AUTO_UPDATE=true
-#    volumes:
-#      - /share/Container/docker-volumes/jackett/config:/config
-#      - /share:/share
-#    ports:
-#      - "9117:9117"
-#
-#  # 解决  jackett遇到 CF DDOS的问题
-#  flaresolverr:
-#    image: flaresolverr/flaresolverr
-#    container_name: flaresolverr
-#    hostname: flaresolverr
-#    restart: always
-#    networks:
-#      macvlan:
-#        ipv4_address: 10.0.0.154
-#    ports:
-#      - "8191:8191"
-
-
+  # portainer:docker管理
+  portainer:
+    image: portainer/portainer-ce
+    container_name: portainer
+    hostname: portainer
+    restart: always
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.154
+    volumes:
+      # 配置文件夹
+      - /share/CACHEDEV1_DATA/Container/docker-volumes/portainer:/data
+      # 媒体目录
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8000:8000"
+      - "9000:9000"
   # 媒体库
   jellyfin:
     image: nyanmisaka/jellyfin
@@ -91,25 +91,6 @@ services:
       - /share:/share
     ports:
       - "8096:8096"
-
-  # 自动辅种
-  iyuuplus:
-    image: iyuucn/iyuuplus
-    container_name: iyuuplus
-    hostname: iyuuplus
-    restart: always
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.157
-    volumes:
-      - /share/Container/docker-volumes/iyuuplus:/IYUU/db
-    environment:
-      - PUID=1000  # 用户id
-      - PGID=100   # 用户组id
-      - TZ=Asis/Shanghai
-    ports:
-      - "8787:8787" # HTTP port
-
   # nginx
   nginxWebUI:
     image: cym1102/nginxwebui
@@ -130,8 +111,6 @@ services:
       # HTTP port
       - "1443:1443"
       - "8866:8866"
-
-
   # 下载器
   qbittorrent:
     image: linuxserver/qbittorrent
