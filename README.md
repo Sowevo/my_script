@@ -35,10 +35,6 @@
   - [simple_media_center](./docker-compose/simple_media_center/docker-compose.yml)
 
     Nas中的资源管理工具
-
-  - [grafana](./docker-compose/grafana/docker-compose.yml)
-
-    无聊的监控,可视化.
 ## [m3u](./m3u)
   - 北京联通IPTV的m3u配置
 ## [python](./python) 一些python脚本
