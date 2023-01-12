@@ -91,26 +91,6 @@ services:
       - /share:/share
     ports:
       - "8096:8096"
-  # nginx
-  nginxWebUI:
-    image: cym1102/nginxwebui
-    container_name: nginxWebUI
-    hostname: nginxWebUI
-    restart: always
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.152
-    environment:
-      - TZ=Asis/Shanghai
-      - BOOT_OPTIONS=--server.port=8866
-    privileged: true
-    volumes:
-      # 配置文件夹
-      - /share/Container/docker-volumes/nginxWebUI:/home/nginxWebUI
-    ports:
-      # HTTP port
-      - "1443:1443"
-      - "8866:8866"
   # 下载器
   qbittorrent:
     image: linuxserver/qbittorrent
