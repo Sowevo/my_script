@@ -3,16 +3,11 @@ import yaml
 import base64
 import requests
 from urllib.parse import urlencode
-from requests.adapters import HTTPAdapter
 
 
 def get_short_url(url):
-    session = requests.session()
-    # max_retries=3 重试3次
-    session.mount('http://', HTTPAdapter(max_retries=5))
-    session.mount('https://', HTTPAdapter(max_retries=5))
     payload = {'longUrl': base64.b64encode(url.encode("utf-8"))}
-    response = session.request("POST", 'https://v1.mk/short', data=payload)
+    response = requests.request("POST", 'https://v1.mk/short', data=payload)
     return response.json()['ShortUrl']
 
 
