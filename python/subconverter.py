@@ -49,6 +49,7 @@ def get_url(_service, _config, _type):
     elif _type == 'SURGE':
         param['target'] = 'surge'
         param['ver'] = '4'
+        param['url'] = param['url'] + '|' + extend_url
     param['filename'] = name + '_' + _type + '.yaml'
     url = subconverter_url + '?' + urlencode(param)
     short_url = get_short_url(url)
