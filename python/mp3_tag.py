@@ -16,7 +16,6 @@ artist = "刘兰芳"
 album = "新岳飞传"
 # 专辑图片路径
 cover_path = "/Users/sowevo/Downloads/1395378740.jpg"
-
 # 提取集数的正则表达式
 regular = r"(\d+).mp3"
 
@@ -28,7 +27,8 @@ for filename in os.listdir(music_path):
             match = re.search(regular, filename)
             if match:
                 episode = int(match.group(1))
-                print("文件名：", filename)
+                print("文件名:", filename)
+                print("曲目编号:", audiofile.tag.track_num)
                 print("集数：", episode)
                 print("标题:", title % episode)
                 print("作者:", artist)
@@ -38,6 +38,7 @@ for filename in os.listdir(music_path):
                 audiofile.tag.artist = artist
                 audiofile.tag.album = album
                 audiofile.tag.title = title % episode
+                audiofile.tag.track_num = episode
                 audiofile.tag.images.set(ImageFrame.FRONT_COVER, open(cover_path, 'rb').read(), "image/jpeg")
                 audiofile.tag.save(encoding='utf-8')
             else:
