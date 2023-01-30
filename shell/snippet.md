@@ -10,6 +10,16 @@
   var1=`find /share/CACHEDEV1_DATA/Vol1/media_volume/downloads/ -iname "*FRDS*" -type f -exec du -s {} \;|awk '{print $1}'|awk '{sum1+= $1}END{print sum1}'` \
   && let "var=$var1/1024/1024" && echo $var"G"
   ```
+- 查找当前文件夹下不同后缀文件的个数
+
+  ```shell
+  $ find -type f -name "*.*" | awk -F '.' '{print $NF}' |sort| uniq -c| sort -rnk 1
+  ```
+- 根据后缀查找文件
+
+  ```shell
+  $ find -type f -name "*.avi"
+  ```  
 ## 其他
 - 使用exiftool对照片进行整理
   ```shell
@@ -44,3 +54,15 @@
       --rm -e PUID=1000 -e PGID=100 ltdgbchedu/exiftool \
       -d /target/%Y-%m-%d/%Y-%m-%d_%H%M%S.%%ue  "-filename<datetimeoriginal" -r .
   ```
+- 统计出你最近使用频率最高的 10 条命令
+
+  ```shell
+  # 没什么用
+  $ history | awk '{CMD[$2]++;count++;} END { for (a in CMD )print CMD[ a ]" " CMD[ a ]/count*100 "% " a }' | grep -v "./" | column -c3 -s " " -t |sort -nr | nl | head -n10
+  ```
+
+
+
+
+
+
