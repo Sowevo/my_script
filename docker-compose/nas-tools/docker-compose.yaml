@@ -70,45 +70,45 @@ services:
       - /share/Container/docker-volumes/plex/config:/config
       # 媒体目录
       - /share:/share
-  # 媒体库
-  jellyfin:
-    image: nyanmisaka/jellyfin
-    container_name: jellyfin
-    hostname: jellyfin
-    restart: always
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.153
-    environment:
-      # 用户id
-      - PUID=1000
-      # 用户组id
-      - PGID=100
-      - TZ=Asia/Shanghai
-    devices:
-      - /dev/dri:/dev/dri
-    volumes:
-      # 配置文件夹
-      - /share/Container/docker-volumes/jellyfin/config:/config
-      # 媒体目录
-      - /share:/share
-#  # portainer:docker管理
-#  portainer:
-#    image: portainer/portainer-ce
-#    container_name: portainer
-#    hostname: portainer
+#  # 媒体库
+#  jellyfin:
+#    image: nyanmisaka/jellyfin
+#    container_name: jellyfin
+#    hostname: jellyfin
 #    restart: always
 #    networks:
 #      macvlan:
-#        ipv4_address: 10.0.0.152
+#        ipv4_address: 10.0.0.153
+#    environment:
+#      # 用户id
+#      - PUID=1000
+#      # 用户组id
+#      - PGID=100
+#      - TZ=Asia/Shanghai
+#    devices:
+#      - /dev/dri:/dev/dri
 #    volumes:
 #      # 配置文件夹
-#      - /share/CACHEDEV1_DATA/Container/docker-volumes/portainer:/data
+#      - /share/Container/docker-volumes/jellyfin/config:/config
 #      # 媒体目录
-#      - /var/run/docker.sock:/var/run/docker.sock
-#    ports:
-#      - "8000:8000"
-#      - "9000:9000"
+#      - /share:/share
+  # portainer:docker管理
+  portainer:
+    image: portainer/portainer-ce
+    container_name: portainer
+    hostname: portainer
+    restart: always
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.152
+    volumes:
+      # 配置文件夹
+      - /share/CACHEDEV1_DATA/Container/docker-volumes/portainer:/data
+      # 媒体目录
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8000:8000"
+      - "9000:9000"
   # 下载器
   qbittorrent:
     image: linuxserver/qbittorrent
