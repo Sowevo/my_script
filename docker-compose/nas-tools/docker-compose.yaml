@@ -48,6 +48,18 @@ services:
       - /share:/share
     ports:
       - "3000:3000"
+  xteve:
+    image: dnsforge/xteve
+    container_name: xteve
+    hostname: xteve
+    restart: always
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.155
+    volumes:
+      - /share/Container/docker-volumes/xteve/conf:/home/xteve/conf
+      - /share/Container/docker-volumes/xteve/guide2go:/home/xteve/guide2go/conf
+
   plex:
     image: linuxserver/plex
     container_name: plex
