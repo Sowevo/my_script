@@ -3,8 +3,6 @@ services:
   # 使用macvlan的网络,使得容器获得独立的ip
   # 方便做流量控制
 
-
-
   # 自动辅种
   iyuuplus:
     image: iyuucn/iyuuplus
@@ -74,6 +72,23 @@ services:
       - /share:/share
     ports:
       - "8096:8096"
+  # portainer:docker管理
+  portainer:
+    image: portainer/portainer-ce
+    container_name: portainer
+    hostname: portainer
+    restart: always
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.152
+    volumes:
+      # 配置文件夹
+      - /share/CACHEDEV1_DATA/Container/docker-volumes/portainer:/data
+      # 媒体目录
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8000:8000"
+      - "9000:9000"
   # 下载器
   qbittorrent:
     image: linuxserver/qbittorrent
@@ -97,10 +112,6 @@ services:
       - "50126:50126"
       - "50126:50126/udp"
       - "8080:8080"
-
-
-
-
 
 
 networks:
