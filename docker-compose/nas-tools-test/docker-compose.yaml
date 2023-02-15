@@ -1,22 +1,42 @@
 version: "3"
 services:
+#  # 媒体库
+#  jellyfin:
+#    image: nyanmisaka/jellyfin
+#    container_name: jellyfin
+#    hostname: jellyfin
+#    restart: always
+#    environment:
+#      # 用户id
+#      - PUID=1000
+#      # 用户组id
+#      - PGID=100
+#      - TZ=Asia/Shanghai
+#    devices:
+#      - /dev/dri:/dev/dri
+#    volumes:
+#      # 配置文件夹
+#      - /share/Container/docker-volumes/jellyfin/config:/config
+#      # 媒体目录
+#      - /share:/share
+#    ports:
+#      - "8096:8096"
   # 媒体库
-  jellyfin:
-    image: nyanmisaka/jellyfin
-    container_name: jellyfin
-    hostname: jellyfin
+  emby:
+    image: zishuo/embyserver
+    container_name: emby
+    hostname: emby
     restart: always
     environment:
       # 用户id
-      - PUID=1000
+      - UID=1000
       # 用户组id
-      - PGID=100
-      - TZ=Asia/Shanghai
+      - GID=100
     devices:
       - /dev/dri:/dev/dri
     volumes:
       # 配置文件夹
-      - /share/Container/docker-volumes/jellyfin/config:/config
+      - /share/Container/docker-volumes/emby/config:/config
       # 媒体目录
       - /share:/share
     ports:
