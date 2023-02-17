@@ -3,8 +3,6 @@ services:
   # 使用macvlan的网络,使得容器获得独立的ip
   # 方便做流量控制
 
-
-
   # 自动辅种
   iyuuplus:
     image: iyuucn/iyuuplus
@@ -50,30 +48,79 @@ services:
       - /share:/share
     ports:
       - "3000:3000"
-  # 媒体库
-  jellyfin:
-    image: nyanmisaka/jellyfin
-    container_name: jellyfin
-    hostname: jellyfin
+  xteve:
+    image: dnsforge/xteve
+    container_name: xteve
+    hostname: xteve
     restart: always
     networks:
       macvlan:
-        ipv4_address: 10.0.0.153
+        ipv4_address: 10.0.0.155
+    volumes:
+      - /share/Container/docker-volumes/xteve/conf:/home/xteve/conf
+      - /share/Container/docker-volumes/xteve/guide2go:/home/xteve/guide2go/conf
+
+  plex:
+    image: linuxserver/plex
+    container_name: plex
+    hostname: plex
+    restart: always
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.154
     environment:
       # 用户id
       - PUID=1000
       # 用户组id
       - PGID=100
       - TZ=Asia/Shanghai
+      - VERSION=docker
     devices:
       - /dev/dri:/dev/dri
     volumes:
       # 配置文件夹
-      - /share/Container/docker-volumes/jellyfin/config:/config
+      - /share/Container/docker-volumes/plex/config:/config
       # 媒体目录
       - /share:/share
+#  # 媒体库
+#  jellyfin:
+#    image: nyanmisaka/jellyfin
+#    container_name: jellyfin
+#    hostname: jellyfin
+#    restart: always
+#    networks:
+#      macvlan:
+#        ipv4_address: 10.0.0.153
+#    environment:
+#      # 用户id
+#      - PUID=1000
+#      # 用户组id
+#      - PGID=100
+#      - TZ=Asia/Shanghai
+#    devices:
+#      - /dev/dri:/dev/dri
+#    volumes:
+#      # 配置文件夹
+#      - /share/Container/docker-volumes/jellyfin/config:/config
+#      # 媒体目录
+#      - /share:/share
+  # portainer:docker管理
+  portainer:
+    image: portainer/portainer-ce
+    container_name: portainer
+    hostname: portainer
+    restart: always
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.152
+    volumes:
+      # 配置文件夹
+      - /share/CACHEDEV1_DATA/Container/docker-volumes/portainer:/data
+      # 媒体目录
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - "8096:8096"
+      - "8000:8000"
+      - "9000:9000"
   # 下载器
   qbittorrent:
     image: linuxserver/qbittorrent
@@ -97,10 +144,6 @@ services:
       - "50126:50126"
       - "50126:50126/udp"
       - "8080:8080"
-
-
-
-
 
 
 networks:
