@@ -3,12 +3,18 @@ import yaml
 import base64
 import requests
 from urllib.parse import urlencode
+from retrying import retry
 
 
+@retry(stop_max_attempt_number=10, wait_fixed=1000)
 def get_short_url(url):
     payload = {'longUrl': base64.b64encode(url.encode("utf-8"))}
     response = requests.request("POST", 'https://v1.mk/short', data=payload)
-    return response.json()['ShortUrl']
+    try:
+        url = response.json()['ShortUrl']
+        return url
+    except Exception:
+        raise Exception("<!--获取短连接失败-->")
 
 
 def get_config():
@@ -57,8 +63,8 @@ print('| 机场  | 类型 | 链接  |')
 print('| :----: | :----: | :----: |')
 for service in services:
     clash_url = get_url(service, config, 'CLASH')
-    home_url = get_url(service, config, 'HOME')
-    surge_url = get_url(service, config, 'SURGE')
     print(clash_url)
+    home_url = get_url(service, config, 'HOME')
     print(home_url)
+    surge_url = get_url(service, config, 'SURGE')
     print(surge_url)
