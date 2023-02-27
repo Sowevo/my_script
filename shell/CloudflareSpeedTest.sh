@@ -11,6 +11,7 @@
 #   sh -c "$(fetch -o - https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
 #   sh -c "$(fetch -o - https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
 
+.work_path='/tmp'
 
 uname_os() {
   os=$(uname -s | tr '[:upper:]' '[:lower:]')
@@ -56,7 +57,6 @@ uname_arch_check() {
   return 1
 }
 
-
 releases_version() {
   # 获取XIU2/CloudflareSpeedTest的最新版本号
   latest_release=$(curl -s "https://api.github.com/repos/XIU2/CloudflareSpeedTest/releases/latest" | grep -o '"tag_name":.*' | sed 's/"tag_name": "//;s/",//')
@@ -67,7 +67,6 @@ releases_version() {
 }
 
 download() {
-  work_path='/tmp'
   # 创建并进入工作目录
   mkdir -p ${work_path}&&cd $work_path
   echo "开始下载:https://ghproxy.com/https://github.com/XIU2/CloudflareSpeedTest/releases/download/${latest_release}/CloudflareST_${os}_${arch}.tar.gz"
@@ -79,7 +78,7 @@ download() {
   # 赋予执行权限
   chmod +x CloudflareST
   # 清空结果文件
-  rm result_hosts.txt
+  rm result_hosts.txt | true
 }
 
 run() {
