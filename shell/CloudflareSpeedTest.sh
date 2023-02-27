@@ -11,7 +11,7 @@
 #   sh -c "$(fetch -o - https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
 #   sh -c "$(fetch -o - https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
 
-.work_path='/tmp'
+work_path='/tmp'
 
 uname_os() {
   os=$(uname -s | tr '[:upper:]' '[:lower:]')
