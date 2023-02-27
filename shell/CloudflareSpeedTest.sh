@@ -78,7 +78,7 @@ download() {
   # 赋予执行权限
   chmod +x CloudflareST
   # 清空结果文件
-  rm result_hosts.txt | true
+  rm -f result_hosts.txt
 }
 
 run() {
