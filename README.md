@@ -2,7 +2,7 @@
 
 ## [shell](./shell):一些脚本
 
-  - [bing.wallpapers.sh](./shell/bing.wallpapers.sh)
+  - [bing.wallpapers.sh](./shell/mac/bing.wallpapers.sh)
 
     下载bing壁纸并设置为桌面壁纸(Mac)
 

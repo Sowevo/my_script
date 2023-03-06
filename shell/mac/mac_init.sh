@@ -2,8 +2,8 @@
 
 # 在线执行
 # This script should be run via curl:
-#   zsh -c "$(curl -fsSL https://raw.githubusercontent.com/Sowevo/my_script/main/shell/mac_init.sh)"
-#   zsh -c "$(curl -fsSL https://jsd.eagleyao.com/gh/Sowevo/my_script@main/shell/mac_init.sh)"
+#   zsh -c "$(curl -fsSL https://raw.githubusercontent.com/Sowevo/my_script/main/shell/mac/mac_init.sh)"
+#   zsh -c "$(curl -fsSL https://jsd.eagleyao.com/gh/Sowevo/my_script@main/shell/mac/mac_init.sh)"
 
 
 
