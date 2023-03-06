@@ -59,4 +59,4 @@ osascript -e "tell application \"System Events\" to tell every desktop to set pi
 # osascript -e "tell application \"System Events\" to tell desktop 1 to set picture to \"$fullpath\""
 else
 echo "$(date) - connection failed"
-fi
+fi 
