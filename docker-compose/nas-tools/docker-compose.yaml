@@ -13,6 +13,7 @@ services:
       macvlan:
         ipv4_address: 10.0.0.157
     volumes:
+      # 配置文件夹
       - /share/Container/docker-volumes/iyuuplus:/IYUU/db
     environment:
       - PUID=1000  # 用户id
@@ -57,7 +58,9 @@ services:
       macvlan:
         ipv4_address: 10.0.0.155
     volumes:
+      # 配置文件夹
       - /share/Container/docker-volumes/xteve/conf:/home/xteve/conf
+      # 配置文件夹
       - /share/Container/docker-volumes/xteve/guide2go:/home/xteve/guide2go/conf
 
   plex:
