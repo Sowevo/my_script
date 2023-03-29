@@ -9,7 +9,7 @@ backup_day=30
 
 Usage() {
     echo "使用帮助:"
-    echo "  -e 备份环境,可选dev,test,my,211"
+    echo "  -e 备份环境,dev_model2,dev_model3,test_model2,my"
     echo "  -o 保存文件名,非必填"
     exit 1
 }
@@ -63,32 +63,38 @@ delete_old_backup()
 switch_param(){
     # 处理来源数据库信息
     case $env in
-      "dev")
+      "dev_model2")
         source_db_user="digitalthread"
         source_db_password="digitalthread"
         source_db_host="192.168.5.248"
         source_db_port="3306"
+        # 要备份的数据库名称
+        all_db="model2_analysis model2_system model2_objectbuilder"
       ;;
-      "test")
+      "dev_model3")
+        source_db_user="digitalthread"
+        source_db_password="digitalthread"
+        source_db_host="192.168.5.248"
+        source_db_port="3306"
+        all_db="model3_analysis model3_system model3_objectbuilder"
+      ;;
+      "test_model2")
         source_db_user="model"
         source_db_password="nancal.62ea"
         source_db_host="192.168.5.248"
         source_db_port="3307"
-      ;;
-      "211")
-        source_db_user="nancal"
-        source_db_password="nancal.123"
-        source_db_host="192.168.5.211"
-        source_db_port="3307"
+        # 要备份的数据库名称
+        all_db="model2_analysis model2_system model2_objectbuilder"
       ;;
       "my")
         source_db_user="root"
         source_db_password="hsgz8bz"
         source_db_host="192.168.21.185"
         source_db_port="33066"
+        all_db="model2_analysis model2_system model2_objectbuilder model2_analysis model2_system model2_objectbuilder"
       ;;
       *)
-        echo "参数env错误!"
+        echo "参数env错误!" Usage
         exit 1
       ;;
     esac
@@ -98,13 +104,8 @@ switch_param(){
       time="$(date +"%Y%m%d%H%M%S")"
       backname=${source_db_host}.${source_db_port}.${time}
     fi
-
-
     # 备份文件的路径(不含后缀)
     dumpfile=${backup_dir}${backname}
-
-    # 要备份的数据库名称
-    all_db="digitalthread_basicconfig digitalthread_objectbuilder digitalthread_system model_objectbuilder"
 }
 
 while getopts "e:o:" opt

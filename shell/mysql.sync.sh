@@ -25,7 +25,7 @@ backup_day=30
 
 Usage() {
     echo "使用帮助:"
-    echo "  -e 备份环境,可选dev,test,211"
+    echo "  -e 备份环境,dev_model2,dev_model3,test_model2"
     echo "  -h 目标MYSQL主机地址,eg:192.168.1.1"
     echo "  -u 目标MYSQL账号,eg:root"
     echo "  -p 目标MYSQL密码,eg:root"
@@ -76,7 +76,7 @@ mysql_backup()
 
     # 要备份的数据库名
     # all_db="$(mysql -u${source_db_user} -P${source_db_port} -h${source_db_host} -p${source_db_password} -Bse 'show databases' 2>/dev/null |grep digitalthread|tr '\n' ' ')"
-    all_db="digitalthread_basicconfig digitalthread_objectbuilder digitalthread_system model_objectbuilder"
+    # all_db="digitalthread_basicconfig digitalthread_objectbuilder digitalthread_system model_objectbuilder"
     backname=${source_db_host}.${source_db_port}.${time}
     dumpfile=${backup_dir}${backname}
     
@@ -103,26 +103,32 @@ delete_old_backup()
 # 切换来源的mysql
 switch_env(){
     case $env in
-      "dev")
+      "dev_model2")
         source_db_user="digitalthread"
         source_db_password="digitalthread"
         source_db_host="192.168.5.248"
         source_db_port="3306"
+        # 要备份的数据库名称
+        all_db="model2_analysis model2_system model2_objectbuilder"
       ;;
-      "test")
+      "dev_model3")
+        source_db_user="digitalthread"
+        source_db_password="digitalthread"
+        source_db_host="192.168.5.248"
+        source_db_port="3306"
+        all_db="model3_analysis model3_system model3_objectbuilder"
+      ;;
+      "test_model2")
         source_db_user="model"
         source_db_password="nancal.62ea"
         source_db_host="192.168.5.248"
         source_db_port="3307"
-      ;;
-      "211")
-        source_db_user="nancal"
-        source_db_password="nancal.123"
-        source_db_host="192.168.5.211"
-        source_db_port="3307"
+        # 要备份的数据库名称
+        all_db="model2_analysis model2_system model2_objectbuilder"
       ;;
       *)
-        echo "参数env错误!,默认使用dev环境!!!"
+        echo "参数env错误!" Usage
+        exit 1
       ;;
     esac
 }
