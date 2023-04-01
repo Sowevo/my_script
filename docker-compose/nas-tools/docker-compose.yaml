@@ -27,6 +27,10 @@ services:
     container_name: nas-tools
     hostname: nas-tools
     restart: always
+    depends_on:
+      - plex
+      - iyuuplus
+      - qbittorrent
     networks:
       macvlan:
         ipv4_address: 10.0.0.156
@@ -68,6 +72,8 @@ services:
     container_name: plex
     hostname: plex
     restart: always
+    depends_on:
+      - xteve
     networks:
       macvlan:
         ipv4_address: 10.0.0.154
