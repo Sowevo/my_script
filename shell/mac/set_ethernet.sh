@@ -6,9 +6,9 @@ if [[ $# -ne 1 || ($1 != "auto" && $1 != "manual") ]]; then
 fi
 
 if [[ $1 == "auto" ]]; then
-    networksetup -setdhcp Wi-Fi
-    echo "Wi-Fi network is set to DHCP."
+    networksetup -setdhcp Ethernet
+    echo "Ethernet network is set to DHCP."
 else
-    networksetup -setmanual Wi-Fi 192.168.21.119 255.255.255.0 192.168.21.254
+    networksetup -setmanual Ethernet 192.168.21.119 255.255.255.0 192.168.21.254
     echo "Ethernet network is set to manual mode."
 fi
