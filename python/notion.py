@@ -15,6 +15,7 @@ class Cycle(Enum):
     M_10 = (10, "months", "10月")
     M_11 = (11, "months", "11月")
     M_12 = (12, "months", "12月")
+    M_19 = (19, "months", "19月")
     Y_1 = (1, "years", "1年")
     Y_2 = (2, "years", "2年")
     Y_3 = (3, "years", "3年")
