@@ -41,7 +41,7 @@
   #   -directory 将文件移动到指定目录,没啥用..
   #   -testname 不移动,只打印结果
   #     后面可以跟,指定datetimeoriginal,日期从哪里获取,可选的还有 createdate,filemodifydate等
-  $ exiftool -d %Y-%m-%d/%Y-%m-%d_%H%M%S.%%ue "-filename<datetimeoriginal" -r .
+  $ exiftool -d %Y-%m-%d/%Y-%m-%d_%H%M%S%%-c.%%ue "-filename<datetimeoriginal" -r .
   
   # 在Docker中运行
   # --rm                                               用完就删掉这个容器
@@ -52,7 +52,7 @@
       -v /share/CACHEDEV2_DATA/Vol2/自动导入:/work \
       -v /share/CACHEDEV2_DATA/Vol2/照片/D5300:/target \
       --rm -e PUID=1000 -e PGID=100 ltdgbchedu/exiftool \
-      -d /target/%Y-%m-%d/%Y-%m-%d_%H%M%S.%%ue  "-filename<datetimeoriginal" -r .
+      -d /target/%Y-%m-%d/%Y-%m-%d_%H%M%S%%-c.%%ue  "-filename<datetimeoriginal" -r .
   ```
 - 统计出你最近使用频率最高的 10 条命令
 
