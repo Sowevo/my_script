@@ -1,6 +1,6 @@
 #!/bin/sh
 # 在线执行
-# 解决 pt站 tracker 连不上的问题...
+# 解决 pt站 tracker 连不上的问题...     docker exec -it qbittorrent /bin/sh
 # This script should be run via curl:
 #   sh -c "$(curl -fsSL https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
 #   sh -c "$(curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
