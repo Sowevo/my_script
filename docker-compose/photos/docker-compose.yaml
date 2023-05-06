@@ -7,6 +7,9 @@ services:
     container_name: icloudpd
     hostname: icloudpd
     restart: always
+    entrypoint:
+      # 时区
+      - TZ=Asia/Shanghai
     volumes:
       # 配置文件夹
       - /share/Container/docker-volumes/icloudpd:/config
