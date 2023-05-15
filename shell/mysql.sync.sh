@@ -108,7 +108,7 @@ switch_env(){
       ;;
       "62")
         # 来源
-        source_db_user="model"
+        source_db_user="root"
         source_db_password="nancal.123"
         source_db_host="192.168.5.62"
         source_db_port="3306"
