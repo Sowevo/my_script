@@ -4,11 +4,6 @@
 # arch: yay -s mysql-clients
 # fedora: sudo yum install mysql -y
 backup_dir="${HOME}/backup/mysql/"
-# 来源
-source_db_user="digitalthread"
-source_db_password="digitalthread"
-source_db_host="192.168.5.248"
-source_db_port="3306"
 
 # 目标
 target_db_user="root"
@@ -103,28 +98,22 @@ delete_old_backup()
 # 切换来源的mysql
 switch_env(){
     case $env in
-      "dev_model2")
-        source_db_user="digitalthread"
-        source_db_password="digitalthread"
+      "221")
+        # 来源
+        source_db_user="agentdesigner"
+        source_db_password="Agentdesigner@230424."
         source_db_host="192.168.5.248"
         source_db_port="3306"
-        # 要备份的数据库名称
-        all_db="model2_analysis model2_system model2_objectbuilder"
+        all_db="agentdesigner"
       ;;
-      "dev_model3")
-        source_db_user="digitalthread"
-        source_db_password="digitalthread"
-        source_db_host="192.168.5.248"
-        source_db_port="3306"
-        all_db="model3_analysis model3_system model3_objectbuilder"
-      ;;
-      "test_model2")
+      "62")
+        # 来源
         source_db_user="model"
-        source_db_password="nancal.62ea"
-        source_db_host="192.168.5.248"
-        source_db_port="3307"
+        source_db_password="nancal.123"
+        source_db_host="192.168.5.62"
+        source_db_port="3306"
         # 要备份的数据库名称
-        all_db="model2_analysis model2_system model2_objectbuilder"
+        all_db="agentdesigner"
       ;;
       *)
         echo "参数env错误!" Usage
