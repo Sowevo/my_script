@@ -1,6 +1,9 @@
 import datetime
 import xml.etree.ElementTree as ET
 from math import radians, sin, cos, sqrt, atan2
+
+from python.coordTransform_utils import gcj02_to_wgs84
+
 """
 从航旅纵横抓包的数据生成KML文件用于导入世界迷雾
 """
@@ -28,6 +31,7 @@ def read_data():
             # 分割每一行数据，获取经纬度和时间戳
             line_data = line.strip().split('|')
             longitude, latitude = float(line_data[1]), float(line_data[3])
+            longitude, latitude = gcj02_to_wgs84(longitude, latitude)
             timestamp = datetime.datetime.strptime(line_data[8].strip('"'), '%Y-%m-%d %H:%M:%S%f')
 
             # 存储经纬度和时间戳到数据列表中
