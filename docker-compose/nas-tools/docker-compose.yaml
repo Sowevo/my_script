@@ -23,7 +23,7 @@ services:
       - "8787:8787" # HTTP port
   # 核心服务  nas-tools
   nas-tools:
-    image: jxxghp/nas-tools:latest-beta
+    image: nastool/nas-tools:latest
     container_name: nas-tools
     hostname: nas-tools
     restart: always
