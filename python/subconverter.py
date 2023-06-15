@@ -1,4 +1,3 @@
-# 方便进行subconverter参数拼接的脚本
 import yaml
 import base64
 import requests
@@ -46,11 +45,13 @@ def get_url(_service, _config, _type):
         param['target'] = 'clashr'
     elif _type == 'HOME':
         param['target'] = 'clashr'
-        param['url'] = param['url'] + '|' + extend_url
+        param['url'] = param['url'] + '|tag:HO,' + extend_url
+        param['rename'] = param['rename'] + '`!!GROUP=HO!!^@[HO]'
     elif _type == 'SURGE':
         param['target'] = 'surge'
         param['ver'] = '4'
-        param['url'] = param['url'] + '|' + extend_url
+        param['url'] = param['url'] + '|tag:HO,' + extend_url
+        param['rename'] = param['rename'] + '`!!GROUP=HO!!^@[HO]'
     param['filename'] = name + '_' + _type + '.yaml'
     url = subconverter_url + '?' + urlencode(param)
     short_url = get_short_url(url)
@@ -59,6 +60,31 @@ def get_url(_service, _config, _type):
 
 config = get_config()
 services = config['services']
+# 补充tag信息
+for service in services:
+    if hasattr(service, 'short_name'):
+        short_name = service['short_name']
+    else:
+        short_name = service['name'][0: 2]
+    service['subconverter']['url'] = 'tag:' + short_name + ',' + service['subconverter']['url']
+    service['subconverter']['rename'] = '!!GROUP='+short_name+'!!^@['+short_name+']'
+
+mix_urls = []
+mix_renames = []
+param = {}
+# 找出来需要混合的!
+for service in services:
+    if service['mix']:
+        mix_urls.append(service['subconverter']['url'])
+        mix_renames.append(service['subconverter']['rename'])
+        for key, value in service['subconverter'].items():
+            param[key] = value
+if len(mix_urls):
+    mix_service = {'name': '混合', 'site': 'https://baidu.com'}
+    param.update({'url': '|'.join(mix_urls), 'rename': '`'.join(mix_renames)})
+    mix_service['subconverter'] = param
+    services.append(mix_service)
+
 print('| 机场  | 类型 | 链接  |')
 print('| :----: | :----: | :----: |')
 for service in services:
