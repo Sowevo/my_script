@@ -133,6 +133,15 @@ switch_env(){
         # 要备份的数据库名称
         all_db="agentdesigner"
       ;;
+      "236")
+        # 来源
+        source_db_user="nancal"
+        source_db_password="nancal.123"
+        source_db_host="192.168.5.248"
+        source_db_port="40026"
+        # 要备份的数据库名称
+        all_db="agentdesigner"
+      ;;
       *)
         echo "参数env错误!"
         exit 1
