@@ -63,38 +63,52 @@ delete_old_backup()
 switch_param(){
     # 处理来源数据库信息
     case $env in
-      "dev_model2")
-        source_db_user="digitalthread"
-        source_db_password="digitalthread"
+      "221")
+        # 来源
+        source_db_user="agentdesigner"
+        source_db_password="Agentdesigner@230424."
         source_db_host="192.168.5.248"
+        source_db_port="3306"
+        all_db="agentdesigner"
+      ;;
+      "62")
+        # 来源
+        source_db_user="root"
+        source_db_password="nancal.123"
+        source_db_host="192.168.5.62"
         source_db_port="3306"
         # 要备份的数据库名称
-        all_db="model2_analysis model2_system model2_objectbuilder"
+        all_db="agentdesigner"
       ;;
-      "dev_model3")
-        source_db_user="digitalthread"
-        source_db_password="digitalthread"
-        source_db_host="192.168.5.248"
-        source_db_port="3306"
-        all_db="model3_analysis model3_system model3_objectbuilder"
-      ;;
-      "test_model2")
-        source_db_user="model"
-        source_db_password="nancal.62ea"
+      "60")
+        # 来源
+        source_db_user="nancal"
+        source_db_password="nancal.123"
         source_db_host="192.168.5.248"
         source_db_port="3307"
         # 要备份的数据库名称
-        all_db="model2_analysis model2_system model2_objectbuilder"
+        all_db="agentdesigner"
       ;;
-      "my")
-        source_db_user="root"
-        source_db_password="hsgz8bz"
-        source_db_host="192.168.21.185"
-        source_db_port="33066"
-        all_db="model2_analysis model2_system model2_objectbuilder model2_analysis model2_system model2_objectbuilder"
+      "233")
+        # 来源
+        source_db_user="nancal"
+        source_db_password="nancal.123"
+        source_db_host="192.168.5.248"
+        source_db_port="40028"
+        # 要备份的数据库名称
+        all_db="agentdesigner"
+      ;;
+      "236")
+        # 来源
+        source_db_user="nancal"
+        source_db_password="nancal.123"
+        source_db_host="192.168.5.248"
+        source_db_port="40026"
+        # 要备份的数据库名称
+        all_db="agentdesigner"
       ;;
       *)
-        echo "参数env错误!" Usage
+        echo "参数env错误!"
         exit 1
       ;;
     esac
