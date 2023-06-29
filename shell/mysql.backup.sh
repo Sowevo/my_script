@@ -123,7 +123,7 @@ switch_param(){
     # 处理-o参数,设置到备份路径中
     if [ ! $backname ]; then
       time="$(date +"%Y%m%d%H%M%S")"
-      backname=${source_db_host}.${source_db_port}.${time}
+      backname=${env}.${source_db_host}.${source_db_port}.${time}
     fi
     # 备份文件的路径(不含后缀)
     dumpfile=${backup_dir}${backname}

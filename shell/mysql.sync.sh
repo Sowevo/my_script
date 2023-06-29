@@ -72,7 +72,7 @@ mysql_backup()
     # 要备份的数据库名
     # all_db="$(mysql -u${source_db_user} -P${source_db_port} -h${source_db_host} -p${source_db_password} -Bse 'show databases' 2>/dev/null |grep digitalthread|tr '\n' ' ')"
     # all_db="digitalthread_basicconfig digitalthread_objectbuilder digitalthread_system model_objectbuilder"
-    backname=${source_db_host}.${source_db_port}.${time}
+    backname=${env}.${source_db_host}.${source_db_port}.${time}
     dumpfile=${backup_dir}${backname}
     
 
