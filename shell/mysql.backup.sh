@@ -63,7 +63,7 @@ delete_old_backup()
 switch_param(){
     # 处理来源数据库信息
     case $env in
-      "221")
+            "221")
         # 来源
         source_db_user="agentdesigner"
         source_db_password="Agentdesigner@230424."
@@ -107,8 +107,15 @@ switch_param(){
         # 要备份的数据库名称
         all_db="agentdesigner"
       ;;
+      "my")
+        source_db_user="root"
+        source_db_password="hsgz8bz"
+        source_db_host="192.168.21.185"
+        source_db_port="33066"
+        all_db="agentdesigner"
+      ;;
       *)
-        echo "参数env错误!"
+        echo "参数env错误!" Usage
         exit 1
       ;;
     esac
