@@ -7,6 +7,10 @@ services:
     hostname: homeassistant
     restart: always
     network_mode: "host"
+    environment:
+      - PUID=1000  # 用户id
+      - PGID=100   # 用户组id
+      - TZ=Asis/Shanghai
     volumes:
       # 配置文件夹
       - /share/Container/docker-volumes/homeassistant/config:/config
