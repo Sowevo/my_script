@@ -12,3 +12,4 @@ services:
     volumes:
       # 配置文件夹
       - /share/Container/docker-volumes/homeassistant/config:/config
+      - /etc/localtime:/etc/localtime
