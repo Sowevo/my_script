@@ -2,16 +2,11 @@ version: "3"
 services:
   # homeassistant
   homeassistant:
-    image: linuxserver/homeassistant:latest
+    image: homeassistant/home-assistant:latest
     container_name: homeassistant
     hostname: homeassistant
     restart: always
     network_mode: "host"
-    environment:
-      - PUID=1000  # 用户id
-      - PGID=100   # 用户组id
-      - TZ=Asis/Shanghai
     volumes:
       # 配置文件夹
       - /share/Container/docker-volumes/homeassistant/config:/config
-      - /etc/localtime:/etc/localtime:ro
