@@ -1,17 +1,16 @@
 version: "3"
 services:
-
   # icloud 同步
-  icloudpd:
+  icloudpd_01:
     image: boredazfcuk/icloudpd:latest
-    container_name: icloudpd
-    hostname: icloudpd
+    container_name: icloudpd_01
+    hostname: icloudpd_01
     restart: always
     entrypoint:
       # 时区
       - TZ=Asia/Shanghai
     volumes:
       # 配置文件夹
-      - /share/Container/docker-volumes/icloudpd:/config
+      - /share/Container/docker-volumes/icloudpd/01:/config
       # 媒体目录
-      - /share/CACHEDEV2_DATA/Vol2/照片/iCloud:/iCloud
+      - /share/CACHEDEV2_DATA/Vol2/照片/iCloud/01:/iCloud
