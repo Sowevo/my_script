@@ -11,3 +11,14 @@ services:
       - /share/Container/docker-volumes/icloudpd/01:/config
       # 媒体目录
       - /share/CACHEDEV2_DATA/Vol2/照片/iCloud/01:/iCloud
+  # icloud 同步
+  icloudpd_02:
+    image: boredazfcuk/icloudpd:latest
+    container_name: icloudpd_02
+    hostname: icloudpd_02
+    restart: always
+    volumes:
+      # 配置文件夹
+      - /share/Container/docker-volumes/icloudpd/02:/config
+      # 媒体目录
+      - /share/CACHEDEV2_DATA/Vol2/照片/iCloud/02:/iCloud
