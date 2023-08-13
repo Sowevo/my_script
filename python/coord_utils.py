@@ -1,43 +1,10 @@
 # -*- coding: utf-8 -*-
-import json
-import urllib
 import math
 
 x_pi = 3.14159265358979324 * 3000.0 / 180.0
 pi = 3.1415926535897932384626  # π
 a = 6378245.0  # 长半轴
 ee = 0.00669342162296594323  # 偏心率平方
-
-
-class Geocoding:
-    def __init__(self, api_key):
-        self.api_key = api_key
-
-    def geocode(self, address):
-        """
-        利用高德geocoding服务解析地址获取位置坐标
-        :param address:需要解析的地址
-        :return:
-        """
-        geocoding = {'s': 'rsv3',
-                     'key': self.api_key,
-                     'city': '全国',
-                     'address': address}
-        geocoding = urllib.urlencode(geocoding)
-        ret = urllib.urlopen("%s?%s" % ("http://restapi.amap.com/v3/geocode/geo", geocoding))
-
-        if ret.getcode() == 200:
-            res = ret.read()
-            json_obj = json.loads(res)
-            if json_obj['status'] == '1' and int(json_obj['count']) >= 1:
-                geocodes = json_obj['geocodes'][0]
-                lng = float(geocodes.get('location').split(',')[0])
-                lat = float(geocodes.get('location').split(',')[1])
-                return [lng, lat]
-            else:
-                return None
-        else:
-            return None
 
 
 def gcj02_to_bd09(lng, lat):
@@ -157,19 +124,4 @@ def out_of_china(lng, lat):
     :param lat:
     :return:
     """
-    return not (lng > 73.66 and lng < 135.05 and lat > 3.86 and lat < 53.55)
-
-
-if __name__ == '__main__':
-    lng = 128.543
-    lat = 37.065
-    result1 = gcj02_to_bd09(lng, lat)
-    result2 = bd09_to_gcj02(lng, lat)
-    result3 = wgs84_to_gcj02(lng, lat)
-    result4 = gcj02_to_wgs84(lng, lat)
-    result5 = bd09_to_wgs84(lng, lat)
-    result6 = wgs84_to_bd09(lng, lat)
-
-    g = Geocoding('API_KEY')  # 这里填写你的高德api的key
-    result7 = g.geocode('北京市朝阳区朝阳公园')
-    print(result1, result2, result3, result4, result5, result6, result7)
+    return not (73.66 < lng < 135.05 and 3.86 < lat < 53.55)

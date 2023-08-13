@@ -1,12 +1,11 @@
-import datetime
-import xml.etree.ElementTree as ET
-from math import radians, sin, cos, sqrt, atan2
-
-from python.coordTransform_utils import gcj02_to_wgs84
-
 """
 从航旅纵横抓包的数据生成KML文件用于导入世界迷雾
 """
+
+import datetime
+import xml.etree.ElementTree as ET
+from math import radians, sin, cos, sqrt, atan2
+from python.coord_utils import gcj02_to_wgs84
 
 
 def distance(lat1, lon1, lat2, lon2):
@@ -55,7 +54,7 @@ def fix_data(_data):
                 dlon = (longitude - last_lon) / num_points
                 dlat = (latitude - last_lat) / num_points
                 dt = (timestamp - last_time) / num_points  # 时间戳按照坐标平分点的个数进行切分
-                for i in range(1,num_points):
+                for i in range(1, num_points):
                     # 计算平分点的经纬度坐标
                     sub_longitude = last_lon + dlon * i
                     sub_latitude = last_lat + dlat * i
@@ -110,7 +109,7 @@ def calculate_data(_data):
             dist = distance(last_lat, last_lon, latitude, longitude)
             time_delta = (timestamp - last_time).total_seconds()
             # 计算速度
-            speed = dist/time_delta*3.6  # 单位：公里/小时
+            speed = dist / time_delta * 3.6  # 单位：公里/小时
             # 输出结果
             print(f"距离差：{dist:.2f} 米，时间差：{time_delta:.2f} 秒，速度：{speed:.2f} 公里/小时")
         last_lat, last_lon, last_time = latitude, longitude, timestamp
@@ -121,4 +120,3 @@ print(data)
 data = fix_data(data)
 print(data)
 generate_kml(data)
-
