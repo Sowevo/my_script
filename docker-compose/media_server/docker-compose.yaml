@@ -16,7 +16,7 @@ services:
       macvlan:
         ipv4_address: 10.0.0.156
     env_file:
-      - .env
+      - env.conf
     environment:
       # 时区
       TZ: Asia/Shanghai
