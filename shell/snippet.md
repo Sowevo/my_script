@@ -32,9 +32,16 @@
   #   排除的格式
   # -r
   #   递归处理文件
-  # "-filename<${model;}/${datetimeoriginal#;DateFmt("%Y-%m-%d/%Y-%m-%d_%H%M%S")}%-c.%ue" 命名规则,包含路径
-  # 设备名/2023-07-01/2023-07-01_132107.JPG
-  $ exiftool -r '-filename<${model;}/${datetimeoriginal#;DateFmt("%Y-%m-%d/%Y-%m-%d_%H%M%S")}%-c.%ue' .
+  # -d
+  #   -d %Y-%m-%d/%Y-%m-%d_%H%M%S.%%ue
+  #   指定格式化的格式
+  #   %%ue 大写的文件后缀
+  # "-filename<datetimeoriginal"
+  #   -filename 移动文件,支持写"/"移动文件夹
+  #   -directory 将文件移动到指定目录,没啥用..
+  #   -testname 不移动,只打印结果
+  #     后面可以跟,指定datetimeoriginal,日期从哪里获取,可选的还有 createdate,filemodifydate等
+  $ exiftool -d %Y-%m-%d/%Y-%m-%d_%H%M%S%%-c.%%ue "-filename<datetimeoriginal" -r .
   
   # 在Docker中运行
   # --rm                                               用完就删掉这个容器
