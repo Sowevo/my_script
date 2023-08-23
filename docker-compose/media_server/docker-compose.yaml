@@ -196,6 +196,7 @@ services:
     ports:
       - "8000:8000"
       - "9000:9000"
+
   # 下载器
   qbittorrent:
     image: linuxserver/qbittorrent:4.4.5
@@ -219,6 +220,53 @@ services:
       - "50126:50126"
       - "50126:50126/udp"
       - "8080:8080"
+
+  # icloud 同步01
+  icloudpd_01:
+    image: boredazfcuk/icloudpd:latest
+    container_name: icloudpd_01
+    hostname: icloudpd_01
+    restart: always
+    volumes:
+      # 配置文件夹
+      - /share/Container/docker-volumes/icloudpd/01:/config
+      # 媒体目录
+      - /share/CACHEDEV2_DATA/Vol2/照片/iCloud/01:/iCloud
+
+  # icloud 同步02
+  icloudpd_02:
+    image: boredazfcuk/icloudpd:latest
+    container_name: icloudpd_02
+    hostname: icloudpd_02
+    restart: always
+    volumes:
+      # 配置文件夹
+      - /share/Container/docker-volumes/icloudpd/02:/config
+      # 媒体目录
+      - /share/CACHEDEV2_DATA/Vol2/照片/iCloud/02:/iCloud
+
+  # 在线图库
+  mtphotos:
+    image: mtphotos/mt-photos:latest
+    container_name: mtphotos
+    hostname: mtphotos
+    restart: always
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.157
+    environment:
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
+      - TZ=Asia/Shanghai
+    volumes:
+      # 配置文件夹
+      - /share/Container/docker-volumes/mtphotos/config:/config
+      # 媒体目录
+      - /share:/share
+    ports: # 这个端口映射
+      - "8063:8063"
 
 
 networks:
