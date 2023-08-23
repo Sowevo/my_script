@@ -46,11 +46,13 @@ services:
       # 暂时开启,试试看
       TORRENT_TAG: MOVIEPILOT
       # 媒体库目录，多个目录使用,分隔
-      LIBRARY_PATH: /share/CACHEDEV1_DATA/Vol1/media_volume/
+      LIBRARY_PATH: /share/CACHEDEV1_DATA/Vol1/
       # 电影媒体库目录名，默认电影
-      # LIBRARY_MOVIE_NAME:暂时不设置,尝试使用CATEGORY处理
+      # 看着代码写出来的不太正常的配置
+      LIBRARY_MOVIE_NAME: media_volume
       # 电视剧媒体库目录名，默认电视剧
-      # LIBRARY_TV_NAME:暂时不设置,尝试使用CATEGORY处理
+      # 看着代码写出来的不太正常的配置
+      LIBRARY_TV_NAME: media_volume
       # 媒体库二级分类开关，true/false，默认false，开启后会根据配置category.yaml自动在媒体库目录下建立二级目录分类
       LIBRARY_CATEGORY: true
       # 转移方式，支持link/copy/move/softlink

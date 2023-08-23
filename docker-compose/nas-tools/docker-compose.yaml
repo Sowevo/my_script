@@ -3,7 +3,6 @@ services:
   # 使用macvlan的网络,使得容器获得独立的ip
   # 方便做流量控制
 
-
   # 核心服务  nas-tools
   nas-tools:
     image: nastool/nas-tools:latest
@@ -12,7 +11,6 @@ services:
     restart: always
     depends_on:
       - plex
-      - iyuuplus
       - qbittorrent
     networks:
       macvlan:
