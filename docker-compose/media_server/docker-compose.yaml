@@ -265,6 +265,7 @@ services:
     volumes:
       # 配置文件夹
       - /share/Container/docker-volumes/mtphotos/config:/config
+      - /share/Container/docker-volumes/mtphotos/upload:/upload
       # 媒体目录
       - /share:/share
     ports: # 这个端口映射
