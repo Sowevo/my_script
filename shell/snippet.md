@@ -46,10 +46,10 @@
   # 在Docker中运行
   # --rm                                               用完就删掉这个容器
   # -e PUID=1000 -e PGID=100                           指定权限
-  # -v /share/CACHEDEV2_DATA/Vol2/自动导入:/work         要操作的目录,映射到/work
+  # -v /share/CACHEDEV2_DATA/Vol2/USB一键复制:/work         要操作的目录,映射到/work
   # -v /share/CACHEDEV2_DATA/Vol2/照片/D5300:/target    目标目录,处理完会同步到/target
   $ docker run \
-      -v /share/CACHEDEV2_DATA/Vol2/自动导入:/work \
+      -v /share/CACHEDEV2_DATA/Vol2/USB一键复制:/work \
       -v /share/CACHEDEV2_DATA/Vol2/照片/D5300:/target \
       --rm -e PUID=1000 -e PGID=100 ltdgbchedu/exiftool \
       -d /target/%Y-%m-%d/%Y-%m-%d_%H%M%S%%-c.%%ue  "-filename<datetimeoriginal" -r .
