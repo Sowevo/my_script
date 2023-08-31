@@ -1,4 +1,5 @@
 #!/bin/bash
+# 下载bing的每日壁纸
 
 # 指定一个工作路径
 BASEDIR="/Users/sowevo/Pictures/bing"

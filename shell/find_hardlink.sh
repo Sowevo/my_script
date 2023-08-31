@@ -1,4 +1,5 @@
 #!/bin/bash
+# 找找硬链接
 
 if [[ $# -lt 1 ]] ; then
     echo "Usage: find_hardlink.sh <fileOrDirToFindFor>"

@@ -1,5 +1,4 @@
 # !/bin/bash
-
 # 一键生成TLS和CA证书
 # This script should be run via curl:
 #   sh -c "$(curl -fsSL https://raw.githubusercontent.com/Sowevo/my_script/main/shell/auto-generate-docker-tls-ca.sh)"
