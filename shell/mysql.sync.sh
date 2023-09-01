@@ -131,7 +131,7 @@ switch_env(){
         source_db_host="192.168.5.248"
         source_db_port="40028"
         # 要备份的数据库名称
-        all_db="agentdesigner"
+        all_db="agentdesigner agentparser uidsvr lovsvr encsvr"
       ;;
       "236")
         # 来源
