@@ -2,6 +2,14 @@
 
 ## [shell](./shell):一些脚本
 
+  - [mac_init.sh](./shell/mac/mac_init.sh)
+
+    Mac初试化脚本(Mac)
+
+  - [set_ethernet.sh](./shell/mac/set_ethernet.sh)
+
+    在公司用的快捷修改网卡配置的脚本(Mac)
+
   - [bing.wallpapers.sh](./shell/mac/bing.wallpapers.sh)
 
     下载bing壁纸并设置为桌面壁纸(Mac)
@@ -18,9 +26,6 @@
 
     开发环境数据备份
 
-  - [download_code.sh](./shell/download_code.sh)
-    
-    下载代码并用idea打开
 
 ## [postfix-templates](./postfix-templates)
 
