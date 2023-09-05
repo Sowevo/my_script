@@ -104,7 +104,7 @@ switch_env(){
         source_db_password="Agentdesigner@230424."
         source_db_host="192.168.5.248"
         source_db_port="3306"
-        all_db="agentdesigner"
+        all_db="agentdesigner agentparser"
       ;;
       "62")
         # 来源
