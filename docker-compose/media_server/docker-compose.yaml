@@ -19,66 +19,87 @@ services:
       - env.conf
     environment:
       # 时区
-      TZ: Asia/Shanghai
-      # WEB服务端口，默认3000，可自行修改，但不能为3001
-      NGINX_PORT: 3000
+      - TZ=Asia/Shanghai
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
+      # 掩码权限，默认000，可以考虑设置为022
+      - UMASK=022
+      # 重启更新，true/false，默认true
+      - MOVIEPILOT_AUTO_UPDATE=true
+      # WEB服务端口，默认3000，可自行修改，不能与API服务端口冲突
+      - NGINX_PORT=3000
+      # API服务端口，默认3001，可自行修改，不能与WEB服务端口冲突
+      - PORT=3001
       # 超级管理员用户名，默认admin，安装后使用该用户登录后台管理界面
-      SUPERUSER: sowevo
+      - SUPERUSER=sowevo
       # 超级管理员初始密码，默认password，建议修改为复杂密码
-      SUPERUSER_PASSWORD: password
+      - SUPERUSER_PASSWORD=password
       # TMDB API地址，默认api.themoviedb.org，也可配置为api.tmdb.org或其它中转代理服务地址，能连通即可
-      TMDB_API_DOMAIN: api.themoviedb.org
+      - TMDB_API_DOMAIN=api.themoviedb.org
       # 下载保存目录，注意：需要将moviepilot及下载器的映射路径保持一致，否则会导致下载文件无法转移
-      DOWNLOAD_PATH: /share/CACHEDEV1_DATA/Vol1/media_volume/downloads
+      - DOWNLOAD_PATH=/share/CACHEDEV1_DATA/Vol1/media_volume/downloads
       # 电影下载保存目录，必须是DOWNLOAD_PATH的下级路径，不设置则下载到DOWNLOAD_PATH
-      # DOWNLOAD_MOVIE_PATH: 暂时不设置,尝试使用CATEGORY处理
+      - DOWNLOAD_MOVIE_PATH=/share/CACHEDEV1_DATA/Vol1/media_volume/downloads/movies
       # 电视剧下载保存目录，必须是DOWNLOAD_PATH的下级路径，不设置则下载到DOWNLOAD_PATH
-      # DOWNLOAD_TV_PATH: 暂时不设置,尝试使用CATEGORY处理
+      - DOWNLOAD_TV_PATH=/share/CACHEDEV1_DATA/Vol1/media_volume/downloads/series
+      # 动漫下载保存目录，必须是DOWNLOAD_PATH的下级路径，不设置则下载到DOWNLOAD_PATH
+      - DOWNLOAD_ANIME_PATH=/share/CACHEDEV1_DATA/Vol1/media_volume/downloads/bangumi
       # 下载二级分类开关，true/false，默认false，开启后会根据配置category.yaml自动在下载目录下建立二级目录分类
-      DOWNLOAD_CATEGORY: true
+      - DOWNLOAD_CATEGORY=false
       # 下载站点字幕，true/false，默认true 暂时开启,试试看
-      DOWNLOAD_SUBTITLE: true
+      - DOWNLOAD_SUBTITLE=true
       # 入库刷新媒体库，true/false，默认true
-      REFRESH_MEDIASERVER: true
+      - REFRESH_MEDIASERVER=true
       # 刮削入库的媒体文件，true/false，默认true
-      SCRAP_METADATA: true
+      - SCRAP_METADATA=true
       # 种子标签，默认为MOVIEPILOT，设置后只有MoviePilot添加的下载才会处理，留空所有下载器中的任务均会处理
-      # 暂时开启,试试看
-      TORRENT_TAG: MOVIEPILOT
+      - TORRENT_TAG=MOVIEPILOT
       # 媒体库目录，多个目录使用,分隔
-      LIBRARY_PATH: /share/CACHEDEV1_DATA/Vol1/
+      - LIBRARY_PATH=/share/CACHEDEV1_DATA/Vol1/media_volume
       # 电影媒体库目录名，默认电影
-      # 看着代码写出来的不太正常的配置
-      LIBRARY_MOVIE_NAME: media_volume
+      - LIBRARY_MOVIE_NAME=movies
       # 电视剧媒体库目录名，默认电视剧
-      # 看着代码写出来的不太正常的配置
-      LIBRARY_TV_NAME: media_volume
+      - LIBRARY_TV_NAME=series
+      # 动漫媒体库目录名，默认电视剧/动漫
+      - LIBRARY_ANIME_NAME=bangumi
       # 媒体库二级分类开关，true/false，默认false，开启后会根据配置category.yaml自动在媒体库目录下建立二级目录分类
-      LIBRARY_CATEGORY: true
+      - LIBRARY_CATEGORY=false
       # 转移方式，支持link/copy/move/softlink
-      TRANSFER_TYPE: link
+      - TRANSFER_TYPE=link
       # CookieCloud同步间隔（分钟）
-      COOKIECLOUD_INTERVAL: 60
+      - COOKIECLOUD_INTERVAL=60
+      # OCR识别服务器地址，格式：http(s)://ip:port，用于识别站点二维码实现自动登录获取Cookie等，不配置默认使用内建服务器https://movie-pilot.org
+      - OCR_HOST=https://movie-pilot.org
       # CookieCloud对应的浏览器UA，可选，设置后可增加连接站点的成功率，同步站点后可以在管理界面中修改
-      USER_AGENT: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36
+      - USER_AGENT=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36
+      # 交互搜索自动下载用户ID，使用,分割
+      - AUTO_DOWNLOAD_USER=
+      # 订阅模式，rss/spider，默认spider，rss模式通过定时刷新RSS来匹配订阅（RSS地址会自动获取，也可手动维护），对站点压力小，同时可设置订阅刷新周期，24小时运行，但订阅和下载通知不能过滤和显示免费，推荐使用rss模式。
+      - SUBSCRIBE_MODE=rss
+      # RSS订阅模式刷新时间间隔（分钟），默认30分钟，不能小于5分钟。
+      - SUBSCRIBE_RSS_INTERVAL=30
+      # 订阅搜索，true/false，默认false，开启后会每隔24小时对所有订阅进行全量搜索，以补齐缺失剧集（一般情况下正常订阅即可，订阅搜索只做为兜底，会增加站点压力，不建议开启）。
+      - SUBSCRIBE_SEARCH=true
       # 消息通知渠道，支持 `telegram`/`wechat`/`slack`，开启多个渠道时使用`,`分隔。同时还需要配置对应渠道的环境变量，非对应渠道的变量可删除，推荐使用`telegram`
-      MESSAGER: telegram
+      - MESSAGER=telegram
       # 下载器，支持qbittorrent/transmission，QB版本号要求>= 4.3.9，TR版本号要求>= 3.0，同时还需要配置对应渠道的环境变量，非对应渠道的变量可删除，推荐使用qbittorrent
-      DOWNLOADER: qbittorrent
+      - DOWNLOADER=qbittorrent
       # 下载器监控，true/false，默认为true，开启后下载完成时才会自动整理入库
-      DOWNLOADER_MONITOR: true
+      - DOWNLOADER_MONITOR=true
       # 媒体服务器，支持emby/jellyfin/plex，同时还需要配置对应媒体服务器的环境变量，非对应媒体服务器的变量可删除，推荐使用emby
-      MEDIASERVER: plex
+      - MEDIASERVER=plex
       # 媒体服务器同步间隔（小时），默认6，留空则不同步
-      MEDIASERVER_SYNC_INTERVAL: 3
+      - MEDIASERVER_SYNC_INTERVAL=3
       # 认证站点，支持`hhclub`/`audiences`/`hddolby`/`zmpt`/`freefarm`/`hdfans`/`wintersakura`/`leaves`/`1ptba`/`icc2022`/`iyuu`
-      AUTH_SITE: iyuu
+      - AUTH_SITE=iyuu
       # 大内存模式，默认为false，开启后会占用更多的内存，但响应速度会更快
-      BIG_MEMORY_MODE: true
+      - BIG_MEMORY_MODE=true
       # 电影重命名格式
-      MOVIE_RENAME_FORMAT: "{{title}}{% if year %} ({{year}}){% endif %}/{{title}}{% if part %}-{{part}}{% endif %}{% if year %} ({{year}}){% endif %}{% if videoFormat %} - {{videoFormat}}{% endif %}{{fileExt}}"
+      - MOVIE_RENAME_FORMAT="{{title}}{% if year %} ({{year}}){% endif %}/{{title}}{% if part %}-{{part}}{% endif %}{% if year %} ({{year}}){% endif %}{% if videoFormat %} - {{videoFormat}}{% endif %}{{fileExt}}"
       # 电视剧重命名格式
-      TV_RENAME_FORMAT: "{{title}}{% if year %} ({{year}}){% endif %}/Season {{season}}/{{title}}{% if part %}-{{part}}{% endif %} - {{season_episode}}{% if episode %} - 第 {{episode}} 集{% endif %}{{fileExt}}"
+      - TV_RENAME_FORMAT="{{title}}{% if year %} ({{year}}){% endif %}/Season {{season}}/{{title}}{% if part %}-{{part}}{% endif %} - {{season_episode}}{% if episode %} - 第 {{episode}} 集{% endif %}{{fileExt}}"
 
       # API密钥，默认moviepilot，在媒体服务器Webhook、微信回调等地址配置中需要加上?token=该值，建议修改为复杂字符串
       # API_TOKEN: 敏感参数写到.env文件里面
