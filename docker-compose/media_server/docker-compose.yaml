@@ -55,7 +55,7 @@ services:
       # 刮削入库的媒体文件，true/false，默认true
       - SCRAP_METADATA=true
       # 种子标签，默认为MOVIEPILOT，设置后只有MoviePilot添加的下载才会处理，留空所有下载器中的任务均会处理
-      - TORRENT_TAG=MOVIEPILOT
+      - TORRENT_TAG=MP
       # 媒体库目录，多个目录使用,分隔
       - LIBRARY_PATH=/share/CACHEDEV1_DATA/Vol1/media_volume
       # 电影媒体库目录名，默认电影
