@@ -135,6 +135,8 @@ services:
       - /share/Container/docker-volumes/moviepilot/config:/config
       # 媒体目录
       - /share:/share
+      # docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "3000:3000"
   xteve:
@@ -214,7 +216,7 @@ services:
     volumes:
       # 配置文件夹
       - /share/CACHEDEV1_DATA/Container/docker-volumes/portainer:/data
-      # 媒体目录
+      # docker.sock
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "8000:8000"
