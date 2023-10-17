@@ -100,8 +100,8 @@ switch_env(){
     case $env in
       "221")
         # 来源
-        source_db_user="agentdesigner"
-        source_db_password="Agentdesigner@230424."
+        source_db_user="liyx"
+        source_db_password="liyx@0517."
         source_db_host="192.168.5.248"
         source_db_port="3306"
         all_db="agentdesigner agentparser"
