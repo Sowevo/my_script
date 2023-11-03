@@ -68,8 +68,8 @@ services:
       - LIBRARY_CATEGORY=false
       # 转移方式，支持link/copy/move/softlink
       - TRANSFER_TYPE=link
-      # CookieCloud同步间隔（分钟）填大点关了得了~
-      - COOKIECLOUD_INTERVAL=525600
+      # CookieCloud同步间隔（分钟）
+      - COOKIECLOUD_INTERVAL=60
       # OCR识别服务器地址，格式：http(s)://ip:port，用于识别站点二维码实现自动登录获取Cookie等，不配置默认使用内建服务器https://movie-pilot.org
       - OCR_HOST=https://movie-pilot.org
       # CookieCloud对应的浏览器UA，可选，设置后可增加连接站点的成功率，同步站点后可以在管理界面中修改
