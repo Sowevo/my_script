@@ -115,7 +115,7 @@ def extract_information(text):
 
 
 if __name__ == '__main__':
-    station_urls = get_station_url()[:6]
+    station_urls = get_station_url()
     schedule_urls_set = set()
     for station_url in station_urls:
         urls = get_schedule_url(station_url)
