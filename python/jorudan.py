@@ -4,6 +4,8 @@ import requests_cache
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 from retrying import retry
 import re
+import json
+from tqdm import tqdm
 
 # 启用缓存,缓存有效期为24小时
 requests_cache.install_cache('requests_cache', expire_after=60 * 60 * 24)
@@ -117,12 +119,16 @@ def extract_information(text):
 if __name__ == '__main__':
     station_urls = get_station_url()
     schedule_urls_set = set()
-    for station_url in station_urls:
+    for station_url in tqdm(station_urls, desc="加载站点信息...", ncols=100):
         urls = get_schedule_url(station_url)
         schedule_urls_set.update(urls)
     schedule_urls = sorted(schedule_urls_set)
     schedule_infos = []
-    for schedule_url in schedule_urls:
-        schedule_infos.extend(get_schedule_info(schedule_url))
-    for schedule_info in schedule_infos:
-        print(schedule_info)
+    for schedule_url in tqdm(schedule_urls, desc="加载班次信息...", ncols=100):
+        for info in get_schedule_info(schedule_url):
+            schedule_infos.append(info)
+
+    # 将 schedule_infos 写入 JSON 文件
+    with open('schedule_infos.json', 'w', encoding='utf-8') as json_file:
+        json.dump(schedule_infos, json_file, ensure_ascii=False, indent=4)
+
