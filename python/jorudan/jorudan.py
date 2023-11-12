@@ -255,12 +255,13 @@ if __name__ == '__main__':
     create_schedule_table()
     # 获取所有的站点列表
     stations = get_stations()
-    schedule_infos = []
+
 
     # stations = [Station('東京', '/time/timetable/新横浜/新幹線のぞみ/名古屋/')]
 
     for date in future_dates:
         schedules_set = set()
+        schedule_infos = []
         tqdm_stations = tqdm(stations, desc="加载[" + date.strftime('%Y%m%d') + "]站点信息...", ncols=150)
         for station in tqdm_stations:
             schedules = get_schedules(station, date)
@@ -273,7 +274,7 @@ if __name__ == '__main__':
             insert_schedule_data(infos)
             for info in infos:
                 schedule_infos.append(info)
+        # 按天写入json文件
+        with open('schedule_info_' + date.strftime('%Y%m%d') + '.json', 'w', encoding='utf-8') as json_file:
+            json.dump([schedule.to_dict() for schedule in schedule_infos], json_file, ensure_ascii=False, indent=4)
 
-    # 将 schedule_infos 写入 JSON 文件
-    with open('schedule_infos.json', 'w', encoding='utf-8') as json_file:
-        json.dump([schedule.to_dict() for schedule in schedule_infos], json_file, ensure_ascii=False, indent=4)
