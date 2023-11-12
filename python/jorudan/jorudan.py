@@ -257,7 +257,7 @@ if __name__ == '__main__':
     stations = get_stations()
     schedule_infos = []
 
-    stations = [Station('東京', '/time/timetable/新横浜/新幹線のぞみ/名古屋/')]
+    # stations = [Station('東京', '/time/timetable/新横浜/新幹線のぞみ/名古屋/')]
 
     for date in future_dates:
         schedules_set = set()
