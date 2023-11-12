@@ -36,10 +36,11 @@ class Schedule:
 
 
 class ScheduleStation:
-    def __init__(self, schedule_id, name, number, series, direction, stop_name, _date, time, stop_info_url):
+    def __init__(self, schedule_id, name, cn_name, number, series, direction, stop_name, _date, time, stop_info_url):
         self.id = hashlib.md5((str(schedule_id) + stop_name + _date).encode()).hexdigest()
         self.schedule_id = schedule_id
         self.name = name
+        self.cn_name = cn_name
         self.number = number
         self.series = series
         self.direction = direction
@@ -53,6 +54,7 @@ class ScheduleStation:
             'id': self.id,
             'schedule_id': self.schedule_id,
             'name': self.name,
+            'cn_name': self.cn_name,
             'number': self.number,
             'series': self.series,
             'direction': self.direction,
@@ -150,7 +152,7 @@ def get_schedule_stations(_schedule, _date):
     r = requests.get(url, headers=headers, )
     soup = BeautifulSoup(r.text, "html.parser")
     title = soup.find('h1', class_='time').text
-    name, number, series, direction = parse_title(title)
+    name, cn_name, number, series, direction = parse_title(title)
 
     # 查找所有class为"js_rosenEki"的元素
     eki_elements = soup.find_all("tr", class_="js_rosenEki")
@@ -159,8 +161,9 @@ def get_schedule_stations(_schedule, _date):
         time = eki.find("td", class_="time").text.strip().replace(" 発", "").replace(" 着", "")
         info_url = eki.find("a", class_="noprint")["href"]
 
-        _schedule_infos.append(ScheduleStation(int(params['lid'][0]), name, number, series, direction, stop_name,
-                                               _date.strftime("%Y-%m-%d"), time, base_url + info_url))
+        _schedule_infos.append(
+            ScheduleStation(int(params['lid'][0]), name, cn_name, number, series, direction, stop_name,
+                            _date.strftime("%Y-%m-%d"), time, base_url + info_url))
     return _schedule_infos
 
 
@@ -199,7 +202,8 @@ def parse_title(text):
         series = None
         direction = None
         number = None
-    return name, number, series, direction
+    cn_name = name_map[name]['cn_name'] if name in name_map else name
+    return name, cn_name, number, series, direction
 
 
 # Function to create SQLite table
@@ -212,6 +216,7 @@ def create_schedule_table():
             id TEXT PRIMARY KEY,
             schedule_id TEXT,
             name TEXT,
+            cn_name TEXT,
             number TEXT,
             series TEXT,
             direction TEXT,
@@ -233,7 +238,7 @@ def insert_schedule_data(schedule_info):
 
     for _info in schedule_info:
         cursor.execute('''
-            REPLACE INTO schedule_info (id, schedule_id, name, number, series, direction,stop_name, date, time, stop_info_url) VALUES (:id, :schedule_id, :name, :number, :series, :direction,:stop_name, :date, :time, :stop_info_url)
+            REPLACE INTO schedule_info (id, schedule_id, name,cn_name, number, series, direction,stop_name, date, time, stop_info_url) VALUES (:id, :schedule_id, :name,:cn_name, :number, :series, :direction,:stop_name, :date, :time, :stop_info_url)
         ''', _info.to_dict())
 
     conn.commit()
@@ -252,7 +257,7 @@ if __name__ == '__main__':
     stations = get_stations()
     schedule_infos = []
 
-    # stations = [Station('東京', '/time/timetable/新横浜/新幹線のぞみ/名古屋/')]
+    stations = [Station('東京', '/time/timetable/新横浜/新幹線のぞみ/名古屋/')]
 
     for date in future_dates:
         schedules_set = set()
