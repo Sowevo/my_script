@@ -100,7 +100,8 @@ services:
       - MOVIE_RENAME_FORMAT={{title}}{% if year %} ({{year}}){% endif %}/{{title}}{% if part %}-{{part}}{% endif %}{% if year %} ({{year}}){% endif %}{% if videoFormat %} - {{videoFormat}}{% endif %}{{fileExt}}
       # 电视剧重命名格式
       - TV_RENAME_FORMAT={{title}}{% if year %} ({{year}}){% endif %}/Season {{season}}/{{title}}{% if part %}-{{part}}{% endif %} - {{season_episode}}{% if episode %} - 第 {{episode}} 集{% endif %}{{fileExt}}
-
+      # 自动更新站点资源，true/false
+      - AUTOUPDATERESOURCE=true
       # API密钥，默认moviepilot，在媒体服务器Webhook、微信回调等地址配置中需要加上?token=该值，建议修改为复杂字符串
       # API_TOKEN: 敏感参数写到.env文件里面
       # CookieCloud服务器地址，格式：http://ip:port，必须配置，否则无法添加站点
