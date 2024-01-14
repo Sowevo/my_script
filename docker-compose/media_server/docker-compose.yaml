@@ -93,7 +93,7 @@ services:
       # 媒体服务器同步间隔（小时），默认6，留空则不同步
       - MEDIASERVER_SYNC_INTERVAL=3
       # 认证站点，支持`hhclub`/`audiences`/`hddolby`/`zmpt`/`freefarm`/`hdfans`/`wintersakura`/`leaves`/`1ptba`/`icc2022`/`iyuu`
-      - AUTH_SITE=iyuu
+      - AUTH_SITE=audiences
       # 大内存模式，默认为false，开启后会占用更多的内存，但响应速度会更快
       - BIG_MEMORY_MODE=true
       # 电影重命名格式
