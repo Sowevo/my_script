@@ -18,6 +18,6 @@ if [[ ! -d "$path" ]]; then
   exit 1
 fi
 # 打印一下这个路径下的所有文件夹,只要第一级
-find $path -maxdepth 1 -mindepth 1 -type d -exec echo './aliyunpan upload -exn "DS_Store$" -exn "\.jpg$" -exn "\.nfo$" -exn "\.png$" "{}/" /media_volume/series/' \;
+find $path -maxdepth 1 -mindepth 1 -type d -print0 | sort -z | while IFS= read -r -d '' file; do printf './aliyunpan upload -exn "DS_Store" -exn "\.jpg$" -exn "\.nfo$" -exn "\.png$" "%s"/ /media_volume/series/  \n' "$file"; done
 
 
