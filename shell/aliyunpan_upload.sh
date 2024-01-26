@@ -23,6 +23,6 @@ read -r -p "目标位置: " target
 # 打印出来本地文件夹下的所有第一级文件夹
 # 然后拍个序
 # 然后拼接成阿里云盘上传的命令
-find $path -maxdepth 1 -mindepth 1 -type d -print0 | sort -z | while IFS= read -r -d '' file; do printf './aliyunpan upload --skip -exn "DS_Store" -exn "\.jpg$" -exn "\.nfo$" -exn "\.png$" "%s"/ '"${target}"'  \n' "$file"; done
+find $path -maxdepth 1 -mindepth 1 -type d -print0 | sort -z | while IFS= read -r -d '' file; do printf './aliyunpan upload --skip -exn "DS_Store" -exn "\.jpg$" -exn "\.nfo$" -exn "\.png$" "%s/" '"${target}"'  \n' "$file"; done
 
 
