@@ -253,6 +253,9 @@ services:
     container_name: icloudpd_01
     hostname: icloudpd_01
     restart: always
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.162
     volumes:
       # 配置文件夹
       - /share/Container/docker-volumes/icloudpd/01:/config
@@ -265,6 +268,9 @@ services:
     container_name: icloudpd_02
     hostname: icloudpd_02
     restart: always
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.161
     volumes:
       # 配置文件夹
       - /share/Container/docker-volumes/icloudpd/02:/config
