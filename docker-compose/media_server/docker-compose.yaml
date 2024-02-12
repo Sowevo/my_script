@@ -178,6 +178,8 @@ services:
       - /share/Container/docker-volumes/plex/config:/config
       # 媒体目录
       - /share:/share
+    ports:
+      - "32400:32400"
 
   # hlink:手动批量硬链接
   # 处理音乐?
