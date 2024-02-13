@@ -1,3 +1,6 @@
+# 如果openwrt中git clone 不了
+# 看看有没有装git,openssh-keygen,openssh-client
+# opkg install git openssh-keygen openssh-client
 version: "3"
 services:
   shadowsocks:
