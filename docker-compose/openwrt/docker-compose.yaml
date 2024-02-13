@@ -10,8 +10,7 @@ services:
     command: ["-s", "0.0.0.0", "-p", "${SHADOWSOCKS_PORT}", "-k", "${SHADOWSOCKS_PASSWORD}", "-m", "${SHADOWSOCKS_METHOD}"]
     ports:
       - "${SHADOWSOCKS_PORT}:${SHADOWSOCKS_PORT}"
-    networks:
-      - host
+    network_mode: host
   nginxWebUI:
     image: cym1102/nginxwebui
     container_name: nginxWebUI
@@ -20,5 +19,4 @@ services:
     environment:
       - BOOT_OPTIONS=--server.port=81
       - TZ=Asia/Shanghai
-    networks:
-      - host
+    network_mode: host
