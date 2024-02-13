@@ -20,3 +20,4 @@ services:
       - TZ=Asia/Shanghai
     ports:
       - "8443:8443"
+      - "81:81"
