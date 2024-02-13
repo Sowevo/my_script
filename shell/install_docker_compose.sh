@@ -24,6 +24,7 @@ if ! [ $(command -v docker-compose) ]; then
     chmod +x /usr/bin/docker-compose
     if [ $? -eq 0 ]; then
         echo "Docker Compose installed successfully."
+        docker-compose -v
     else
         echo "Failed to install Docker Compose."
     fi
