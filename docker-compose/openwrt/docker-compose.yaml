@@ -9,8 +9,6 @@ services:
     command: ["-s", "0.0.0.0", "-p", "${SHADOWSOCKS_PORT}", "-k", "${SHADOWSOCKS_PASSWORD}", "-m", "${SHADOWSOCKS_METHOD}"]
     ports:
       - "${SHADOWSOCKS_PORT}:${SHADOWSOCKS_PORT}"
-    env_file:
-      - env.conf
   nginxWebUI:
     image: cym1102/nginxwebui
     container_name: nginxWebUI
