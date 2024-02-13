@@ -307,7 +307,7 @@ services:
     restart: always
     networks:
       macvlan:
-        ipv4_address: 10.0.0.163
+        ipv4_address: 10.0.0.158
     environment:
       # 用户id
       - PUID=1000
