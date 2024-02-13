@@ -6,6 +6,7 @@ version: "3"
 services:
   shadowsocks:
     image: oddrationale/docker-shadowsocks
+    container_name: shadowsocks
     command: ["-s", "0.0.0.0", "-p", "${SHADOWSOCKS_PORT}", "-k", "${SHADOWSOCKS_PASSWORD}", "-m", "${SHADOWSOCKS_METHOD}"]
     ports:
       - "${SHADOWSOCKS_PORT}:${SHADOWSOCKS_PORT}"
