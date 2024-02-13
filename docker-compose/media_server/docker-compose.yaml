@@ -316,6 +316,8 @@ services:
       - UMASK=022
     volumes:
       - /share/Container/docker-volumes/alist:/opt/alist/data
+      # 媒体目录
+      - /share:/share
     ports:
       - "5244:5244"
 
