@@ -305,13 +305,18 @@ services:
     container_name: alist
     volumes:
       - /share/Container/docker-volumes/alist:/opt/alist/data
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.158
     ports:
       - '5244:5244'
     environment:
-      - PUID=0
-      - PGID=0
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
       - UMASK=022
-    restart: unless-stopped
+    restart: always
 
 
 networks:
