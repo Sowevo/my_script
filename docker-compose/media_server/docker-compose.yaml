@@ -300,6 +300,18 @@ services:
       - /share:/share
     ports: # 这个端口映射
       - "8063:8063"
+  alist:
+    image: 'xhofe/alist:latest'
+    container_name: alist
+    volumes:
+      - /share/Container/docker-volumes/alist:/opt/alist/data
+    ports:
+      - '5244:5244'
+    environment:
+      - PUID=0
+      - PGID=0
+      - UMASK=022
+    restart: unless-stopped
 
 
 networks:
