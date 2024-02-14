@@ -249,7 +249,9 @@ services:
 
   # icloud 同步01
   icloudpd_01:
-    image: boredazfcuk/icloudpd:latest
+    # 临时使用自己的镜像
+    # image: boredazfcuk/icloudpd:latest
+    image: sowevo/icloudpd:latest
     container_name: icloudpd_01
     hostname: icloudpd_01
     restart: always
@@ -264,7 +266,9 @@ services:
 
   # icloud 同步02
   icloudpd_02:
-    image: boredazfcuk/icloudpd:latest
+    # 临时使用自己的镜像
+    # image: boredazfcuk/icloudpd:latest
+    image: sowevo/icloudpd:latest
     container_name: icloudpd_02
     hostname: icloudpd_02
     restart: always
