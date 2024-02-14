@@ -9,6 +9,8 @@ services:
     container_name: shadowsocks
     command: ["-s", "0.0.0.0", "-p", "${SHADOWSOCKS_PORT}", "-k", "${SHADOWSOCKS_PASSWORD}", "-m", "${SHADOWSOCKS_METHOD}"]
     network_mode: bridge
+    env_file:
+      - .env
     ports:
       - "${SHADOWSOCKS_PORT}:${SHADOWSOCKS_PORT}"
   nginxWebUI:
