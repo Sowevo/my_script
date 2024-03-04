@@ -7,6 +7,7 @@ services:
   shadowsocks:
     image: oddrationale/docker-shadowsocks
     container_name: shadowsocks
+    restart: always
     command: ["-s", "0.0.0.0", "-p", "${SHADOWSOCKS_PORT}", "-k", "${SHADOWSOCKS_PASSWORD}", "-m", "${SHADOWSOCKS_METHOD}"]
     network_mode: bridge
     env_file:
@@ -16,6 +17,7 @@ services:
   nginxWebUI:
     image: cym1102/nginxwebui
     container_name: nginxWebUI
+    restart: always
     volumes:
       - "/docker-volumes/nginxWebUI:/home/nginxWebUI"
     environment:
