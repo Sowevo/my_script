@@ -206,48 +206,49 @@ services:
       - "32400:32400"
 
   # hlink:手动批量硬链接
-  # 处理音乐?
-  hlink:
-    image: likun7981/hlink:latest # docker镜像名称
-    container_name: hlink
-    hostname: hlink
-    restart: always
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.153
-    environment:
-      # 用户id
-      - PUID=1000
-      # 用户组id
-      - PGID=100
-      - TZ=Asia/Shanghai
-      - UMASK=022
-      - HLINK_HOME=/config
-    volumes:
-      # 配置文件夹
-      - /share/Container/docker-volumes/hlink/config:/config
-      # 媒体目录
-      - /share:/share
-    ports: # 这个端口映射
-      - "9090:9090"
+  # 没啥用先停掉
+  # hlink:
+  #   image: likun7981/hlink:latest # docker镜像名称
+  #   container_name: hlink
+  #   hostname: hlink
+  #   restart: always
+  #   networks:
+  #     macvlan:
+  #       ipv4_address: 10.0.0.153
+  #   environment:
+  #     # 用户id
+  #     - PUID=1000
+  #     # 用户组id
+  #     - PGID=100
+  #     - TZ=Asia/Shanghai
+  #     - UMASK=022
+  #     - HLINK_HOME=/config
+  #   volumes:
+  #     # 配置文件夹
+  #     - /share/Container/docker-volumes/hlink/config:/config
+  #     # 媒体目录
+  #     - /share:/share
+  #   ports: # 这个端口映射
+  #     - "9090:9090"
 
   # portainer:docker管理
-  portainer:
-    image: portainer/portainer-ce
-    container_name: portainer
-    hostname: portainer
-    restart: always
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.152
-    volumes:
-      # 配置文件夹
-      - /share/CACHEDEV1_DATA/Container/docker-volumes/portainer:/data
-      # docker.sock
-      - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - "8000:8000"
-      - "9000:9000"
+  # 好久没用了,停掉
+  # portainer:
+  #   image: portainer/portainer-ce
+  #   container_name: portainer
+  #   hostname: portainer
+  #   restart: always
+  #   networks:
+  #     macvlan:
+  #       ipv4_address: 10.0.0.152
+  #   volumes:
+  #     # 配置文件夹
+  #     - /share/CACHEDEV1_DATA/Container/docker-volumes/portainer:/data
+  #     # docker.sock
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   ports:
+  #     - "8000:8000"
+  #     - "9000:9000"
 
   # 下载器
   qbittorrent:
