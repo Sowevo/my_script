@@ -6,6 +6,7 @@ services:
     container_name: emby
     hostname: emby
     restart: always
+    network_mode: host
     environment:
       # 用户id
       - PUID=1000
@@ -19,5 +20,3 @@ services:
       - /share/Container/docker-volumes/emby/config:/config
       # 媒体目录
       - /share:/share
-    ports:
-      - "32400:32400"
