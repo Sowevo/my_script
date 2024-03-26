@@ -1,7 +1,7 @@
 version: "3"
 services:
   # 测试下开心不开心
-  plex:
+  emby:
     image: amilys/embyserver
     container_name: emby
     hostname: emby
