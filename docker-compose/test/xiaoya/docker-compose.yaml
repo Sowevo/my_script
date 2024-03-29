@@ -9,7 +9,16 @@ services:
     volumes:
       # 配置文件夹
       # 需要写入文件
-      # mytoken.txt                 阿里云盘 Token（32位长）
-      # myopentoken.txt             阿里云盘 Open Token（335位长）
-      # temp_transfer_folder_id.txt 阿里云盘转存目录folder id
+
+      # 阿里云盘 Token（32位长）
+      # touch /share/Container/docker-volumes/xiaoya/config/mytoken.txt
+      # 阿里云盘 Open Token（335位长）
+      # touch /share/Container/docker-volumes/xiaoya/config/myopentoken.txt
+      # 阿里云盘转存目录folder id
+      # touch /share/Container/docker-volumes/xiaoya/config/temp_transfer_folder_id.txt
+
       - /share/Container/docker-volumes/xiaoya/config:/data
+    ports:
+      - "5678:80"
+      - "2345:2345"
+      - "2346:2346"
