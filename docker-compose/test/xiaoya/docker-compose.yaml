@@ -5,7 +5,6 @@ services:
     container_name: xiaoya
     hostname: xiaoya
     restart: always
-    network_mode: host
     volumes:
       # 配置文件夹
       # 需要写入文件
