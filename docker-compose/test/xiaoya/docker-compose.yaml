@@ -1,0 +1,15 @@
+version: "3"
+services:
+  xiaoya:
+    image: xiaoyaliu/alist:latest
+    container_name: xiaoya
+    hostname: xiaoya
+    restart: always
+    network_mode: host
+    volumes:
+      # 配置文件夹
+      # 需要写入文件
+      # mytoken.txt                 阿里云盘 Token（32位长）
+      # myopentoken.txt             阿里云盘 Open Token（335位长）
+      # temp_transfer_folder_id.txt 阿里云盘转存目录folder id
+      - /share/Container/docker-volumes/xiaoya/config:/data
