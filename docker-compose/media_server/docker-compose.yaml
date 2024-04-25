@@ -1,6 +1,7 @@
 version: "3"
 services:
   # 使用macvlan的网络,使得容器获得独立的ip
+  # ip范围10.0.0.51~10.0.0.100
   # 方便做流量控制
 
   # MoviePilot
@@ -14,7 +15,7 @@ services:
       - qbittorrent
     networks:
       macvlan:
-        ipv4_address: 10.0.0.156
+        ipv4_address: 10.0.0.51
     env_file:
       - .env
     environment:
@@ -164,19 +165,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "3000:3000"
-  xteve:
-    image: dnsforge/xteve
-    container_name: xteve
-    hostname: xteve
-    restart: always
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.155
-    volumes:
-      # 配置文件夹
-      - /share/Container/docker-volumes/xteve/conf:/home/xteve/conf
-      # 配置文件夹
-      - /share/Container/docker-volumes/xteve/guide2go:/home/xteve/guide2go/conf
 
   plex:
     image: linuxserver/plex
@@ -187,7 +175,7 @@ services:
       - xteve
     networks:
       macvlan:
-        ipv4_address: 10.0.0.154
+        ipv4_address: 10.0.0.52
     environment:
       # 用户id
       - PUID=1000
@@ -205,51 +193,6 @@ services:
     ports:
       - "32400:32400"
 
-  # hlink:手动批量硬链接
-  # 没啥用先停掉
-  # hlink:
-  #   image: likun7981/hlink:latest # docker镜像名称
-  #   container_name: hlink
-  #   hostname: hlink
-  #   restart: always
-  #   networks:
-  #     macvlan:
-  #       ipv4_address: 10.0.0.153
-  #   environment:
-  #     # 用户id
-  #     - PUID=1000
-  #     # 用户组id
-  #     - PGID=100
-  #     - TZ=Asia/Shanghai
-  #     - UMASK=022
-  #     - HLINK_HOME=/config
-  #   volumes:
-  #     # 配置文件夹
-  #     - /share/Container/docker-volumes/hlink/config:/config
-  #     # 媒体目录
-  #     - /share:/share
-  #   ports: # 这个端口映射
-  #     - "9090:9090"
-
-  # portainer:docker管理
-  # 好久没用了,停掉
-  # portainer:
-  #   image: portainer/portainer-ce
-  #   container_name: portainer
-  #   hostname: portainer
-  #   restart: always
-  #   networks:
-  #     macvlan:
-  #       ipv4_address: 10.0.0.152
-  #   volumes:
-  #     # 配置文件夹
-  #     - /share/CACHEDEV1_DATA/Container/docker-volumes/portainer:/data
-  #     # docker.sock
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   ports:
-  #     - "8000:8000"
-  #     - "9000:9000"
-
   # 下载器
   qbittorrent:
     image: linuxserver/qbittorrent:4.4.5
@@ -258,7 +201,7 @@ services:
     restart: always
     networks:
       macvlan:
-        ipv4_address: 10.0.0.151
+        ipv4_address: 10.0.0.53
     environment:
       # 用户id
       - PUID=1000
@@ -284,7 +227,7 @@ services:
     restart: always
     networks:
       macvlan:
-        ipv4_address: 10.0.0.162
+        ipv4_address: 10.0.0.54
     volumes:
       # 配置文件夹
       - /share/Container/docker-volumes/icloudpd/01:/config
@@ -301,7 +244,7 @@ services:
     restart: always
     networks:
       macvlan:
-        ipv4_address: 10.0.0.161
+        ipv4_address: 10.0.0.55
     volumes:
       # 配置文件夹
       - /share/Container/docker-volumes/icloudpd/02:/config
@@ -316,7 +259,7 @@ services:
     restart: always
     networks:
       macvlan:
-        ipv4_address: 10.0.0.157
+        ipv4_address: 10.0.0.56
     environment:
       # 用户id
       - PUID=1000
@@ -338,7 +281,7 @@ services:
     restart: always
     networks:
       macvlan:
-        ipv4_address: 10.0.0.158
+        ipv4_address: 10.0.0.57
     environment:
       # 用户id
       - PUID=1000
