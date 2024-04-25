@@ -171,8 +171,6 @@ services:
     container_name: plex
     hostname: plex
     restart: always
-    depends_on:
-      - xteve
     networks:
       macvlan:
         ipv4_address: 10.0.0.52
