@@ -300,7 +300,9 @@ networks:
   macvlan:
     driver: macvlan
     driver_opts:
-      parent: qvs0
+      parent: eth0
+      # 这是网口2的名字，可以通过ifconfig查看
+      # parent: qvs0
     ipam:
       config:
         - subnet: 10.0.0.0/24
