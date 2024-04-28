@@ -1,6 +1,10 @@
 """
 从flightradar24获取数据生成KML文件用于导入世界迷雾
 """
+import argparse
+import os.path
+import sys
+
 import requests
 from geopy.distance import geodesic
 import xml.etree.ElementTree as ET
@@ -20,8 +24,11 @@ def fetch_flight_playback(_fr24id):
 
     response = requests.request("GET", url, headers=headers)
     data = response.json()
-    # print(data['result']['response']['data']['flight']['track'])
-    return data['result']['response']['data']['flight']['track']
+    track = data['result']['response']['data']['flight']['track']
+    if len(track) == 0:
+        print("错误：{0}未找到航班轨迹数据。".format(url))
+        sys.exit(1)
+    return track
 
 
 def generate_kml(_data, file_name='fr24.kml'):
@@ -100,7 +107,21 @@ def insert_intermediate_points(track_data, max_distance_km=1):
     return _new_track
 
 
-fr24id = '32529fa9'
-track = fetch_flight_playback(fr24id)
-new_track = insert_intermediate_points(track)
-generate_kml(new_track, fr24id + '.kml')
+def main(fr24id, output_path='.'):
+    track = fetch_flight_playback(fr24id)
+    new_track = insert_intermediate_points(track)
+    generate_kml(new_track, os.path.join(output_path,fr24id + '.kml'))
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='用于从 Flightradar24 获取飞行数据并生成 KML 文件的脚本。')
+    parser.add_argument("fr24id", help="来自 Flightradar24 的航班标识符,例如:34e09e82  请在https://www.flightradar24.com/data/flights搜索航班号后获取", nargs='?', default=argparse.SUPPRESS)
+    parser.add_argument("-o", "--output_path", default=".", help="KML 文件的输出路径")
+    args = vars(parser.parse_args())
+
+    if 'fr24id' not in args:
+        print("错误：请使用参数“fr24id”提供 Flightradar24 标识符。")
+        parser.print_help()
+        exit()
+
+    main(args['fr24id'], args['output_path'])
