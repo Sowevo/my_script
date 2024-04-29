@@ -16,6 +16,12 @@ services:
     networks:
       macvlan:
         ipv4_address: 10.0.0.51
+    env_file:
+      # 站点认证相关的数据还是需要写到.env文件中
+      # 需要的有
+      # AUTH_SITE,AUDIENCES_UID,AUDIENCES_PASSKEY,IYUU_SIGN等
+      - .env
+
     environment:
       # 时区
       - TZ=Asia/Shanghai
