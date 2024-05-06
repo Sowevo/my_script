@@ -42,7 +42,8 @@
   #   -testname 不移动,只打印结果
   #     后面可以跟,指定datetimeoriginal,日期从哪里获取,可选的还有 createdate,filemodifydate等
   # 多个filename的话,优先使用后面的,如果不存在,则上一个
-  $ exiftool -d %Y-%m-%d/%Y-%m-%d_%H%M%S%%-c.%%ue "-filename<filemodifydate" "-filename<datetimeoriginal" -r .
+  $ exiftool -d %Y-%m-%d/%Y-%m-%d_%H%M%S%%-c.%%ue "-filename<filemodifydate" "-filename<createdate" "-filename<datetimeoriginal" -r .
+
   
   # 在Docker中运行
   # --rm                                               用完就删掉这个容器
@@ -53,7 +54,18 @@
       -v /share/CACHEDEV2_DATA/Vol2/USB一键复制:/work \
       -v /share/CACHEDEV2_DATA/Vol2/照片/D5300:/target \
       --rm -e PUID=1000 -e PGID=100 ltdgbchedu/exiftool \
-      -d /target/%Y-%m-%d/%Y-%m-%d_%H%M%S%%-c.%%ue  "-filename<filemodifydate" "-filename<datetimeoriginal" -r .
+      -d /target/%Y-%m-%d/%Y-%m-%d_%H%M%S%%-c.%%ue  "-filename<filemodifydate" "-filename<createdate" "-filename<datetimeoriginal" -r .
+  ```
+  - createdate中获取的时间时区不对
+
+    暂时可以增加配置文件来处理
+
+    修改配置文件`~/.ExifTool_config`,增加以下内容
+  ```
+  # Specify default ExifTool option values
+  %Image::ExifTool::UserDefined::Options = (
+      QuickTimeUTC => 1,  # assume QuickTime date/time values are in UTC
+  );
   ```
 - 统计出你最近使用频率最高的 10 条命令
 
