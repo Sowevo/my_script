@@ -166,6 +166,7 @@ services:
     volumes:
       - /share/CACHEDEV1_DATA/Vol1/media_volume/clouddrive:/CloudNAS:shared
       - /share/Container/docker-volumes/clouddrive/config:/Config
+    privileged: true
     devices:
       - /dev/fuse:/dev/fuse
     ports:
