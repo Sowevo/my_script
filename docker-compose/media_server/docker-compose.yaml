@@ -152,26 +152,7 @@ services:
       - /share:/share
     ports: # 这个端口映射
       - "8063:8063"
-  alist:
-    image: xhofe/alist:latest
-    container_name: alist
-    hostname: alist
-    restart: always
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.57
-    environment:
-      # 用户id
-      - PUID=1000
-      # 用户组id
-      - PGID=100
-      - UMASK=022
-    volumes:
-      - /share/Container/docker-volumes/alist:/opt/alist/data
-      # 媒体目录
-      - /share:/share
-    ports:
-      - "5244:5244"
+
 
   clouddrive:
     image: cloudnas/clouddrive2
