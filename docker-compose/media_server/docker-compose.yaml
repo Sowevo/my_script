@@ -168,6 +168,8 @@ services:
       - /share/Container/docker-volumes/clouddrive/config:/Config
     devices:
       - /dev/fuse:/dev/fuse
+    ports:
+      - "19798:19798"
 
 
 
