@@ -202,9 +202,21 @@ fi
 # 9.备份软件安装列表数据到iCloud中
 echo "添加定时任务以自动备份软件列表"
 echo "如果有权限弹窗,请选择允许!"
+# 设置变量
+LIST_DIR="${HOME}/Library/Mobile Documents/com~apple~CloudDocs/MacConfig/${DEVICE_INFO}/${CURRENT_DATE}"
+BREWFILE_PATH="${LIST_DIR}/Brewfile"
+APPLIST_PATH="${LIST_DIR}/AppList"
+
+# 检查并创建目录
+if [ ! -d "$LIST_DIR" ]; then
+    echo "目录不存在，创建目录：${LIST_DIR}"
+    mkdir -p "$LIST_DIR"
+fi
+
 # 使用定时任务
-new_task1="2 * * * * ${HOMEBREW_PREFIX}/bin/brew bundle dump --describe --force --file=\"${HOME}/Library/Mobile Documents/com~apple~CloudDocs/MacConfig/${DEVICE_INFO}/${CURRENT_DATE}/Brewfile\""
-new_task2="3 * * * * ls -1 /Applications > \"${HOME}/Library/Mobile Documents/com~apple~CloudDocs/MacConfig/${DEVICE_INFO}/${CURRENT_DATE}/AppList\""
+new_task1="2 * * * * ${HOMEBREW_PREFIX}/bin/brew bundle dump --describe --force --file=\"$BREWFILE_PATH\""
+new_task2="3 * * * * ls -1 /Applications > \"$APPLIST_PATH\""
+
 # 获取现有的定时任务并追加新任务
 existing_tasks=$(crontab -l 2>/dev/null)  # 为了处理没有现有任务的情况，将错误输出重定向到/dev/null
 # 将新的任务添加到现有任务列表中
