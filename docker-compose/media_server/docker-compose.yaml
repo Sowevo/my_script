@@ -11,7 +11,7 @@ services:
     hostname: moviepilot
     restart: always
     depends_on:
-      - plex
+      - emby
       - qbittorrent
     networks:
       macvlan:
