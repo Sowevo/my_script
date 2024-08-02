@@ -16,6 +16,7 @@ services:
     networks:
       macvlan:
         ipv4_address: 10.0.0.51
+        mac_address: "02:42:0A:00:00:51"
     env_file:
       # 站点认证相关的数据还是需要写到.env文件中
       # 需要的有
@@ -101,7 +102,6 @@ services:
     image: linuxserver/qbittorrent:4.4.5
     container_name: qbittorrent
     hostname: qbittorrent
-    domainname: qbittorrent
     restart: always
     networks:
       macvlan:
