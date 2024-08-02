@@ -16,7 +16,7 @@ services:
     networks:
       macvlan:
         ipv4_address: 10.0.0.51
-    mac_address: 02:42:0A:00:00:51
+    mac_address: 10:00:00:00:00:51
     env_file:
       # 站点认证相关的数据还是需要写到.env文件中
       # 需要的有
@@ -81,6 +81,7 @@ services:
     networks:
       macvlan:
         ipv4_address: 10.0.0.60
+    mac_address: 10:00:00:00:00:60
     depends_on:
       - pixman
     environment:
@@ -106,6 +107,7 @@ services:
     networks:
       macvlan:
         ipv4_address: 10.0.0.53
+    mac_address: 10:00:00:00:00:53
     environment:
       # 用户id
       - PUID=1000
@@ -132,6 +134,7 @@ services:
     networks:
       macvlan:
         ipv4_address: 10.0.0.54
+    mac_address: 10:00:00:00:00:54
     volumes:
       # 配置文件夹
       - /share/Container/docker-volumes/icloudpd/01:/config
@@ -149,6 +152,7 @@ services:
     networks:
       macvlan:
         ipv4_address: 10.0.0.55
+    mac_address: 10:00:00:00:00:55
     volumes:
       # 配置文件夹
       - /share/Container/docker-volumes/icloudpd/02:/config
@@ -164,6 +168,7 @@ services:
     networks:
       macvlan:
         ipv4_address: 10.0.0.56
+    mac_address: 10:00:00:00:00:56
     environment:
       # 用户id
       - PUID=1000
@@ -188,6 +193,7 @@ services:
     networks:
       macvlan:
         ipv4_address: 10.0.0.58
+    mac_address: 10:00:00:00:00:58
     environment:
       - TZ=Asia/Shanghai
       - CLOUDDRIVE_HOME=/Config
@@ -209,6 +215,7 @@ services:
     networks:
       macvlan:
         ipv4_address: 10.0.0.59
+    mac_address: 10:00:00:00:00:59
     ports: # 这个端口映射
       - "5000:5000"
 
