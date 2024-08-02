@@ -101,6 +101,7 @@ services:
     image: linuxserver/qbittorrent:4.4.5
     container_name: qbittorrent
     hostname: qbittorrent
+    domainname: qbittorrent
     restart: always
     networks:
       macvlan:
