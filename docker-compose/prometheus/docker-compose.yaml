@@ -12,12 +12,13 @@ services:
     image: grafana/grafana
     container_name: grafana
     restart: always
-    user: "1000"  # 以指定用户ID运行
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=grafana
     volumes:
       - ./grafana:/etc/grafana/provisioning/datasources
-      - /share/Container/docker-volumes/grafana/config:/var/lib/grafana
+      - grafana-storage:/var/lib/grafana
     ports:
       - "3000:3000"
+volumes:
+  grafana-storage: {}
