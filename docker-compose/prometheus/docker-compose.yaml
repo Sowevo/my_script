@@ -5,7 +5,7 @@ services:
     container_name: prometheus
     restart: always
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus:/etc/prometheus
     ports:
       - "9090:9090"
   grafana:
@@ -13,9 +13,14 @@ services:
     container_name: grafana
     restart: always
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=your_password
-      - GF_SECURITY_ADMIN_USER=your_username
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=grafana
     volumes:
+      - ./grafana:/etc/grafana/provisioning/datasources
       - /share/Container/docker-volumes/grafana/config:/var/lib/grafana
     ports:
       - "3000:3000"
