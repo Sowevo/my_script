@@ -10,6 +10,8 @@ services:
     container_name: moviepilot
     hostname: moviepilot
     restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
       - emby
       - qbittorrent
@@ -78,6 +80,8 @@ services:
     container_name: emby
     hostname: emby
     restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     networks:
       macvlan:
         ipv4_address: 10.0.0.60
@@ -212,12 +216,45 @@ services:
     container_name: pixman
     hostname: pixman
     restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     networks:
       macvlan:
         ipv4_address: 10.0.0.59
     mac_address: 10:00:00:00:00:59
     ports: # 这个端口映射
       - "5000:5000"
+  # IPTV相关
+  feiyang_allinone:
+    image: youshandefeiyang/allinone
+    container_name: feiyang_allinone
+    hostname: feiyang_allinone
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.57
+    mac_address: 10:00:00:00:00:57
+    ports:
+      - "35455:35455"
+
+
+  # watchtower 自动更新
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    hostname: watchtower
+    restart: always
+    environment:
+      - WATCHTOWER_LABEL_ENABLE=true  # 只监控带有 com.centurylinklabs.watchtower.enable=true 标签的容器
+      - WATCHTOWER_POLL_INTERVAL=3600  # 检查间隔时间
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.52
+    mac_address: 10:00:00:00:00:52
 
 
 
