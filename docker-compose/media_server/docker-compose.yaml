@@ -202,7 +202,7 @@ services:
       - TZ=Asia/Shanghai
       - CLOUDDRIVE_HOME=/Config
     volumes:
-      - /share/CACHEDEV1_DATA/Vol1/media_volume/clouddrive:/CloudNAS:shared
+      - /share:/share
       - /share/Container/docker-volumes/clouddrive/config:/Config
     privileged: true
     devices:
