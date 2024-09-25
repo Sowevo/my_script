@@ -1,0 +1,24 @@
+version: "3"
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: always
+    volumes:
+      - ./prometheus:/etc/prometheus
+    ports:
+      - "9090:9090"
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: always
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=grafana
+    volumes:
+      - ./grafana:/etc/grafana/provisioning/datasources
+      - grafana-storage:/var/lib/grafana
+    ports:
+      - "3000:3000"
+volumes:
+  grafana-storage: {}

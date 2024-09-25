@@ -10,12 +10,15 @@ services:
     container_name: moviepilot
     hostname: moviepilot
     restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
-      - plex
+      - emby
       - qbittorrent
     networks:
       macvlan:
         ipv4_address: 10.0.0.51
+    mac_address: 10:00:00:00:00:51
     env_file:
       # 站点认证相关的数据还是需要写到.env文件中
       # 需要的有
@@ -46,30 +49,58 @@ services:
     ports:
       - "3000:3000"
 
-  plex:
-    image: linuxserver/plex
-    container_name: plex
-    hostname: plex
+#  plex:
+#    image: linuxserver/plex
+#    container_name: plex
+#    hostname: plex
+#    restart: always
+#    networks:
+#      macvlan:
+#        ipv4_address: 10.0.0.52
+#    environment:
+#      # 用户id
+#      - PUID=1000
+#      # 用户组id
+#      - PGID=100
+#      - TZ=Asia/Shanghai
+#      - VERSION=docker
+#    devices:
+#      - /dev/dri:/dev/dri
+#    volumes:
+#      # 配置文件夹
+#      - /share/Container/docker-volumes/plex/config:/config
+#      # 媒体目录
+#      - /share:/share
+#    ports:
+#      - "32400:32400"
+
+  # emby 测试下开心不开心
+  emby:
+    image: amilys/embyserver
+    container_name: emby
+    hostname: emby
     restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     networks:
       macvlan:
-        ipv4_address: 10.0.0.52
+        ipv4_address: 10.0.0.60
+    mac_address: 10:00:00:00:00:60
+    depends_on:
+      - pixman
     environment:
       # 用户id
       - PUID=1000
       # 用户组id
       - PGID=100
       - TZ=Asia/Shanghai
-      - VERSION=docker
     devices:
       - /dev/dri:/dev/dri
     volumes:
       # 配置文件夹
-      - /share/Container/docker-volumes/plex/config:/config
+      - /share/Container/docker-volumes/emby/config:/config
       # 媒体目录
       - /share:/share
-    ports:
-      - "32400:32400"
 
   # 下载器
   qbittorrent:
@@ -80,6 +111,7 @@ services:
     networks:
       macvlan:
         ipv4_address: 10.0.0.53
+    mac_address: 10:00:00:00:00:53
     environment:
       # 用户id
       - PUID=1000
@@ -106,6 +138,7 @@ services:
     networks:
       macvlan:
         ipv4_address: 10.0.0.54
+    mac_address: 10:00:00:00:00:54
     volumes:
       # 配置文件夹
       - /share/Container/docker-volumes/icloudpd/01:/config
@@ -123,6 +156,7 @@ services:
     networks:
       macvlan:
         ipv4_address: 10.0.0.55
+    mac_address: 10:00:00:00:00:55
     volumes:
       # 配置文件夹
       - /share/Container/docker-volumes/icloudpd/02:/config
@@ -138,6 +172,7 @@ services:
     networks:
       macvlan:
         ipv4_address: 10.0.0.56
+    mac_address: 10:00:00:00:00:56
     environment:
       # 用户id
       - PUID=1000
@@ -153,7 +188,7 @@ services:
     ports: # 这个端口映射
       - "8063:8063"
 
-
+  # 云盘
   clouddrive:
     image: cloudnas/clouddrive2
     container_name: clouddrive
@@ -162,17 +197,64 @@ services:
     networks:
       macvlan:
         ipv4_address: 10.0.0.58
+    mac_address: 10:00:00:00:00:58
     environment:
       - TZ=Asia/Shanghai
       - CLOUDDRIVE_HOME=/Config
     volumes:
-      - /share/CACHEDEV1_DATA/Vol1/media_volume/clouddrive:/CloudNAS:shared
+      - /share:/share
       - /share/Container/docker-volumes/clouddrive/config:/Config
     privileged: true
     devices:
       - /dev/fuse:/dev/fuse
     ports:
       - "19798:19798"
+
+  # IPTV相关
+  pixman:
+    image: pixman/pixman:latest
+    container_name: pixman
+    hostname: pixman
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.59
+    mac_address: 10:00:00:00:00:59
+    ports: # 这个端口映射
+      - "5000:5000"
+  # IPTV相关
+  feiyang_allinone:
+    image: youshandefeiyang/allinone
+    container_name: feiyang_allinone
+    hostname: feiyang_allinone
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.57
+    mac_address: 10:00:00:00:00:57
+    ports:
+      - "35455:35455"
+
+
+  # watchtower 自动更新
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    hostname: watchtower
+    restart: always
+    environment:
+      - WATCHTOWER_LABEL_ENABLE=true  # 只监控带有 com.centurylinklabs.watchtower.enable=true 标签的容器
+      - WATCHTOWER_POLL_INTERVAL=3600  # 检查间隔时间
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.52
+    mac_address: 10:00:00:00:00:52
 
 
 
