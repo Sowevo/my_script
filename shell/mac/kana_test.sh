@@ -27,12 +27,12 @@ while true; do
   done
 
   # 提示用户按下回车进行下一个
-  read -s user_input
-  if [[ -n $user_input ]]; then
-    echo "程序结束。"
-    break
-  fi
+  read -s -n 1 user_input
   # 输出平假名与片假名
   echo "平假名: $selected_hiragana"
   echo "片假名: $selected_katakana"
+  if [[ $user_input != "" && $user_input != " " ]]; then
+    echo "程序结束。"
+    break
+  fi
 done
