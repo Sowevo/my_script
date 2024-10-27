@@ -258,8 +258,8 @@ services:
   # 下载器
   telegram_media_downloader:
     image: tangyoha/telegram_media_downloader:latest
-    container_name: pixman
-    hostname: pixman
+    container_name: telegram_media_downloader
+    hostname: telegram_media_downloader
     restart: always
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
