@@ -1,4 +1,3 @@
-version: "3"
 services:
   # 使用macvlan的网络,使得容器获得独立的ip
   # ip范围10.0.0.51~10.0.0.100
