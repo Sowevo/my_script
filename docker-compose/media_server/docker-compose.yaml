@@ -267,6 +267,12 @@ services:
       macvlan:
         ipv4_address: 10.0.0.61
     mac_address: 10:00:00:00:00:61
+    entrypoint:
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
+      - TZ=Asia/Shanghai
     ports:
       - "5000:5000"
     volumes:
