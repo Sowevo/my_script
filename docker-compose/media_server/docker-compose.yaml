@@ -267,7 +267,7 @@ services:
       macvlan:
         ipv4_address: 10.0.0.61
     mac_address: 10:00:00:00:00:61
-    entrypoint:
+    environment:
       # 用户id
       - PUID=1000
       # 用户组id
