@@ -256,6 +256,35 @@ services:
         ipv4_address: 10.0.0.52
     mac_address: 10:00:00:00:00:52
 
+  # 下载器
+  telegram_media_downloader:
+    image: tangyoha/telegram_media_downloader:latest
+    container_name: pixman
+    hostname: pixman
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.61
+    mac_address: 10:00:00:00:00:61
+    ports:
+      - "5000:5000"
+    volumes:
+      # 下载的文件
+      - /share/CACHEDEV1_DATA/Vol1/media_volume/downloads/telegram:/app/downloads
+      # Rclone
+      # - "$HOME/.config/rclone/:$HOME/.config/rclone/"
+
+      # 配置文件
+      - /share/Container/docker-volumes/telegram_media_downloader/config.yaml:/app/config.yaml
+      - /share/Container/docker-volumes/telegram_media_downloader/data.yaml:/app/data.yaml
+      # 日志
+      - /share/Container/docker-volumes/telegram_media_downloader/log:/app/log
+      # 会话
+      - /share/Container/docker-volumes/telegram_media_downloader/sessions:/app/sessions
+      # 缓存
+      - /share/Container/docker-volumes/telegram_media_downloader/temp:/app/temp
 
 
 
