@@ -273,6 +273,8 @@ services:
       # 用户组id
       - PGID=100
       - TZ=Asia/Shanghai
+    # UID:GID
+    user: "1000:100"
     ports:
       - "5000:5000"
     volumes:
