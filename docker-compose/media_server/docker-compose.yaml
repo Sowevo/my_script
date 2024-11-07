@@ -255,69 +255,69 @@ services:
         ipv4_address: 10.0.0.52
     mac_address: 10:00:00:00:00:52
 
-  # telegram下载器,临时用
-  telegram_media_downloader:
-    image: tangyoha/telegram_media_downloader:latest
-    container_name: telegram_media_downloader
-    hostname: telegram_media_downloader
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.61
-    mac_address: 10:00:00:00:00:61
-    environment:
-      # 用户id
-      - PUID=1000
-      # 用户组id
-      - PGID=100
-      - TZ=Asia/Shanghai
-    # UID:GID
-    user: "1000:100"
-    ports:
-      - "5000:5000"
-    volumes:
-      # 下载的文件
-      - /share/CACHEDEV1_DATA/Vol1/media_volume/downloads/telegram:/app/downloads
-      # Rclone
-      # - "$HOME/.config/rclone/:$HOME/.config/rclone/"
-
-      # 配置文件
-      - /share/Container/docker-volumes/telegram_media_downloader/config.yaml:/app/config.yaml
-      - /share/Container/docker-volumes/telegram_media_downloader/data.yaml:/app/data.yaml
-      # 日志
-      - /share/Container/docker-volumes/telegram_media_downloader/log:/app/log
-      # 会话
-      - /share/Container/docker-volumes/telegram_media_downloader/sessions:/app/sessions
-      # 缓存
-      - /share/Container/docker-volumes/telegram_media_downloader/temp:/app/temp
-
-  # hlink:手动批量硬链接,临时用
-  hlink:
-    image: likun7981/hlink:latest # docker镜像名称
-    container_name: hlink
-    hostname: hlink
-    restart: always
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.62
-    mac_address: 10:00:00:00:00:62
-    environment:
-      # 用户id
-      - PUID=1000
-      # 用户组id
-      - PGID=100
-      - TZ=Asia/Shanghai
-      - UMASK=022
-      - HLINK_HOME=/config
-    volumes:
-      # 配置文件夹
-      - /share/Container/docker-volumes/hlink/config:/config
-      # 媒体目录
-      - /share:/share
-    ports: # 这个端口映射
-      - "9090:9090"
+#  # telegram下载器,临时用
+#  telegram_media_downloader:
+#    image: tangyoha/telegram_media_downloader:latest
+#    container_name: telegram_media_downloader
+#    hostname: telegram_media_downloader
+#    restart: always
+#    labels:
+#      - "com.centurylinklabs.watchtower.enable=true"
+#    networks:
+#      macvlan:
+#        ipv4_address: 10.0.0.61
+#    mac_address: 10:00:00:00:00:61
+#    environment:
+#      # 用户id
+#      - PUID=1000
+#      # 用户组id
+#      - PGID=100
+#      - TZ=Asia/Shanghai
+#    # UID:GID
+#    user: "1000:100"
+#    ports:
+#      - "5000:5000"
+#    volumes:
+#      # 下载的文件
+#      - /share/CACHEDEV1_DATA/Vol1/media_volume/downloads/telegram:/app/downloads
+#      # Rclone
+#      # - "$HOME/.config/rclone/:$HOME/.config/rclone/"
+#
+#      # 配置文件
+#      - /share/Container/docker-volumes/telegram_media_downloader/config.yaml:/app/config.yaml
+#      - /share/Container/docker-volumes/telegram_media_downloader/data.yaml:/app/data.yaml
+#      # 日志
+#      - /share/Container/docker-volumes/telegram_media_downloader/log:/app/log
+#      # 会话
+#      - /share/Container/docker-volumes/telegram_media_downloader/sessions:/app/sessions
+#      # 缓存
+#      - /share/Container/docker-volumes/telegram_media_downloader/temp:/app/temp
+#
+#  # hlink:手动批量硬链接,临时用
+#  hlink:
+#    image: likun7981/hlink:latest # docker镜像名称
+#    container_name: hlink
+#    hostname: hlink
+#    restart: always
+#    networks:
+#      macvlan:
+#        ipv4_address: 10.0.0.62
+#    mac_address: 10:00:00:00:00:62
+#    environment:
+#      # 用户id
+#      - PUID=1000
+#      # 用户组id
+#      - PGID=100
+#      - TZ=Asia/Shanghai
+#      - UMASK=022
+#      - HLINK_HOME=/config
+#    volumes:
+#      # 配置文件夹
+#      - /share/Container/docker-volumes/hlink/config:/config
+#      # 媒体目录
+#      - /share:/share
+#    ports: # 这个端口映射
+#      - "9090:9090"
 
 networks:
   macvlan:
