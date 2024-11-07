@@ -19,7 +19,7 @@ services:
       # 上传目录
       - ${UPLOAD_LOCATION}:/usr/src/app/upload
       # 外部库挂载
-      - ${EXTERNAL_PATH}:/usr/src/app/external
+      - /mnt/user/Vol1/照片:/usr/src/app/external/照片
       # 这是时区
       - /etc/localtime:/etc/localtime:ro
     env_file:
