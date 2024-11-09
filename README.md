@@ -14,15 +14,15 @@
 
     下载bing壁纸并设置为桌面壁纸(Mac)
 
-  - [find_hardlink.sh](./shell/find_hardlink.sh)
+  - [find_hardlink.sh](shell/media_processing/find_hardlink.sh)
     
     查找硬链接
 
-  - [mysql.sync.sh](./shell/mysql.sync.sh)
+  - [mysql.sync.sh](shell/other/mysql.sync.sh)
 
     开发环境数据同步
 
-  - [mysql.backup.sh](./shell/mysql.backup.sh)
+  - [mysql.backup.sh](shell/other/mysql.backup.sh)
 
     开发环境数据备份
 

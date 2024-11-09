@@ -1,14 +1,14 @@
 # !/bin/bash
 # 拼阿里云盘上传的命令
 # This script should be run via curl:
-#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/Sowevo/my_script/main/shell/aliyunpan_upload.sh)"
-#   sh -c "$(curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/aliyunpan_upload.sh)"
+#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/Sowevo/my_script/main/shell/other/aliyunpan_upload.sh)"
+#   sh -c "$(curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/other/aliyunpan_upload.sh)"
 # or via wget:
-#   sh -c "$(wget -qO- https://raw.githubusercontent.com/Sowevo/my_script/main/shell/aliyunpan_upload.sh)"
-#   sh -c "$(wget -qO- https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/aliyunpan_upload.sh)"
+#   sh -c "$(wget -qO- https://raw.githubusercontent.com/Sowevo/my_script/main/shell/other/aliyunpan_upload.sh)"
+#   sh -c "$(wget -qO- https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/other/aliyunpan_upload.sh)"
 # or via fetch:
-#   sh -c "$(fetch -o - https://raw.githubusercontent.com/Sowevo/my_script/main/shell/aliyunpan_upload.sh)"
-#   sh -c "$(fetch -o - https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/aliyunpan_upload.sh)"
+#   sh -c "$(fetch -o - https://raw.githubusercontent.com/Sowevo/my_script/main/shell/other/aliyunpan_upload.sh)"
+#   sh -c "$(fetch -o - https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/other/aliyunpan_upload.sh)"
 
 echo -e "请输入要处理的本地文件夹路径"
 read -r -p "本地文件夹路径: " path

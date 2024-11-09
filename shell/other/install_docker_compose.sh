@@ -1,14 +1,14 @@
 # !/bin/bash
 # 装一下docker-compose
 # This script should be run via curl:
-#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/Sowevo/my_script/main/shell/install_docker_compose.sh)"
-#   sh -c "$(curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/install_docker_compose.sh)"
+#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/Sowevo/my_script/main/shell/other/install_docker_compose.sh)"
+#   sh -c "$(curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/other/install_docker_compose.sh)"
 # or via wget:
-#   sh -c "$(wget -qO- https://raw.githubusercontent.com/Sowevo/my_script/main/shell/install_docker_compose.sh)"
-#   sh -c "$(wget -qO- https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/install_docker_compose.sh)"
+#   sh -c "$(wget -qO- https://raw.githubusercontent.com/Sowevo/my_script/main/shell/other/install_docker_compose.sh)"
+#   sh -c "$(wget -qO- https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/other/install_docker_compose.sh)"
 # or via fetch:
-#   sh -c "$(fetch -o - https://raw.githubusercontent.com/Sowevo/my_script/main/shell/install_docker_compose.sh)"
-#   sh -c "$(fetch -o - https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/install_docker_compose.sh)"
+#   sh -c "$(fetch -o - https://raw.githubusercontent.com/Sowevo/my_script/main/shell/other/install_docker_compose.sh)"
+#   sh -c "$(fetch -o - https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/other/install_docker_compose.sh)"
 
 if ! [ $(command -v docker-compose) ]; then
     # Get latest docker compose version number

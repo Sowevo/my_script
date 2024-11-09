@@ -84,6 +84,9 @@ fi
 
 echo -e "开始执行\n"
 
+# 2.1. 禁用在网络存储和U盘中.DS_Store灯文件的生成
+defaults write com.apple.desktopservices DSDontWriteNetworkStores true
+
 # 3.判断Git是否安装,没安装的话喊用户安装...
 git --version > /dev/null 2>&1
 if [ $? -ne 0 ];then

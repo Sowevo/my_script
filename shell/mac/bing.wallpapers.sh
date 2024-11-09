@@ -1,63 +1,67 @@
 #!/bin/bash
-# 下载bing的每日壁纸
+# 下载 Bing 每日壁纸并设置为桌面背景
 
-# 指定一个工作路径
+# 指定图片保存的目录路径
 BASEDIR="/Users/sowevo/Pictures/bing"
+mkdir -p "$BASEDIR"  # 如果目录不存在则创建
 cd "$BASEDIR"
 
+# Bing 基础 URL
 bing="https://www.bing.com"
 
-# 参数确定从哪一天开始。0是今天
+# Bing 壁纸信息的 XML URL，指定从今天（idx=0）获取最新壁纸
 xmlURL="https://www.bing.com/HPImageArchive.aspx?format=xml&idx=0&n=1&mkt=zh-CN"
 
-# 清晰度可选项 "_1024x768" "_1280x720" "_1366x768" "_1920x1200" "_1920x1080" "_UHD"
+# 壁纸清晰度选项："_1024x768" "_1280x720" "_1366x768" "_1920x1200" "_1920x1080" "_UHD"
 picRes="_UHD"
 
-
-# 扩展名
+# 壁纸扩展名
 picExt=".jpg"
 
-# XML 内容
-data=$(curl -s $xmlURL)
+# 获取 XML 数据
+data=$(curl -s "$xmlURL")
 
-if [ -n "$data" ]
-then
-picURL=$(cut -d '>' -f13 <<< "$data")
-picURL=$(cut -d '<' -f 1 <<< "$picURL")
-picURL=$bing$picURL$picRes$picExt
+# 检查是否成功获取数据
+if [ -n "$data" ]; then
+    # 提取图片的 URL 路径、日期、名称
+    picURL=$(echo "$data" | sed -n 's/.*<url>\(.*\)<\/url>.*/\1/p')
+    picURL="$bing$picURL$picRes$picExt"
 
-date=$(cut -d '>' -f5 <<< "$data")
-date=$(cut -d '<' -f1 <<< "$date")
+    date=$(echo "$data" | sed -n 's/.*<startdate>\(.*\)<\/startdate>.*/\1/p')
 
-name=$(cut -d '>' -f15 <<< "$data")
-name=$(cut -d '<' -f 1 <<< "$name")
-name=$(cut -d '(' -f 1 <<< "$name")
+    # 提取名称并去除特殊字符
+    name=$(echo "$data" | sed -n 's/.*<copyright>\(.*\)<\/copyright>.*/\1/p')
+    name=$(echo "$name" | cut -d '(' -f 1)  # 去掉名称中的括号部分
 
-len=${#name}
+    # 格式化保存文件的名称
+    file="$date - ${name%?}$picExt"
+    fullpath="$BASEDIR/$file"
 
-file="$date - ${name:0:len-1}$picExt"
-fullpath="$BASEDIR/$file"
-if [ -f "$file" ]
-then
-    filesize=$(wc -c < "$file")
-    filesize=$(($filesize)) # parseInt
-    actualsize="$(curl -s -L -I $picURL | awk 'tolower ($1) ~ /^content-length/ { print $2 }')"
-    actualsize=$(echo $actualsize | sed "s/$(printf '\r')\$//") # remove carriage return on macOS
+    # 检查图片文件是否已存在
+    if [ -f "$file" ]; then
+        # 获取现有文件的大小，若为空则赋值为0
+        filesize=$(wc -c < "$file" | tr -d ' ')
+        filesize=${filesize:-0}
 
-    if [ "$filesize" -eq "$actualsize" ]
-    then
-        echo "$(date) - '$file' already downloaded"
+        # 获取目标文件的实际大小，若为空则赋值为0
+        actualsize=$(curl -s -L -I "$picURL" | awk '/^Content-Length/ {print $2}' | tr -d '\r')
+        actualsize=${actualsize:-0}
+
+        # 比较文件大小，若匹配则不重复下载
+        if [ "$filesize" -eq "$actualsize" ]; then
+            echo "$(date) - 壁纸 '$file' 已下载"
+        else
+            curl -s "$picURL" > "$file"
+            echo "$(date) - 壁纸保存为 $file"
+        fi
     else
+        # 下载并保存图片
         curl -s "$picURL" > "$file"
-        echo "$(date) - image saved as $file"
+        echo "$(date) - 壁纸保存为 $file"
     fi
+
+    # 设置图片为桌面背景
+    osascript -e "tell application \"System Events\" to tell every desktop to set picture to \"$fullpath\""
 else
-    curl -s "$picURL" > "$file"
-    echo "$(date) - image saved as $file"
-    
+    echo "$(date) - 无法连接 Bing 服务器"
 fi
-osascript -e "tell application \"System Events\" to tell every desktop to set picture to \"$fullpath\""
-# osascript -e "tell application \"System Events\" to tell desktop 1 to set picture to \"$fullpath\""
-else
-echo "$(date) - connection failed"
-fi 

@@ -3,14 +3,14 @@
 # docker exec -it qbittorrent /bin/sh
 # 在线执行
 # This script should be run via curl:
-#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
-#   sh -c "$(curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
+#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/Sowevo/my_script/main/shell/other/CloudflareSpeedTest.sh)"
+#   sh -c "$(curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/other/CloudflareSpeedTest.sh)"
 # or via wget:
-#   sh -c "$(wget -qO- https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
-#   sh -c "$(wget -qO- https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
+#   sh -c "$(wget -qO- https://raw.githubusercontent.com/Sowevo/my_script/main/shell/other/CloudflareSpeedTest.sh)"
+#   sh -c "$(wget -qO- https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/other/CloudflareSpeedTest.sh)"
 # or via fetch:
-#   sh -c "$(fetch -o - https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
-#   sh -c "$(fetch -o - https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/CloudflareSpeedTest.sh)"
+#   sh -c "$(fetch -o - https://raw.githubusercontent.com/Sowevo/my_script/main/shell/other/CloudflareSpeedTest.sh)"
+#   sh -c "$(fetch -o - https://ghproxy.com/https://raw.githubusercontent.com/Sowevo/my_script/main/shell/other/CloudflareSpeedTest.sh)"
 
 work_path='/tmp'
 
