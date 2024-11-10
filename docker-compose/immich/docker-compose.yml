@@ -13,8 +13,8 @@ services:
     container_name: immich_server
     image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
     labels:
-      - "net.unraid.docker.icon=https://gitee.com/telanx/unraid-docker-icon/raw/master/redis-icon.png"
-      - "net.unraid.docker.webui=http://127.0.0.1"
+      - net.unraid.docker.icon='https://gitee.com/telanx/unraid-docker-icon/raw/master/redis-icon.png'
+      - net.unraid.docker.webui='http://127.0.0.1'
     # extends:
     #   file: hwaccel.transcoding.yml
     #   service: cpu # set to one of [nvenc, quicksync, rkmpp, vaapi, vaapi-wsl] for accelerated transcoding
