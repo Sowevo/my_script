@@ -14,7 +14,7 @@ services:
     image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
     labels:
       - "net.unraid.docker.icon=/mnt/user/git/my_script/docker-compose/immich/immich.png"
-      - "net.unraid.docker.webui=https://immich.app/"
+      - "net.unraid.docker.webui=http://10.0.0.20:2283"
     # extends:
     #   file: hwaccel.transcoding.yml
     #   service: cpu # set to one of [nvenc, quicksync, rkmpp, vaapi, vaapi-wsl] for accelerated transcoding
