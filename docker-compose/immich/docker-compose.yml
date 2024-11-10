@@ -13,9 +13,8 @@ services:
     container_name: immich_server
     image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
     labels:
-      - net.unraid.docker.icon='https://github.com/Muwahhidun/logo/raw/main/nextcloud-aio-logo.png'
-      - net.unraid.docker.webui='http://127.0.0.1'
-      - net.unraid.docker.managed=dockerman
+      - "net.unraid.docker.icon=/mnt/user/git/my_script/docker-compose/immich/immich.svg"
+      - "net.unraid.docker.webui=https://immich.app/"
     # extends:
     #   file: hwaccel.transcoding.yml
     #   service: cpu # set to one of [nvenc, quicksync, rkmpp, vaapi, vaapi-wsl] for accelerated transcoding
