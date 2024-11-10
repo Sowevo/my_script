@@ -13,7 +13,7 @@ services:
     container_name: immich_server
     image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
     labels:
-      - "net.unraid.docker.icon=/mnt/user/git/my_script/docker-compose/immich/immich.svg"
+      - "net.unraid.docker.icon=/mnt/user/git/my_script/docker-compose/immich/immich.png"
       - "net.unraid.docker.webui=https://immich.app/"
     # extends:
     #   file: hwaccel.transcoding.yml
