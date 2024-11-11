@@ -25,8 +25,8 @@ services:
       - /mnt/user/document/照片:/usr/src/app/external/照片
       # 这是时区
       - /etc/localtime:/etc/localtime:ro
-    ports:
-      - '2283:2283'
+    env_file:
+      - .env
 
 
 
