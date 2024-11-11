@@ -12,9 +12,6 @@ services:
     networks:
       br0:
         ipv4_address: ${IMMICH_SERVER_HOST}
-    environment:
-      - REDIS_HOSTNAME=${IMMICH_REDIS_HOST}
-      - DB_HOSTNAME=${IMMICH_POSTGRES_HOST}
     depends_on:
       - immich-redis
       - immich-database
@@ -25,12 +22,10 @@ services:
       - /mnt/user/document/照片:/usr/src/app/external/照片
       # 这是时区
       - /etc/localtime:/etc/localtime:ro
-    env_file:
-      - .env
 
 
 
-  immich-machine-learning:
+  immich_machine_learning:
     image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
     container_name: immich_machine_learning
     hostname: immich_machine_learning
@@ -42,7 +37,7 @@ services:
       - ${IMMICH_MACHINE_LEARNING_CACHE_LOCATION}:/cache
 
 
-  immich-redis:
+  redis:
     image: docker.io/redis:6.2-alpine@sha256:2ba50e1ac3a0ea17b736ce9db2b0a9f6f8b85d4c27d5f5accc6a416d8f42c6d5
     container_name: immich_redis
     hostname: immich_redis
@@ -53,7 +48,7 @@ services:
     healthcheck:
       test: redis-cli ping || exit 1
 
-  immich-database:
+  database:
     image: docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0@sha256:90724186f0a3517cf6914295b5ab410db9ce23190a2d9d0b9dd6463e3fa298f0
     container_name: immich_postgres
     hostname: immich_postgres
