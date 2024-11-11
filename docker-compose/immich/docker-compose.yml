@@ -12,7 +12,7 @@ services:
       - "net.unraid.docker.icon=/mnt/user/git/my_script/docker-compose/immich/icon/immich.png"
       - "net.unraid.docker.webui=http://[IP]:[PORT:2283]"
     networks:
-      ipvlan:
+      br0:
         ipv4_address: 10.0.0.90
     mac_address: 10:00:00:00:00:90
     depends_on:
@@ -93,7 +93,7 @@ services:
       - "net.unraid.docker.icon=/mnt/user/git/my_script/docker-compose/immich/icon/emby.png"
       - "net.unraid.docker.webui=http://[IP]:[PORT:8096]"
     networks:
-      ipvlan:
+      br0:
         ipv4_address: 10.0.0.91
     mac_address: 10:00:00:00:00:91
     environment:
@@ -107,8 +107,8 @@ services:
       - ${EMBY_MEDIA_LOCATION}:/media
 
 # 使用已经存在的网络
-# unraid中存在一个名为ipvlan的网络
+# unraid中存在一个名为br0的网络
 # 可以直接使用这个网络
 networks:
-  ipvlan:
+  br0:
     external: true
