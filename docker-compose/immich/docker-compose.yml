@@ -26,6 +26,8 @@ services:
       - /mnt/user/document/照片:/usr/src/app/external/照片
       # 这是时区
       - /etc/localtime:/etc/localtime:ro
+    env_file:
+      - .env
 
 
 
@@ -39,6 +41,8 @@ services:
         ipv4_address: ${IMMICH_MACHINE_LEARNING_HOST}
     volumes:
       - ${IMMICH_MACHINE_LEARNING_CACHE_LOCATION}:/cache
+    env_file:
+      - .env
 
 
   redis:
@@ -51,6 +55,9 @@ services:
         ipv4_address: ${IMMICH_REDIS_HOST}
     healthcheck:
       test: redis-cli ping || exit 1
+    env_file:
+      - .env
+
 
   database:
     image: docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0@sha256:90724186f0a3517cf6914295b5ab410db9ce23190a2d9d0b9dd6463e3fa298f0
@@ -87,6 +94,9 @@ services:
         '-c',
         'wal_compression=on',
       ]
+    env_file:
+      - .env
+
 
   emby:
     image: amilys/embyserver
@@ -108,6 +118,10 @@ services:
       - ${EMBY_DATA_LOCATION}:/config
       # 媒体目录
       - ${EMBY_MEDIA_LOCATION}:/media
+    env_file:
+      - .env
+
+
 
 # 使用已经存在的网络
 # unraid中存在一个名为br0的网络
