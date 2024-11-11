@@ -10,7 +10,7 @@ services:
       - .env
     labels:
       - "net.unraid.docker.icon=/mnt/user/git/my_script/docker-compose/immich/icon/immich.png"
-      - "net.unraid.docker.webui=http://[IP]:[PORT:2283]"
+      - "net.unraid.docker.webui=http://10.0.0.90:2283"
     networks:
       br0:
         ipv4_address: 10.0.0.90
@@ -91,7 +91,7 @@ services:
     restart: always
     labels:
       - "net.unraid.docker.icon=/mnt/user/git/my_script/docker-compose/immich/icon/emby.png"
-      - "net.unraid.docker.webui=http://[IP]:[PORT:8096]"
+      - "net.unraid.docker.webui=http://10.0.0.91:8096"
     networks:
       br0:
         ipv4_address: 10.0.0.91
