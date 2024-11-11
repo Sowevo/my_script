@@ -35,6 +35,10 @@ services:
     container_name: immich_machine_learning
     hostname: immich_machine_learning
     restart: always
+    networks:
+      br0:
+        ipv4_address: 10.0.0.92
+    mac_address: 10:00:00:00:00:92
     env_file:
       - .env
     volumes:
@@ -46,6 +50,10 @@ services:
     container_name: immich_redis
     hostname: immich_redis
     restart: always
+    networks:
+      br0:
+        ipv4_address: 10.0.0.93
+    mac_address: 10:00:00:00:00:93
     healthcheck:
       test: redis-cli ping || exit 1
 
@@ -54,6 +62,10 @@ services:
     container_name: immich_postgres
     hostname: immich_postgres
     restart: always
+    networks:
+      br0:
+        ipv4_address: 10.0.0.94
+    mac_address: 10:00:00:00:00:94
     environment:
       POSTGRES_PASSWORD: ${IMMICH_POSTGRES_DB_PASSWORD}
       POSTGRES_USER: ${IMMICH_POSTGRES_DB_USERNAME}
