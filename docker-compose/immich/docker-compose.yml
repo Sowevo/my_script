@@ -13,8 +13,8 @@ services:
       br0:
         ipv4_address: ${IMMICH_SERVER_HOST}
     depends_on:
-      - immich-redis
-      - immich-database
+      - redis
+      - database
     volumes:
       # 上传目录
       - ${IMMICH_SERVER_UPLOAD_LOCATION}:/usr/src/app/upload
