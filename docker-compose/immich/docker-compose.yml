@@ -105,16 +105,3 @@ services:
       - ${EMBY_DATA_LOCATION}:/config
       # 媒体目录
       - ${EMBY_MEDIA_LOCATION}:/media
-
-
-networks:
-  ipvlan:
-    driver: ipvlan
-    driver_opts:
-      parent: eth0
-      # 这是网口2的名字，可以通过ifconfig查看
-      # parent: qvs0
-    ipam:
-      config:
-        - subnet: 10.0.0.0/24
-          gateway: 10.0.0.1
