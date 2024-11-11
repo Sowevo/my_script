@@ -105,3 +105,10 @@ services:
       - ${EMBY_DATA_LOCATION}:/config
       # 媒体目录
       - ${EMBY_MEDIA_LOCATION}:/media
+
+# 使用已经存在的网络
+# unraid中存在一个名为ipvlan的网络
+# 可以直接使用这个网络
+networks:
+  ipvlan:
+    external: true
