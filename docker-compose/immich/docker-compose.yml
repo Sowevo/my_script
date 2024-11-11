@@ -6,15 +6,15 @@ services:
     container_name: immich_server
     hostname: immich-server
     restart: always
-    env_file:
-      - .env
     labels:
       - "net.unraid.docker.icon=/mnt/user/git/my_script/docker-compose/immich/icon/immich.png"
-      - "net.unraid.docker.webui=http://10.0.0.90:2283"
+      - "net.unraid.docker.webui=http:${IMMICH_SERVER_HOST}:2283"
     networks:
       br0:
-        ipv4_address: 10.0.0.90
-    mac_address: 10:00:00:00:00:90
+        ipv4_address: ${IMMICH_SERVER_HOST}
+    environment:
+      - REDIS_HOSTNAME=${IMMICH_REDIS_HOST}
+      - DB_HOSTNAME=${IMMICH_POSTGRES_HOST}
     depends_on:
       - immich-redis
       - immich-database
@@ -37,10 +37,7 @@ services:
     restart: always
     networks:
       br0:
-        ipv4_address: 10.0.0.92
-    mac_address: 10:00:00:00:00:92
-    env_file:
-      - .env
+        ipv4_address: ${IMMICH_MACHINE_LEARNING_HOST}
     volumes:
       - ${IMMICH_MACHINE_LEARNING_CACHE_LOCATION}:/cache
 
@@ -52,8 +49,7 @@ services:
     restart: always
     networks:
       br0:
-        ipv4_address: 10.0.0.93
-    mac_address: 10:00:00:00:00:93
+        ipv4_address: ${IMMICH_REDIS_HOST}
     healthcheck:
       test: redis-cli ping || exit 1
 
@@ -64,15 +60,12 @@ services:
     restart: always
     networks:
       br0:
-        ipv4_address: 10.0.0.94
-    mac_address: 10:00:00:00:00:94
+        ipv4_address: ${IMMICH_POSTGRES_HOST}
     environment:
       POSTGRES_PASSWORD: ${IMMICH_POSTGRES_DB_PASSWORD}
       POSTGRES_USER: ${IMMICH_POSTGRES_DB_USERNAME}
       POSTGRES_DB: ${IMMICH_POSTGRES_DB_DATABASE_NAME}
       POSTGRES_INITDB_ARGS: '--data-checksums'
-    env_file:
-      - .env
     volumes:
       - ${IMMICH_POSTGRES_DATA_LOCATION}:/var/lib/postgresql/data
     healthcheck:
@@ -103,11 +96,10 @@ services:
     restart: always
     labels:
       - "net.unraid.docker.icon=/mnt/user/git/my_script/docker-compose/immich/icon/emby.png"
-      - "net.unraid.docker.webui=http://10.0.0.91:8096"
+      - "net.unraid.docker.webui=http://${EMBY_HOST}:8096"
     networks:
       br0:
-        ipv4_address: 10.0.0.91
-    mac_address: 10:00:00:00:00:91
+        ipv4_address: ${EMBY_HOST}
     environment:
       - TZ=${TZ}
     devices:
