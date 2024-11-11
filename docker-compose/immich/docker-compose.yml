@@ -12,6 +12,10 @@ services:
     networks:
       br0:
         ipv4_address: ${IMMICH_SERVER_HOST}
+    environment:
+      - DB_HOSTNAME={IMMICH_POSTGRES_HOST}
+      - REDIS_HOSTNAME={IMMICH_REDIS_HOST}
+      - MACHINE_LEARNING_HOST={IMMICH_MACHINE_LEARNING_HOST}
     depends_on:
       - redis
       - database
