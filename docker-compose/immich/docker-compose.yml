@@ -12,7 +12,7 @@ services:
       - "net.unraid.docker.icon=/mnt/user/git/my_script/docker-compose/immich/icon/immich.png"
       - "net.unraid.docker.webui=http://[IP]:[PORT:2283]"
     networks:
-      macvlan:
+      ipvlan:
         ipv4_address: 10.0.0.90
     mac_address: 10:00:00:00:00:90
     depends_on:
@@ -93,7 +93,7 @@ services:
       - "net.unraid.docker.icon=/mnt/user/git/my_script/docker-compose/immich/icon/emby.png"
       - "net.unraid.docker.webui=http://[IP]:[PORT:8096]"
     networks:
-      macvlan:
+      ipvlan:
         ipv4_address: 10.0.0.91
     mac_address: 10:00:00:00:00:91
     environment:
@@ -108,8 +108,8 @@ services:
 
 
 networks:
-  macvlan:
-    driver: macvlan
+  ipvlan:
+    driver: ipvlan
     driver_opts:
       parent: eth0
       # 这是网口2的名字，可以通过ifconfig查看
