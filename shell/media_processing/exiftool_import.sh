@@ -50,5 +50,7 @@ for dir in "$current_path"/*/ ; do
            "-filename<filemodifydate" "-filename<createdate" "-filename<datetimeoriginal" -r "$source_absolute_path"
 
   # 删除源目录中的空文件夹，但保留源目录本身
-  find "$source_absolute_path"/* -type d -empty -delete && echo "已删除 $source_absolute_path 下的空文件夹"
+  if [ -d "$source_absolute_path" ] && [ "$(ls -A "$source_absolute_path")" ]; then
+      find "$source_absolute_path"/* -type d -empty -delete
+  fi
 done
