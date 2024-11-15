@@ -48,30 +48,33 @@ services:
     ports:
       - "3000:3000"
 
-#  plex:
-#    image: linuxserver/plex
-#    container_name: plex
-#    hostname: plex
-#    restart: always
-#    networks:
-#      macvlan:
-#        ipv4_address: 10.0.0.52
-#    environment:
-#      # 用户id
-#      - PUID=1000
-#      # 用户组id
-#      - PGID=100
-#      - TZ=Asia/Shanghai
-#      - VERSION=docker
-#    devices:
-#      - /dev/dri:/dev/dri
-#    volumes:
-#      # 配置文件夹
-#      - /share/Container/docker-volumes/plex/config:/config
-#      # 媒体目录
-#      - /share:/share
-#    ports:
-#      - "32400:32400"
+  plex:
+    image: linuxserver/plex
+    container_name: plex
+    hostname: plex
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.61
+    mac_address: 10:00:00:00:00:61
+    environment:
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
+      - TZ=Asia/Shanghai
+      - VERSION=docker
+    devices:
+      - /dev/dri:/dev/dri
+    volumes:
+      # 配置文件夹
+      - /share/Container/docker-volumes/plex/config:/config
+      # 媒体目录
+      - /share:/share
+    ports:
+      - "32400:32400"
 
   # emby 测试下开心不开心
   emby:
@@ -128,7 +131,6 @@ services:
 
   # icloud 同步01
   icloudpd_01:
-    # 临时使用自己的镜像
     image: boredazfcuk/icloudpd:latest
     container_name: icloudpd_01
     hostname: icloudpd_01
@@ -145,7 +147,6 @@ services:
 
   # icloud 同步02
   icloudpd_02:
-    # 临时使用自己的镜像
     image: boredazfcuk/icloudpd:latest
     container_name: icloudpd_02
     hostname: icloudpd_02
@@ -166,6 +167,8 @@ services:
     container_name: mtphotos
     hostname: mtphotos
     restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     networks:
       macvlan:
         ipv4_address: 10.0.0.56
@@ -191,6 +194,8 @@ services:
     container_name: clouddrive
     hostname: clouddrive
     restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     networks:
       macvlan:
         ipv4_address: 10.0.0.58
