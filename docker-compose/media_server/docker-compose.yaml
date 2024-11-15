@@ -13,6 +13,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
       - emby
+      - plex
       - qbittorrent
     networks:
       macvlan:
@@ -162,10 +163,10 @@ services:
       - /share/CACHEDEV2_DATA/Vol2/照片/iCloud/02:/iCloud
 
   # 在线图库
-  mtphotos:
+  mt-photos:
     image: mtphotos/mt-photos:latest
-    container_name: mtphotos
-    hostname: mtphotos
+    container_name: mt-photos
+    hostname: mt-photos
     restart: always
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
@@ -185,8 +186,38 @@ services:
       - /share/Container/docker-volumes/mtphotos/upload:/upload
       # 媒体目录
       - /share:/share
-    ports: # 这个端口映射
-      - "8063:8063"
+    depends_on:
+      - mt-photos-insightface
+      - mt-photos-ai
+
+  # 在线图库的人脸识别
+  mt-photos-insightface:
+    image: devfox101/mt-photos-insightface-unofficial:latest
+    container_name: mt-photos-insightface
+    hostname: mt-photos-insightface
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.62
+    mac_address: 10:00:00:00:00:62
+    environment:
+      - API_AUTH_KEY=mt_photos_ai_extra
+  # 在线图库的特征识别
+  mt-photos-ai:
+    image: mtphotos/mt-photos-ai:onnx-latest
+    container_name: mt-photos-ai
+    hostname: mt-photos-ai
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.63
+    mac_address: 10:00:00:00:00:63
+    environment:
+      - API_AUTH_KEY=mt_photos_ai_extra_secret
 
   # 云盘
   clouddrive:
