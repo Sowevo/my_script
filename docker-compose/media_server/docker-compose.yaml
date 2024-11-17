@@ -32,7 +32,7 @@ services:
       # 掩码权限，默认000，可以考虑设置为022
       - UMASK=022
       # 管理用户id
-      - SUPERUSER=Sowevo
+      - SUPERUSER=sowevo
     ports:
       - "3000:3000"
     volumes:
