@@ -173,13 +173,7 @@ services:
       - "50126:50126"
       - "50126:50126/udp"
       - "8080:8080"
-    blkio_config:
-      device_read_bps:
-        - path: /dev/mapper/cachedev1
-          rate: '12mb'
-      device_write_bps:
-        - path: /dev/mapper/cachedev1
-          rate: '12mb'
+
   # icloud 同步01
   icloudpd_01:
     image: boredazfcuk/icloudpd:latest
