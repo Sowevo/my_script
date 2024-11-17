@@ -38,6 +38,8 @@ services:
     volumes:
       # 配置文件夹
       - /share/Container/docker-volumes/moviepilot-v2/config:/config
+      - /share/Container/docker-volumes/moviepilot-v2/core:/moviepilot/.cache/ms-playwright
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       # 媒体目录
       - /share:/share
 #  # MoviePilot
