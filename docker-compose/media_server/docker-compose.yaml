@@ -3,55 +3,10 @@ services:
   # ip范围10.0.0.51~10.0.0.100
   # 方便做流量控制
 #  moviepilot-v2
-  moviepilot-v2:
-    image: jxxghp/moviepilot-v2:latest
-    container_name: moviepilot-v2
-    hostname: moviepilot-v2
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    depends_on:
-      - emby
-      - plex
-      - qbittorrent
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.51
-    mac_address: 10:00:00:00:00:51
-    environment:
-      # 时区
-      - TZ=Asia/Shanghai
-      # WEB服务端口，默认3000，可自行修改，不能与API服务端口冲突
-      - NGINX_PORT=3000
-      # API服务端口，默认3001，可自行修改，不能与WEB服务端口冲突
-      - PORT=3001
-      # 用户id
-      - PUID=1000
-      # 用户组id
-      - PGID=100
-      # 掩码权限，默认000，可以考虑设置为022
-      - UMASK=022
-      # 管理用户id
-      - SUPERUSER=sowevo
-    ports:
-      - "3000:3000"
-    volumes:
-      # 配置文件夹
-      - /share/Container/docker-volumes/moviepilot-v2/config:/config
-      - /share/Container/docker-volumes/moviepilot-v2/core:/moviepilot/.cache/ms-playwright
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      # 媒体目录
-      - /share:/share
-    env_file:
-      # 站点认证相关的数据还是需要写到.env文件中
-      # 需要的有
-      # AUTH_SITE,AUDIENCES_UID,AUDIENCES_PASSKEY,IYUU_SIGN等
-      - .env
-#  # MoviePilot
-#  moviepilot:
-#    image: jxxghp/moviepilot:latest
-#    container_name: moviepilot
-#    hostname: moviepilot
+#  moviepilot-v2:
+#    image: jxxghp/moviepilot-v2:latest
+#    container_name: moviepilot-v2
+#    hostname: moviepilot-v2
 #    restart: always
 #    labels:
 #      - "com.centurylinklabs.watchtower.enable=true"
@@ -63,12 +18,6 @@ services:
 #      macvlan:
 #        ipv4_address: 10.0.0.51
 #    mac_address: 10:00:00:00:00:51
-#    env_file:
-#      # 站点认证相关的数据还是需要写到.env文件中
-#      # 需要的有
-#      # AUTH_SITE,AUDIENCES_UID,AUDIENCES_PASSKEY,IYUU_SIGN等
-#      - .env
-#
 #    environment:
 #      # 时区
 #      - TZ=Asia/Shanghai
@@ -82,16 +31,67 @@ services:
 #      - PGID=100
 #      # 掩码权限，默认000，可以考虑设置为022
 #      - UMASK=022
-#
-#    volumes:
-#      # 配置文件夹
-#      - /share/Container/docker-volumes/moviepilot/config:/config
-#      # 媒体目录
-#      - /share:/share
-#      # docker.sock
-#      - /var/run/docker.sock:/var/run/docker.sock
+#      # 管理用户id
+#      - SUPERUSER=sowevo
 #    ports:
 #      - "3000:3000"
+#    volumes:
+#      # 配置文件夹
+#      - /share/Container/docker-volumes/moviepilot-v2/config:/config
+#      - /share/Container/docker-volumes/moviepilot-v2/core:/moviepilot/.cache/ms-playwright
+#      - /var/run/docker.sock:/var/run/docker.sock:ro
+#      # 媒体目录
+#      - /share:/share
+#    env_file:
+#      # 站点认证相关的数据还是需要写到.env文件中
+#      # 需要的有
+#      # AUTH_SITE,AUDIENCES_UID,AUDIENCES_PASSKEY,IYUU_SIGN等
+#      - .env
+  # MoviePilot
+  moviepilot:
+    image: jxxghp/moviepilot:latest
+    container_name: moviepilot
+    hostname: moviepilot
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    depends_on:
+      - emby
+      - plex
+      - qbittorrent
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.51
+    mac_address: 10:00:00:00:00:51
+    env_file:
+      # 站点认证相关的数据还是需要写到.env文件中
+      # 需要的有
+      # AUTH_SITE,AUDIENCES_UID,AUDIENCES_PASSKEY,IYUU_SIGN等
+      - .env
+
+    environment:
+      # 时区
+      - TZ=Asia/Shanghai
+      # WEB服务端口，默认3000，可自行修改，不能与API服务端口冲突
+      - NGINX_PORT=3000
+      # API服务端口，默认3001，可自行修改，不能与WEB服务端口冲突
+      - PORT=3001
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
+      # 掩码权限，默认000，可以考虑设置为022
+      - UMASK=022
+
+    volumes:
+      # 配置文件夹
+      - /share/Container/docker-volumes/moviepilot/config:/config
+      # 媒体目录
+      - /share:/share
+      # docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "3000:3000"
 
   plex:
     image: linuxserver/plex
