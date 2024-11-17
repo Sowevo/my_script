@@ -173,17 +173,7 @@ services:
       - "50126:50126"
       - "50126:50126/udp"
       - "8080:8080"
-    deploy:
-      resources:
-        limits:
-          blkio_config:
-            weight: 500                      # 设置权重，范围 10-1000（可选）
-            throttle_read_bps_device:
-              - path: /dev/mapper/cachedev1               # 设备路径
-                rate: 10mb                  # 限制读取速率
-            throttle_write_bps_device:
-              - path: /dev/mapper/cachedev1               # 设备路径
-                rate: 10mb                  # 限制写入速率
+
   # icloud 同步01
   icloudpd_01:
     image: boredazfcuk/icloudpd:latest
