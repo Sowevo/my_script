@@ -2,7 +2,6 @@
 # 看看有没有装git,openssh-keygen,openssh-client
 # opkg install git openssh-keygen openssh-client
 # 以及有没有配置ssh-key
-version: "3"
 services:
   shadowsocks:
     image: oddrationale/docker-shadowsocks
