@@ -146,8 +146,8 @@ services:
     volumes:
       # 配置文件夹
       - /share/Container/docker-volumes/emby/config:/config
-      # 媒体目录
-      - /share:/share
+      # 媒体目录（只读）
+      - /share:/share:ro
 
   # 下载器
   qbittorrent:
