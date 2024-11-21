@@ -286,6 +286,8 @@ services:
       # 用户组id
       - PGID=100
       - TZ=Asia/Shanghai
+    volumes:
+      - /share/Container/docker-volumes/alist:/opt/alist/data
     ports:
       - "5244:5244"
 
