@@ -279,7 +279,7 @@ services:
       - TZ=Asia/Shanghai
       - CLOUDDRIVE_HOME=/Config
     volumes:
-      - /share:/share
+      - /share:/share:shared
       - /share/Container/docker-volumes/clouddrive/config:/Config
     privileged: true
     devices:
