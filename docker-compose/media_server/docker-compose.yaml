@@ -268,6 +268,27 @@ services:
     ports:
       - "19798:19798"
 
+  # 还是云盘
+  alist:
+    image: xhofe/alist
+    container_name: alist
+    hostname: alist
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.65
+    mac_address: 10:00:00:00:00:65
+    environment:
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
+      - TZ=Asia/Shanghai
+    ports:
+      - "5244:5244"
+
   # IPTV相关
   pixman:
     image: pixman/pixman:latest
