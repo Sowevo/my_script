@@ -102,7 +102,7 @@ services:
       # 配置文件夹
       - /share/Container/docker-volumes/emby/config:/config
       # 媒体目录
-      - /share:/share
+      - /share:/share:ro
   jellyfin:
     image: nyanmisaka/jellyfin
     container_name: jellyfin
@@ -128,7 +128,7 @@ services:
       # 配置文件夹
       - /share/Container/docker-volumes/jellyfin/config:/config
       # 媒体目录
-      - /share:/share
+      - /share:/share:ro
 
   # 下载器
   qbittorrent:
