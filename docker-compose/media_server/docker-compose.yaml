@@ -291,6 +291,27 @@ services:
     ports:
       - "5244:5244"
 
+    # 依然是云盘
+  auto_symlink:
+    image: shenxianmq/auto_symlink
+    container_name: auto_symlink
+    hostname: auto_symlink
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.66
+    mac_address: 10:00:00:00:00:66
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - # 配置
+      - /share/Container/docker-volumes/auto_symlink/config:/app/config
+      - /share/Container/docker-volumes/auto_symlink/backup:/app/backup
+      # 媒体目录,包含CD2的挂载目录
+      - /share/CACHEDEV1_DATA/Vol1/media_volume:/share/CACHEDEV1_DATA/Vol1/media_volume:rslave
+
   # IPTV相关
   pixman:
     image: pixman/pixman:latest
