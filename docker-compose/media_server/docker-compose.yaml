@@ -11,7 +11,7 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
-      - emby
+      - jellyfin
       - plex
       - qbittorrent
     networks:
