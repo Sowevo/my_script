@@ -306,7 +306,7 @@ services:
     environment:
       - TZ=Asia/Shanghai
     volumes:
-      - # 配置
+      # 配置
       - /share/Container/docker-volumes/auto_symlink/config:/app/config
       - /share/Container/docker-volumes/auto_symlink/backup:/app/backup
       # 媒体目录,包含CD2的挂载目录
