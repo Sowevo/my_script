@@ -241,51 +241,6 @@ services:
     ports:
       - "19798:19798"
 
-  # 还是云盘
-  alist:
-    image: xhofe/alist
-    container_name: alist
-    hostname: alist
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.65
-    mac_address: 10:00:00:00:00:65
-    environment:
-      # 用户id
-      - PUID=1000
-      # 用户组id
-      - PGID=100
-      - TZ=Asia/Shanghai
-    volumes:
-      - /share/Container/docker-volumes/alist:/opt/alist/data
-    ports:
-      - "5244:5244"
-
-    # 依然是云盘
-  auto_symlink:
-    image: shenxianmq/auto_symlink
-    container_name: auto_symlink
-    hostname: auto_symlink
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.66
-    mac_address: 10:00:00:00:00:66
-    user: "1000:100"
-    environment:
-      - TZ=Asia/Shanghai
-    volumes:
-      # 配置
-      - /share/Container/docker-volumes/auto_symlink/config:/app/config
-      - /share/Container/docker-volumes/auto_symlink/backup:/app/backup
-      # 媒体目录,包含CD2的挂载目录
-      - /share/CACHEDEV1_DATA/Vol1/media_volume:/share/CACHEDEV1_DATA/Vol1/media_volume:rslave
-
   # IPTV相关
   pixman:
     image: pixman/pixman:latest
