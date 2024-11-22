@@ -276,7 +276,6 @@ services:
       macvlan:
         ipv4_address: 10.0.0.66
     mac_address: 10:00:00:00:00:66
-    user: "0:0"
     environment:
       - TZ=Asia/Shanghai
       # 用户id
