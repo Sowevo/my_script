@@ -280,9 +280,9 @@ services:
     environment:
       - TZ=Asia/Shanghai
       # 用户id
-#      - PUID=1000
+      - PUID=1000
       # 用户组id
-#      - PGID=100
+      - PGID=100
     volumes:
       # 配置
       - /share/Container/docker-volumes/auto_symlink/config:/app/config
