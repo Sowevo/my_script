@@ -276,12 +276,9 @@ services:
       macvlan:
         ipv4_address: 10.0.0.66
     mac_address: 10:00:00:00:00:66
+    user: "1000:100"
     environment:
       - TZ=Asia/Shanghai
-      # 用户id
-      - PUID=1000
-      # 用户组id
-      - PGID=100
     volumes:
       # 配置
       - /share/Container/docker-volumes/auto_symlink/config:/app/config
