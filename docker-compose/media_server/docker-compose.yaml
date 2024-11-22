@@ -290,7 +290,7 @@ services:
     volumes:
       - /share/Container/docker-volumes/auto-lady/data:/data
     ports:
-      - "8043:8043"
+      - "80:80"
 
 
   # watchtower 自动更新
