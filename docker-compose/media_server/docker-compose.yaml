@@ -267,8 +267,8 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
       macvlan:
-        ipv4_address: 10.0.0.60
-    mac_address: 10:00:00:00:00:60
+        ipv4_address: 10.0.0.57
+    mac_address: 10:00:00:00:00:57
     ports:
       - "35455:35455"
 
@@ -281,8 +281,8 @@ services:
     restart: always
     networks:
       macvlan:
-        ipv4_address: 10.0.0.52
-    mac_address: 10:00:00:00:00:52
+        ipv4_address: 10.0.0.60
+    mac_address: 10:00:00:00:00:60
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     environment:
