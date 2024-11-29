@@ -357,8 +357,8 @@ services:
     restart: always
     networks:
       macvlan:
-        ipv4_address: 10.0.0.60
-    mac_address: 10:00:00:00:00:60
+        ipv4_address: 10.0.0.61
+    mac_address: 10:00:00:00:00:61
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     environment:
