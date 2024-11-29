@@ -2,6 +2,7 @@ services:
   # 使用macvlan的网络,使得容器获得独立的ip
   # ip范围10.0.0.51~10.0.0.100
   # 方便做流量控制
+
 #  moviepilot-v2
   moviepilot-v2:
     image: jxxghp/moviepilot-v2:latest
@@ -102,6 +103,81 @@ services:
       - /share/Container/docker-volumes/jellyfin/config:/config
       # 媒体目录
       - /share:/share:ro
+
+  # emby 测试下开心不开心
+  emby:
+    image: amilys/embyserver
+    container_name: emby
+    hostname: emby
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.60
+    mac_address: 10:00:00:00:00:60
+    depends_on:
+      - pixman
+    environment:
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
+      - TZ=Asia/Shanghai
+    devices:
+      - /dev/dri:/dev/dri
+    volumes:
+      # 配置文件夹
+      - /share/Container/docker-volumes/emby/config:/config
+      # 媒体目录
+      - /share:/share:ro
+
+
+  # 还是云盘
+  alist:
+    image: xhofe/alist
+    container_name: alist
+    hostname: alist
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.65
+    mac_address: 10:00:00:00:00:65
+    environment:
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
+      - TZ=Asia/Shanghai
+    volumes:
+      - /share/Container/docker-volumes/alist:/opt/alist/data
+    ports:
+      - "5244:5244"
+
+  # 解决emby302重定向的问题,实际上是一个nginx
+  medialinker:
+    image: thsrite/medialinker:latest
+    container_name: medialinker
+    hostname: medialinker
+    restart: always
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.66
+    mac_address: 10:00:00:00:00:66
+    environment:
+      - AUTO_UPDATE=false
+      - SERVER=emby
+      - NGINX_PORT=8091
+    volumes:
+      # https://raw.githubusercontent.com/thsrite/MediaLinker/refs/heads/main/config/emby/constant.js
+      # 上面这个文件下载到opt中
+      - /share/Container/docker-volumes/medialinker/opt/:/opt/
+    ports:
+      - "8091:8091"
+
+
 
   # 下载器
   qbittorrent:
