@@ -204,95 +204,6 @@ services:
       - "50126:50126/udp"
       - "8080:8080"
 
-  # icloud 同步01
-  icloudpd_01:
-    image: boredazfcuk/icloudpd:latest
-    container_name: icloudpd_01
-    hostname: icloudpd_01
-    restart: always
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.54
-    mac_address: 10:00:00:00:00:54
-    volumes:
-      # 配置文件夹
-      - /share/Container/docker-volumes/icloudpd/01:/config
-      # 媒体目录
-      - /share/CACHEDEV2_DATA/Vol2/照片/iCloud/01:/iCloud
-
-  # icloud 同步02
-  icloudpd_02:
-    image: boredazfcuk/icloudpd:latest
-    container_name: icloudpd_02
-    hostname: icloudpd_02
-    restart: always
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.55
-    mac_address: 10:00:00:00:00:55
-    volumes:
-      # 配置文件夹
-      - /share/Container/docker-volumes/icloudpd/02:/config
-      # 媒体目录
-      - /share/CACHEDEV2_DATA/Vol2/照片/iCloud/02:/iCloud
-
-  # 在线图库
-  mt-photos:
-    image: mtphotos/mt-photos:latest
-    container_name: mt-photos
-    hostname: mt-photos
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.56
-    mac_address: 10:00:00:00:00:56
-    environment:
-      # 用户id
-      - PUID=1000
-      # 用户组id
-      - PGID=100
-      - TZ=Asia/Shanghai
-    volumes:
-      # 配置文件夹
-      - /share/Container/docker-volumes/mtphotos/config:/config
-      - /share/Container/docker-volumes/mtphotos/upload:/upload
-      # 媒体目录
-      - /share:/share
-    depends_on:
-      - mt-photos-insightface
-      - mt-photos-ai
-
-  # 在线图库的人脸识别
-  mt-photos-insightface:
-    image: devfox101/mt-photos-insightface-unofficial:latest
-    container_name: mt-photos-insightface
-    hostname: mt-photos-insightface
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.62
-    mac_address: 10:00:00:00:00:62
-    environment:
-      - API_AUTH_KEY=mt_photos_ai_extra
-  # 在线图库的特征识别
-  mt-photos-ai:
-    image: mtphotos/mt-photos-ai:onnx-latest
-    container_name: mt-photos-ai
-    hostname: mt-photos-ai
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.63
-    mac_address: 10:00:00:00:00:63
-    environment:
-      - API_AUTH_KEY=mt_photos_ai_extra_secret
-
   # 云盘
   clouddrive:
     image: cloudnas/clouddrive2
@@ -368,31 +279,9 @@ services:
     ports:
       - "80:80"
 
-
-  # watchtower 自动更新
-  watchtower:
-    image: containrrr/watchtower
-    container_name: watchtower
-    hostname: watchtower
-    restart: always
-    environment:
-      - WATCHTOWER_LABEL_ENABLE=true  # 只监控带有 com.centurylinklabs.watchtower.enable=true 标签的容器
-      - WATCHTOWER_POLL_INTERVAL=3600  # 检查间隔时间
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.52
-    mac_address: 10:00:00:00:00:52
-
+# 需要提前手动创建这个网络
+# docker network create --driver macvlan --subnet 10.0.0.0/24 --gateway 10.0.0.1 --opt parent=eth0 macvlan
 networks:
   macvlan:
-    driver: macvlan
-    driver_opts:
-      parent: eth0
-      # 这是网口2的名字，可以通过ifconfig查看
-      # parent: qvs0
-    ipam:
-      config:
-        - subnet: 10.0.0.0/24
-          gateway: 10.0.0.1
+    external: true
+    name: macvlan
