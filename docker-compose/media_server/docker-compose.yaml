@@ -62,8 +62,6 @@ services:
       macvlan:
         ipv4_address: 10.0.0.64
     mac_address: 10:00:00:00:00:64
-    depends_on:
-      - pixman
     environment:
       # 用户id
       - PUID=1000
@@ -91,7 +89,6 @@ services:
         ipv4_address: 10.0.0.60
     mac_address: 10:00:00:00:00:60
     depends_on:
-      - pixman
       - alist
       - medialinker
       - clouddrive
@@ -204,21 +201,6 @@ services:
       - /dev/fuse:/dev/fuse
     ports:
       - "19798:19798"
-
-  # IPTV相关
-  pixman:
-    image: pixman/pixman:latest
-    container_name: pixman
-    hostname: pixman
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.59
-    mac_address: 10:00:00:00:00:59
-    ports: # 这个端口映射
-      - "5000:5000"
 
 
   # IPTV相关
