@@ -215,8 +215,11 @@ services:
       macvlan:
         ipv4_address: 10.0.0.57
     mac_address: 10:00:00:00:00:57
+    command: -tv=true -aesKey=${FY_AES_KEY} -userid=${FY_USER_ID} -token=${FY_TOKEN}
     ports:
       - "35455:35455"
+    env_file:
+      - .env
 
 
   # auto-lady
