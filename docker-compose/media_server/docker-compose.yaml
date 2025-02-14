@@ -13,7 +13,6 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
       - jellyfin
-      - plex
       - qbittorrent
       - emby
       - clouddrive
@@ -51,33 +50,6 @@ services:
       # AUTH_SITE,AUDIENCES_UID,AUDIENCES_PASSKEY,IYUU_SIGN等
       - .env
 
-  plex:
-    image: linuxserver/plex
-    container_name: plex
-    hostname: plex
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.61
-    mac_address: 10:00:00:00:00:61
-    environment:
-      # 用户id
-      - PUID=1000
-      # 用户组id
-      - PGID=100
-      - TZ=Asia/Shanghai
-      - VERSION=docker
-    devices:
-      - /dev/dri:/dev/dri
-    volumes:
-      # 配置文件夹
-      - /share/Container/docker-volumes/plex/config:/config
-      # 媒体目录
-      - /share:/share
-    ports:
-      - "32400:32400"
 
   jellyfin:
     image: nyanmisaka/jellyfin
@@ -90,8 +62,6 @@ services:
       macvlan:
         ipv4_address: 10.0.0.64
     mac_address: 10:00:00:00:00:64
-    depends_on:
-      - pixman
     environment:
       # 用户id
       - PUID=1000
@@ -119,7 +89,6 @@ services:
         ipv4_address: 10.0.0.60
     mac_address: 10:00:00:00:00:60
     depends_on:
-      - pixman
       - alist
       - medialinker
       - clouddrive
@@ -233,21 +202,6 @@ services:
     ports:
       - "19798:19798"
 
-  # IPTV相关
-  pixman:
-    image: pixman/pixman:latest
-    container_name: pixman
-    hostname: pixman
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.59
-    mac_address: 10:00:00:00:00:59
-    ports: # 这个端口映射
-      - "5000:5000"
-
 
   # IPTV相关
   feiyang_allinone:
@@ -261,8 +215,11 @@ services:
       macvlan:
         ipv4_address: 10.0.0.57
     mac_address: 10:00:00:00:00:57
+    command: -tv=true -aesKey=${FY_AES_KEY} -userid=${FY_USER_ID} -token=${FY_TOKEN}
     ports:
       - "35455:35455"
+    env_file:
+      - .env
 
 
   # auto-lady
