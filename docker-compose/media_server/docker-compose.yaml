@@ -51,6 +51,34 @@ services:
       - .env
 
 
+  plex:
+    image: linuxserver/plex
+    container_name: plex
+    hostname: plex
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.61
+    mac_address: 10:00:00:00:00:61
+    environment:
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
+      - TZ=Asia/Shanghai
+      - VERSION=docker
+    devices:
+      - /dev/dri:/dev/dri
+    volumes:
+      # 配置文件夹
+      - /share/Container/docker-volumes/plex/config:/config
+      # 媒体目录
+      - /share:/share
+    ports:
+      - "32400:32400"
+
   jellyfin:
     image: nyanmisaka/jellyfin
     container_name: jellyfin
