@@ -279,6 +279,8 @@ services:
         ipv4_address: 10.0.0.59
     mac_address: 10:00:00:00:00:59
     environment:
+      - PUID=1000
+      - PGID=100
       - TZ=Asia/Shanghai
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
