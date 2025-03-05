@@ -273,25 +273,6 @@ services:
       - .env
 
 
-  # byte-muse
-  byte-muse:
-    image: envyafish/byte-muse:latest
-    container_name: byte-muse
-    hostname: byte-muse
-    restart: always
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.67
-    mac_address: 10:00:00:00:00:67
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    environment:
-      - TZ=Asia/Shanghai
-    volumes:
-      - /share/Container/docker-volumes/byte-muse/data:/data
-    ports:
-      - "80:80"
-
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
