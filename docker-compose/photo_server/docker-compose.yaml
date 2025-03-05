@@ -21,7 +21,7 @@ services:
       # 配置文件夹
       - /share/Container/docker-volumes/icloudpd_01:/config
       # 媒体目录
-      - /share/CACHEDEV2_DATA/Vol2/照片/iCloud_test/01:/iCloud
+      - /share/CACHEDEV2_DATA/Vol2/照片/iCloud/01:/iCloud
 
   # icloud 同步02
   icloudpd_02:
@@ -41,7 +41,7 @@ services:
       # 配置文件夹
       - /share/Container/docker-volumes/icloudpd_02:/config
       # 媒体目录
-      - /share/CACHEDEV2_DATA/Vol2/照片/iCloud_test/02:/iCloud
+      - /share/CACHEDEV2_DATA/Vol2/照片/iCloud/02:/iCloud
 
   # 在线图库
   mt-photos:
