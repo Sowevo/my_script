@@ -250,11 +250,11 @@ services:
       - .env
 
 
-  # auto-lady
-  auto-lady:
-    image: orekiiiiiiiiiiiii/auto-lady
-    container_name: auto-lady
-    hostname: auto-lady
+  # byte-muse
+  byte-muse:
+    image: envyafish/byte-muse:latest
+    container_name: byte-muse
+    hostname: byte-muse
     restart: always
     networks:
       macvlan:
@@ -265,7 +265,7 @@ services:
     environment:
       - TZ=Asia/Shanghai
     volumes:
-      - /share/Container/docker-volumes/auto-lady/data:/data
+      - /share/Container/docker-volumes/byte-muse/data:/data
     ports:
       - "80:80"
 
