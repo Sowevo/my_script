@@ -17,10 +17,6 @@ services:
     mac_address: 10:00:00:00:00:54
     user: "1000:100"
     environment:
-      # 用户id
-      - PUID=1000
-      # 用户组id
-      - PGID=100
       - TZ=Asia/Shanghai
     volumes:
       # 配置文件夹
@@ -42,10 +38,6 @@ services:
     mac_address: 10:00:00:00:00:55
     user: "1000:100"
     environment:
-      # 用户id
-      - PUID=1000
-      # 用户组id
-      - PGID=100
       - TZ=Asia/Shanghai
     volumes:
       # 配置文件夹
