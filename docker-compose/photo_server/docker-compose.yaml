@@ -17,7 +17,7 @@ services:
     mac_address: 10:00:00:00:00:54
     volumes:
       # 配置文件夹
-      - /share/Container/docker-volumes/icloudpd/01:/config
+      - /share/Container/docker-volumes/icloudpd_01:/config
       # 媒体目录
       - /share/CACHEDEV2_DATA/Vol2/照片/iCloud/01:/iCloud
 
@@ -35,7 +35,7 @@ services:
     mac_address: 10:00:00:00:00:55
     volumes:
       # 配置文件夹
-      - /share/Container/docker-volumes/icloudpd/02:/config
+      - /share/Container/docker-volumes/icloudpd_02:/config
       # 媒体目录
       - /share/CACHEDEV2_DATA/Vol2/照片/iCloud/02:/iCloud
 
