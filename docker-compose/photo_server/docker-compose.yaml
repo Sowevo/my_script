@@ -15,6 +15,12 @@ services:
       macvlan:
         ipv4_address: 10.0.0.54
     mac_address: 10:00:00:00:00:54
+    environment:
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
+      - TZ=Asia/Shanghai
     volumes:
       # 配置文件夹
       - /share/Container/docker-volumes/icloudpd_01:/config
@@ -33,6 +39,12 @@ services:
       macvlan:
         ipv4_address: 10.0.0.55
     mac_address: 10:00:00:00:00:55
+    environment:
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
+      - TZ=Asia/Shanghai
     volumes:
       # 配置文件夹
       - /share/Container/docker-volumes/icloudpd_02:/config
