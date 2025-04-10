@@ -102,7 +102,7 @@ services:
 
   # cpus打印服务...跟照片有点关系
   cups:
-    image: olbat/cupsd
+    image: anujdatar/cups
     container_name: cups
     hostname: cups
     restart: always
@@ -110,8 +110,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     volumes:
       - /var/run/dbus:/var/run/dbus
-      - /share/Container/docker-volumes/cups/config:/config
-      - /share/Container/docker-volumes/cups/services:/services
+      - /share/Container/docker-volumes/cups/config:/etc/cups
     devices:
       - /dev/bus:/dev/bus
       - /dev/usb:/dev/usb
