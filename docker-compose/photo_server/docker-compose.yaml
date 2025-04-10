@@ -102,7 +102,7 @@ services:
 
   # cpus打印服务...跟照片有点关系
   cups:
-    image: olbat/cupsd
+    image: ydkn/cups
     container_name: cups
     hostname: cups
     restart: always
