@@ -101,6 +101,7 @@ services:
       - API_AUTH_KEY=mt_photos_ai_extra_secret
 
   # cpus打印服务...跟照片有点关系
+  # 使用host网络模式, 会有问题...
   cups:
     image: anujdatar/cups
     container_name: cups
