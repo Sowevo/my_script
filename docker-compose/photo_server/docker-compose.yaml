@@ -100,7 +100,27 @@ services:
     environment:
       - API_AUTH_KEY=mt_photos_ai_extra_secret
 
-
+  # cpus打印服务...跟照片有点关系
+  cups:
+    image: ydkn/cups
+    container_name: cups
+    hostname: cups
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    volumes:
+      - /var/run/dbus:/var/run/dbus
+      - /share/Container/docker-volumes/cups/config:/config
+      - /share/Container/docker-volumes/cups/services:/services
+    devices:
+      - /dev/bus:/dev/bus
+      - /dev/usb:/dev/usb
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.67
+    mac_address: 10:00:00:00:00:67
+    ports:
+      - "631:631"
 
   # watchtower 自动更新
   watchtower:
