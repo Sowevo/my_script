@@ -119,6 +119,8 @@ services:
       macvlan:
         ipv4_address: 10.0.0.67
     mac_address: 10:00:00:00:00:67
+    ports:
+      - "631:631"
 
 
   # watchtower 自动更新
