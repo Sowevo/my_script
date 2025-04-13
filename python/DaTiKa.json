@@ -1,0 +1,215 @@
+[
+  {
+    "title": "语文",
+    "types": [
+      {
+        "type": "选择题",
+        "question": [
+          {
+            "title": "题目1",
+            "from": 1,
+            "to": 8
+          },
+          {
+            "title": "题目2",
+            "from": 9,
+            "to": 14
+          },
+          {
+            "title": "题目3",
+            "from": 15,
+            "to": 25
+          },
+          {
+            "title": "题目4",
+            "from": 26,
+            "to": 30
+          },
+          {
+            "title": "题目5",
+            "from": 31,
+            "to": 35
+          }
+        ]
+      },
+      {
+        "type": "还是选择题",
+        "question": [
+          {
+            "title": "题目1",
+            "from": 1,
+            "to": 13
+          },
+          {
+            "title": "题目2",
+            "from": 14,
+            "to": 18
+          },
+          {
+            "title": "题目3",
+            "from": 19,
+            "to": 23
+          },
+          {
+            "title": "题目4",
+            "from": 24,
+            "to": 27
+          },
+          {
+            "title": "题目5",
+            "from": 28,
+            "to": 33
+          },
+          {
+            "title": "题目6",
+            "from": 34,
+            "to": 37
+          },
+          {
+            "title": "题目7",
+            "from": 38,
+            "to": 39
+          }
+        ]
+      },
+      {
+        "type": "依旧选择题",
+        "question": [
+          {
+            "title": "题目1",
+            "from": 1,
+            "to": 6
+          },
+          {
+            "title": "题目2",
+            "from": 1,
+            "to": 6
+          },
+          {
+            "title": "题目3",
+            "from": 1,
+            "to": 3
+          },
+          {
+            "title": "题目4",
+            "from": 1,
+            "to": 4,
+            "option_num": 3
+          },
+          {
+            "title": "题目5",
+            "from": 1,
+            "to": 9,
+            "option_num": 3
+          }
+        ]
+      }
+    ]
+  },{
+    "title": "数学",
+    "types": [
+      {
+        "type": "总是选择题",
+        "question": [
+          {
+            "title": "题目1",
+            "from": 1,
+            "to": 8
+          },
+          {
+            "title": "题目2",
+            "from": 9,
+            "to": 14
+          },
+          {
+            "title": "题目3",
+            "from": 15,
+            "to": 25
+          },
+          {
+            "title": "题目4",
+            "from": 26,
+            "to": 30
+          },
+          {
+            "title": "题目5",
+            "from": 31,
+            "to": 35
+          }
+        ]
+      },
+      {
+        "type": "选择",
+        "question": [
+          {
+            "title": "题目1",
+            "from": 1,
+            "to": 13
+          },
+          {
+            "title": "题目2",
+            "from": 14,
+            "to": 18
+          },
+          {
+            "title": "题目3",
+            "from": 19,
+            "to": 23
+          },
+          {
+            "title": "题目4",
+            "from": 24,
+            "to": 27
+          },
+          {
+            "title": "题目5",
+            "from": 28,
+            "to": 33
+          },
+          {
+            "title": "题目6",
+            "from": 34,
+            "to": 37
+          },
+          {
+            "title": "题目7",
+            "from": 38,
+            "to": 39
+          }
+        ]
+      },
+      {
+        "type": "请选择",
+        "question": [
+          {
+            "title": "题目1",
+            "from": 1,
+            "to": 6
+          },
+          {
+            "title": "题目2",
+            "from": 1,
+            "to": 6
+          },
+          {
+            "title": "题目3",
+            "from": 1,
+            "to": 3
+          },
+          {
+            "title": "题目4",
+            "from": 1,
+            "to": 4,
+            "option_num": 3
+          },
+          {
+            "title": "题目5",
+            "from": 1,
+            "to": 9,
+            "option_num": 3
+          }
+        ]
+      }
+    ]
+  }
+]
