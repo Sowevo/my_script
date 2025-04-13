@@ -44,11 +44,11 @@ def create_answer_sheet(data):
             ws.row_dimensions[row].height = CONFIG["CELL_HEIGHT"]
         # 创建标题
         current_col = 2
-        merge_and_style(ws, f'B1', 58, 3, f'{title}', CONFIG["HEADER_ALIGNMENT"], 44)
+        col_count = 1
 
         # 创建各题型区域
         for question_type in types:
-            col_count = 1
+            type_col_count = 1
             title_start = f'{get_column_letter(current_col)}6'
             current_row = CONFIG["START_ROW"]
             # 处理每个问题组
@@ -58,6 +58,7 @@ def create_answer_sheet(data):
                 if current_row + required_rows > CONFIG["MAX_ROWS"]:
                     # 行空间不足换列的时候,画一下边框
                     apply_thick_border(ws, current_col, current_col + 8, CONFIG["START_ROW"], current_row - 1)
+                    type_col_count += 1
                     col_count += 1
                     current_col += CONFIG["COL_SPACING"]
                     current_row = CONFIG["START_ROW"]
@@ -77,15 +78,19 @@ def create_answer_sheet(data):
                     merge_and_style(ws, f'{get_column_letter(option_col)}{current_row}', 6, 0,
                                     '①②③④'[:option_num], CONFIG["OPTION_ALIGNMENT"], 8)
                     current_row += 1
+            col_count += 1
             apply_thick_border(ws, current_col, current_col + 8, CONFIG["START_ROW"], current_row - 1)
 
-            # 题型中的最后一列处理完成后再添加标题
+            # 题型中的最后一列处理完成后再添加题型标题
             # 创建题型标题
-            merge_and_style(ws, title_start, col_count * 10 - 2, 1,
+            merge_and_style(ws, title_start, type_col_count * 10 - 2, 1,
                             question_type["type"], CONFIG["HEADER_ALIGNMENT"], 18)
 
             # 切换到下一题型列
             current_col += CONFIG["COL_SPACING"]
+
+        # 最后一列处理完成后再添加总标题
+        merge_and_style(ws, f'B1', col_count * 10 - 12, 3, f'{title}', CONFIG["HEADER_ALIGNMENT"], 44)
 
         print(f"答题卡已全部生成: {title}")
 
