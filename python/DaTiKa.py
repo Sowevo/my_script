@@ -72,11 +72,11 @@ def create_answer_sheet(data):
                 for q_num in range(question["from"], question["to"] + 1):
                     # 题号
                     merge_and_style(ws, f'{get_column_letter(current_col)}{current_row}', 1, 0,
-                                    q_num, CONFIG["HEADER_ALIGNMENT"], 8, "娃娃体-简", True)
+                                    q_num, CONFIG["HEADER_ALIGNMENT"], 8, font_name="娃娃体-简", bold=True)
                     # 选项区域
                     option_col = current_col + 2
                     merge_and_style(ws, f'{get_column_letter(option_col)}{current_row}', 6, 0,
-                                    '①②③④'[:option_num], CONFIG["OPTION_ALIGNMENT"], 8)
+                                    '①②③④'[:option_num], CONFIG["OPTION_ALIGNMENT"], 8,bold=True)
                     current_row += 1
             col_count += 1
             apply_thick_border(ws, current_col, current_col + 8, CONFIG["START_ROW"], current_row - 1)
