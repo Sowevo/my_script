@@ -8,8 +8,7 @@
 // @match        https://yuanbao.tencent.com/*
 // @grant        GM_addStyle
 // @grant        GM_notification
-// @downloadURL
-// @updateURL
+// @downloadURL  https://github.com/Sowevo/my_script/raw/refs/heads/main/userscript/YuanbaoFontSize.user.js
 // ==/UserScript==
 
 /*
