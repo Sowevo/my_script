@@ -79,28 +79,6 @@ services:
     ports:
       - "32400:32400"
 
-  tautulli:
-    image: linuxserver/tautulli:latest
-    container_name: tautulli
-    hostname: tautulli
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    depends_on:
-      - plex
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.68  # 下一个可用IP
-    mac_address: 10:00:00:00:00:68  # 递增MAC地址
-    environment:
-      - PUID=1000
-      - PGID=100
-      - TZ=Asia/Shanghai
-    volumes:
-      - /share/Container/docker-volumes/tautulli/config:/config
-      - /share/Container/docker-volumes/plex/config/Library/Application Support/Plex Media Server/Logs:/logs:ro  # 可选日志监控
-    ports:
-      - "8181:8181"
 
   jellyfin:
     image: nyanmisaka/jellyfin
@@ -271,28 +249,6 @@ services:
       - "35455:35455"
     env_file:
       - .env
-
-
-  homepage:
-    image: ghcr.io/gethomepage/homepage:latest
-    container_name: homepage
-    hostname: homepage
-    restart: always
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.59
-    mac_address: 10:00:00:00:00:59
-    environment:
-      - PUID=1000
-      - PGID=100
-      - TZ=Asia/Shanghai
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    ports:
-      - "3000:3000"
-    volumes:
-      - /share/Container/docker-volumes/homepage/config:/app/config # Make sure your local config directory exists
-      - /var/run/docker.sock:/var/run/docker.sock # (optional) For docker integrations
 
 # 需要提前手动创建这个网络
 # docker network create --driver macvlan --subnet 10.0.0.0/24 --gateway 10.0.0.1 --opt parent=eth0 macvlan

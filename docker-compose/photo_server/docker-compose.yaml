@@ -100,24 +100,6 @@ services:
     environment:
       - API_AUTH_KEY=mt_photos_ai_extra_secret
 
-  # cpus打印服务...跟照片有点关系
-  # 使用host网络模式, 会有问题...
-  cups:
-    image: anujdatar/cups
-    container_name: cups
-    hostname: cups
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    volumes:
-      - /var/run/dbus:/var/run/dbus
-      - /share/Container/docker-volumes/cups/config:/etc/cups
-    devices:
-      - /dev/bus:/dev/bus
-      - /dev/usb:/dev/usb
-    ports:
-      - "631:631"
-
   # watchtower 自动更新
   watchtower:
     image: containrrr/watchtower
