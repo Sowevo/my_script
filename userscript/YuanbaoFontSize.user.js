@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         腾讯元宝优化
 // @namespace    http://tampermonkey.net/
-// @version      0.2.1
+// @version      0.2.2
 // @description  腾讯元宝优化
 // @author       sowevo
 // @license      Custom License
@@ -14,11 +14,6 @@
 // @updateURL    https://github.com/Sowevo/my_script/raw/refs/heads/main/userscript/YuanbaoFontSize.user.js
 // ==/UserScript==
 
-/*
-个人使用许可：
-允许在个人设备上使用和修改，禁止重新分发或用于商业用途
-All rights reserved. Unauthorized commercial use prohibited.
-*/
 
 (function() {
     'use strict';
@@ -125,7 +120,7 @@ All rights reserved. Unauthorized commercial use prohibited.
         getText() {
             const editor = this.getEditor();
             if (editor) {
-                return editor.innerText;
+                return editor.innerHTML;
             }
             return '';
         },
@@ -133,7 +128,7 @@ All rights reserved. Unauthorized commercial use prohibited.
         setText(text) {
             const editor = this.getEditor();
             if (editor) {
-                editor.innerText = text;
+                editor.innerHTML = text;
             }
         },
 
