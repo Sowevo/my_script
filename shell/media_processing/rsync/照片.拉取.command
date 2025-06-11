@@ -41,9 +41,11 @@ if [[ "$(echo -e "$rsync_version\n$required_version" | sort -V | head -n1)" != "
     exit 1
 fi
 
-# 使用 rsync 同步远程目录到本地目录
+# 使用 rsync 同步远程目录到本地目录，并排除特定隐藏文件/目录
 # 定义 rsync 参数 -a 表示归档模式，-v 为详细输出，-h 以人类可读的格式显示文件大小等信息，--delete 使本地与远程目录保持一致，--progress 显示进度
-rsync_options="-avh --delete --progress"
+# --exclude 参数排除指定文件和目录 --delete-excluded 删除目标目录中被排除的文件
+rsync_options="-avh --delete --progress --exclude=.@__thumb/ --exclude=.DS_Store --exclude=Thumbs.db --exclude='*.tmp' --delete-excluded"
+rsync_command="rsync $rsync_options $remote_directory $local_directory"
 # 构建 rsync 命令并输出
 rsync_command="rsync $rsync_options $remote_directory $local_directory"
 echo "执行 rsync 命令：$rsync_command"
