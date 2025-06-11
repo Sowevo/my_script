@@ -138,7 +138,7 @@ services:
 
   # 还是云盘
   alist:
-    image: xhofe/alist
+    image: xhofe/alist:v3.45.0
     container_name: alist
     hostname: alist
     restart: always
