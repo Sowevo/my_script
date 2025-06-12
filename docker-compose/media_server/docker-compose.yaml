@@ -14,7 +14,7 @@ services:
     depends_on:
       - jellyfin
       - qbittorrent
-      - emby
+      # - emby
       - clouddrive
     networks:
       macvlan:
