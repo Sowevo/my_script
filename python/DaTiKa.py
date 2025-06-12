@@ -90,7 +90,14 @@ def create_answer_sheet(data):
             current_col += CONFIG["COL_SPACING"]
 
         # 最后一列处理完成后再添加总标题
-        merge_and_style(ws, f'B1', col_count * 10 - 12, 3, f'{title}', CONFIG["HEADER_ALIGNMENT"], 44)
+        merge_and_style(ws, f'B1', col_count * 10 - 18, 3, f'{title}', CONFIG["HEADER_ALIGNMENT"], 44)
+
+
+        time_start = get_column_letter(col_count * 10 - 15)
+        # 时间 标题
+        merge_and_style(ws, f'{time_start}1', 5, 1, f'时间', CONFIG["HEADER_ALIGNMENT"], 20)
+        # 时间 空白
+        merge_and_style(ws, f'{time_start}3', 5, 1, '', CONFIG["HEADER_ALIGNMENT"], 20)
 
         print(f"答题卡已全部生成: {title}")
 
