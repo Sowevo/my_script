@@ -1,4 +1,18 @@
 #!/bin/bash
+
+
+# 发现一个可以实现相同功能的命令行:F2 (https://github.com/ayoisaiah/f2)
+# F2 使用示例（需先安装）：
+# brew install f2
+#    f2 '/Users/xxx/path/メカクシティアクターズ' -f '.*\.ass' --sort natural -r '白箱 - S01E{%02d} - 第 {%d} 集.ass'
+# 2. 直接执行重命名（增加 -x）：
+#    f2 '/Users/xxx/path/メカクシティアクターズ' -f '.*\.ass' --sort natural -r '白箱 - S01E{%02d} - 第 {%d} 集.ass' -x
+# 更多用法：
+#    f2 --help
+#    (https://f2.freshman.tech/)
+
+
+
 # 给字幕文件重命名
 
 # 脚本功能：遍历指定目录下的所有文件，按照给定的过滤条件过滤出符合条件的文件，
