@@ -5,7 +5,7 @@
 import datetime
 import xml.etree.ElementTree as ET
 from math import radians, sin, cos, sqrt, atan2
-from python.kml.coord_utils import gcj02_to_wgs84
+from python.kml.flight.coord_utils import gcj02_to_wgs84
 
 
 def distance(lat1, lon1, lat2, lon2):
