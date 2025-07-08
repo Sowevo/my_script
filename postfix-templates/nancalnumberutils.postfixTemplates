@@ -1,9 +1,0 @@
-.tobiginteger : 转换成BigInteger
-    java.lang.Long [com.nancal.digitalthread.common.utils.NancalNumberUtils] → com.nancal.digitalthread.common.utils.NancalNumberUtils.longToBigInteger($expr$)
-    java.lang.Integer [com.nancal.digitalthread.common.utils.NancalNumberUtils] → com.nancal.digitalthread.common.utils.NancalNumberUtils.integerToBigInteger($expr$)
-
-.toint : 转换成Integer
-    java.math.BigInteger [com.nancal.digitalthread.common.utils.NancalNumberUtils] → com.nancal.digitalthread.common.utils.NancalNumberUtils.bigIntegerToInteger($expr$)
-
-.tolong : 转换成Long
-    java.math.BigInteger [com.nancal.digitalthread.common.utils.NancalNumberUtils] → com.nancal.digitalthread.common.utils.NancalNumberUtils.bigIntegerToLong($expr$)
