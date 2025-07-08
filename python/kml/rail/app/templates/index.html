@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>铁路way递归提取与地图展示</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <style>
+    body { margin: 0; padding: 0; }
+    .main-layout {
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+      min-width: 900px;
+    }
+    .left-panel {
+      width: 390px;
+      min-width: 320px;
+      max-width: 500px;
+      background: #f5f7fa;
+      border-right: 1px solid #e0e0e0;
+      padding: 32px 18px 18px 18px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      font-family: Arial, sans-serif;
+    }
+    .right-panel {
+      flex: 1;
+      min-width: 0;
+      background: #fff;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    #map { width: 100%; height: 100%; min-height: 600px; border-radius: 8px; }
+    .choice-way { cursor:pointer; text-decoration:underline; color:#d9534f; margin-right:8px; }
+    .choice-way:hover { color:#b52b27; }
+    .total-path-way {
+      display: inline-block;
+      margin-right: 6px;
+      padding: 1px 4px 1px 2px;
+      border-radius: 4px;
+      font-family: 'Consolas', 'Menlo', 'monospace';
+      font-size: 15px;
+      line-height: 2.1;
+      transition: background 0.2s;
+    }
+    .total-path-way.manual {
+      color: #1976d2;
+      font-weight: bold;
+      background: none;
+    }
+    .total-path-way.auto {
+      color: #888;
+      background: none;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 18px 0 10px 0;
+      color: #333;
+    }
+    #ways-list { margin-bottom: 18px; }
+    #way-form { margin-bottom: 18px; }
+    .list-group-item.active-choice {
+      background: #e3f2fd;
+      color: #1976d2;
+      font-weight: bold;
+      border-color: #90caf9;
+    }
+    .list-group-item {
+      cursor: pointer;
+      user-select: none;
+      padding-top: 4px;
+      padding-bottom: 4px;
+      margin-bottom: 0;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .list-group-item .star {
+      color: #ff9800;
+      font-weight: bold;
+      margin-left: 2px;
+    }
+    .copy-tip-toast {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 2000;
+      min-width: 160px;
+    }
+    @media (max-width: 900px) {
+      .main-layout { flex-direction: column; }
+      .left-panel { width: 100%; max-width: none; border-right: none; border-bottom: 1px solid #e0e0e0; }
+      .right-panel { min-height: 400px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-layout">
+    <div class="left-panel">
+      <div class="section-title">轨道操作</div>
+      <form id="way-form" class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text">way_id</span>
+          <input type="number" id="way_id" class="form-control" required>
+          <button type="submit" class="btn btn-primary">重新开始</button>
+        </div>
+      </form>
+      <div id="ways-list"><b>可选相连轨道:</b><ul class="list-group mt-2"></ul></div>
+      <div id="total-path"><b>全局累计链路:</b> </div>
+    </div>
+    <div class="right-panel">
+      <div id="map"></div>
+    </div>
+  </div>
+  <!-- Toast for copy tip -->
+  <div class="toast align-items-center text-bg-success border-0 copy-tip-toast" id="copyToast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">已复制，可直接粘贴到overpass-turbo.eu！</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    let map = L.map('map').setView([35, 104], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 18}).addTo(map);
+    let blueLayers = [];
+    let redLayer = null;
+    let lastData = null;
+
+    function fitAllTracks() {
+      if (!lastData) return;
+      let all = [];
+      lastData.total_path_coords.forEach(x => {
+        if (x.coords) all = all.concat(x.coords);
+      });
+      if (all.length) map.fitBounds(all);
+    }
+    // Leaflet风格按钮（结构完全一致）
+    L.Control.FitAll = L.Control.extend({
+      onAdd: function(map) {
+        var container = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
+        var btn = L.DomUtil.create('a', '', container);
+        btn.innerHTML = '⛶';
+        btn.title = '缩放到所有轨迹';
+        btn.href = '#';
+        btn.style.fontSize = '18px';
+        btn.style.textAlign = 'center';
+        btn.style.lineHeight = '26px';
+        btn.style.width = '26px';
+        btn.style.height = '26px';
+        btn.onclick = function(e) {
+          e.preventDefault();
+          fitAllTracks();
+        };
+        return container;
+      },
+      onRemove: function(map) {}
+    });
+    L.control.fitAll = function(opts) { return new L.Control.FitAll(opts); }
+    L.control.fitAll({ position: 'topleft' }).addTo(map);
+
+    async function fetchWays(way_id, reset=false) {
+      const res = await fetch(`/ways/${way_id}` + (reset ? '?reset=1' : ''));
+      return await res.json();
+    }
+
+    function renderMap(data, highlightId, fit=true, fitToCurrentWay=false) {
+      lastData = data;
+      // 清除旧图层
+      blueLayers.forEach(l => map.removeLayer(l));
+      blueLayers = [];
+      if (redLayer) { map.removeLayer(redLayer); redLayer = null; }
+      // 蓝色链路：全局累计链路
+      data.total_path_coords.forEach(x => {
+        if (x.coords && x.coords.length >= 2) {
+          let poly = L.polyline(x.coords, {color:'blue'}).addTo(map);
+          blueLayers.push(poly);
+        }
+      });
+      // 红色高亮
+      if (highlightId) {
+        let w = data.choice_coords.find(x => x.id == highlightId);
+        if (w && w.coords.length >= 2) {
+          redLayer = L.polyline(w.coords, {color:'red'}).addTo(map);
+          // 悬浮时不自动缩放
+        }
+      } else if (fitToCurrentWay || fit) {
+        // 自动缩放到当前way（包括初始渲染和取消悬浮）
+        let cur = data.total_path_coords.find(x => x.id == data.current_way);
+        if (cur && cur.coords && cur.coords.length) map.fitBounds(cur.coords);
+      }
+    }
+
+    function renderWays(data) {
+      const list = document.getElementById('ways-list');
+      let html = `<b>当前way:</b> ${data.current_way}<br>`;
+      if (data.choices.length === 0) {
+        html += '<b>没有更多可选轨道</b>';
+      } else {
+        let sortedChoices = [...data.choice_coords];
+        let idx = sortedChoices.findIndex(w => w.recommend);
+        if (idx > 0) {
+          let [rec] = sortedChoices.splice(idx, 1);
+          sortedChoices.unshift(rec);
+        }
+        html += '<b>可选相连轨道:</b><ul class="list-group mt-2">' + sortedChoices.map(w => {
+          let name = w.meta && w.meta.tags && w.meta.tags.name ? `（${w.meta.tags.name}）` : '（未命名）';
+          let star = w.recommend ? '<span class="star">*</span>' : '';
+          let liClass = w.recommend ? 'list-group-item active-choice' : 'list-group-item';
+          return `<li class='${liClass}' style='margin-bottom:2px;list-style-type:disc;'><span class=\"choice-way\" data-wayid=\"${w.id}\">${w.id}${name}${star}</span></li>`;
+        }).join('') + '</ul>';
+      }
+      list.innerHTML = html;
+      // 区分显示全局累计链路
+      const pathHtml = data.total_path.map(x => {
+        const cls = x.type === 'manual' ? 'manual' : 'auto';
+        return `<span class='total-path-way ${cls}' title='${x.type === 'manual' ? '手动选择' : '自动推进'}'>way(${x.way_id});</span>`;
+      }).join('');
+      document.getElementById('total-path').innerHTML = `<b>全局累计链路:</b> ${pathHtml}`;
+      // 悬停高亮
+      document.querySelectorAll('.choice-way').forEach(function(el){
+        el.onmouseenter = function(){
+          renderMap(data, el.getAttribute('data-wayid'), false);
+        };
+        el.onmouseleave = function(){
+          renderMap(data, undefined, true);
+        };
+        el.onclick = function(){
+          selectWay(el.getAttribute('data-wayid'));
+        }
+      });
+      // 初始渲染
+      renderMap(data, undefined, false, true);
+    }
+
+    async function selectWay(way_id, reset=false) {
+      let data = await fetchWays(way_id, reset);
+      while (data.choices.length === 1) {
+        data = await fetchWays(data.choices[0]);
+      }
+      renderWays(data);
+    }
+
+    document.getElementById('way-form').onsubmit = async function(e) {
+      e.preventDefault();
+      const way_id = document.getElementById('way_id').value;
+      document.getElementById('total-path').innerHTML = '';
+      await selectWay(way_id, true);
+    };
+  </script>
+  <script>
+    window.onload = function() {
+      // 初始化空结构
+      document.getElementById('ways-list').innerHTML = '<b>可选相连轨道:</b><ul class="list-group mt-2"></ul>';
+      document.getElementById('total-path').innerHTML = '<b>全局累计链路:</b> ';
+      document.getElementById('total-path').onclick = function() {
+        // 复制全局累计链路内容
+        const text = Array.from(document.querySelectorAll('.total-path-way')).map(e => e.textContent).join('');
+        const finalText = '(\n' + text + '\n);(._;>;);out;';
+        navigator.clipboard.writeText(finalText).then(function() {
+          var toast = new bootstrap.Toast(document.getElementById('copyToast'));
+          toast.show();
+          setTimeout(function(){
+            window.open('https://overpass-turbo.eu/#', '_blank');
+          }, 500);
+        });
+      };
+    };
+  </script>
+</body>
+</html> 
