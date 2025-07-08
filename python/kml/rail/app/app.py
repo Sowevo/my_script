@@ -60,7 +60,8 @@ def find_next_choices(start_way_id, max_depth=20, total_path=None):
         for n in nodes:
             neighbor_ways.update(node_to_ways.get(n, set()))
         neighbor_ways.discard(current_way)  # 排除当前way
-        neighbor_ways -= set(total_path)  # 这里total_path必须是int列表
+        neighbor_ways -= visited_ways
+        neighbor_ways -= set(total_path)  # 排除全局累计链路中出现过的way，避免往回走
         if len(neighbor_ways) == 1:
             current_way = list(neighbor_ways)[0]
         else:

@@ -190,7 +190,16 @@
       } else if (fitToCurrentWay || fit) {
         // 自动缩放到当前way（包括初始渲染和取消悬浮）
         let cur = data.total_path_coords.find(x => x.id == data.current_way);
-        if (cur && cur.coords && cur.coords.length) map.fitBounds(cur.coords);
+        if (cur && cur.coords && cur.coords.length) {
+          // 计算当前way的中心点
+          let lats = cur.coords.map(c => c[0]);
+          let lngs = cur.coords.map(c => c[1]);
+          let center = [
+            lats.reduce((a,b)=>a+b,0)/lats.length,
+            lngs.reduce((a,b)=>a+b,0)/lngs.length
+          ];
+          map.panTo(center);
+        }
       }
     }
 
