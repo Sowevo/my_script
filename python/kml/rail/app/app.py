@@ -24,7 +24,7 @@ app = Flask(__name__)
 app.secret_key = 'a_very_secret_key_123456'  # 用于session
 
 # 递归查找轨道
-MAX_DEPTH = 20
+MAX_DEPTH = 1000
 
 def find_connected_ways(start_way_id, max_depth=MAX_DEPTH):
     visited_ways = set()
