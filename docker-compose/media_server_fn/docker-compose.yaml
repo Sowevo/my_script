@@ -1,0 +1,30 @@
+services:
+  # 使用macvlan的网络,使得容器获得独立的ip
+  # ip范围10.0.0.51~10.0.0.100
+  # 方便做流量控制
+
+
+  # IPTV相关
+  feiyang_allinone:
+    image: youshandefeiyang/allinone
+    container_name: feiyang_allinone
+    hostname: feiyang_allinone
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.57
+    mac_address: 10:00:00:00:00:57
+    command: -tv=true -aesKey=${FY_AES_KEY} -userid=${FY_USER_ID} -token=${FY_TOKEN}
+    ports:
+      - "35455:35455"
+    env_file:
+      - .env
+
+# 需要提前手动创建这个网络
+# docker network create --driver macvlan --subnet 10.0.0.0/24 --gateway 10.0.0.1 --opt parent=eth0 macvlan
+networks:
+  macvlan:
+    external: true
+    name: macvlan
