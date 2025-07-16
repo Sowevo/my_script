@@ -3,6 +3,30 @@ services:
   # ip范围10.0.0.51~10.0.0.100
   # 方便做流量控制
 
+  # 下载器
+  qbittorrent:
+    image: linuxserver/qbittorrent:4.4.5
+    container_name: qbittorrent
+    hostname: qbittorrent
+    restart: always
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.53
+    mac_address: 10:00:00:00:00:53
+    environment:
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
+      - TZ=Asia/Shanghai
+      - WEBUI_PORT=8080 # QB webui的端口，你可以换成其他端口
+    volumes:
+      - /vol3/1000/docker-volume/qbittorrent/config:/config
+      - /vol1/1000/media_volume:/vol1/1000/media_volume
+    ports:
+      - "50126:50126"
+      - "50126:50126/udp"
+      - "8080:8080"
 
   # IPTV相关
   feiyang_allinone:
