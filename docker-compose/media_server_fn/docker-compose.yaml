@@ -37,11 +37,11 @@ services:
       - "3000:3000"
     volumes:
       # 配置文件夹
-      - /share/Container/docker-volumes/moviepilot-v2/config:/config
-      - /share/Container/docker-volumes/moviepilot-v2/core:/moviepilot/.cache/ms-playwright
+      - /vol3/1000/docker-volume/moviepilot/config:/config
+      - /vol3/1000/docker-volume/moviepilot/core:/moviepilot/.cache/ms-playwright
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      # 媒体目录
-      - /share:/share
+      - # 媒体目录
+      - /vol1/1000/media_volume:/vol1/1000/media_volume
     env_file:
       # 站点认证相关的数据还是需要写到.env文件中
       # 需要的有
@@ -68,6 +68,7 @@ services:
       - WEBUI_PORT=8080 # QB webui的端口，你可以换成其他端口
     volumes:
       - /vol3/1000/docker-volume/qbittorrent/config:/config
+      - # 媒体目录
       - /vol1/1000/media_volume:/vol1/1000/media_volume
     ports:
       - "50126:50126"
@@ -108,6 +109,7 @@ services:
       - TZ=Asia/Shanghai
       - CLOUDDRIVE_HOME=/Config
     volumes:
+      - # 媒体目录
       - /vol1/1000/media_volume:/vol1/1000/media_volume:shared
       - /vol3/1000/docker-volume/clouddrive/config:/Config
     privileged: true
