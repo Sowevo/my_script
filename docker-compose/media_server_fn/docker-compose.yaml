@@ -22,8 +22,32 @@ services:
     env_file:
       - .env
 
+  # 云盘
+  clouddrive:
+    image: cloudnas/clouddrive2
+    container_name: clouddrive
+    hostname: clouddrive
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.58
+    mac_address: 10:00:00:00:00:58
+    environment:
+      - TZ=Asia/Shanghai
+      - CLOUDDRIVE_HOME=/Config
+    volumes:
+      - /vol1/1000/media_volume:/vol1/1000/media_volume:shared
+      - /vol3/1000/docker-volume/clouddrive/config:/Config
+    privileged: true
+    devices:
+      - /dev/fuse:/dev/fuse
+    ports:
+      - "19798:19798"
+
 # 需要提前手动创建这个网络
-# docker network create --driver macvlan --subnet 10.0.0.0/24 --gateway 10.0.0.1 --opt parent=eth0 macvlan
+# docker network create --driver macvlan --subnet 10.0.0.0/24 --gateway 10.0.0.1 --opt parent=eno1 macvlan
 networks:
   macvlan:
     external: true
