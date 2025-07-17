@@ -218,7 +218,23 @@ services:
       macvlan:
         ipv4_address: 10.0.0.52
     mac_address: 10:00:00:00:00:52
-
+  # coolercontrol 风扇控制
+  coolercontrol:
+    image: ghcr.io/guniv/coolercontrol-docker
+    container_name: coolercontrol
+    hostname: coolercontrol
+    restart: always
+    privileged: true  # 开启特权模式
+    volumes:
+      - /sys/class/hwmon:/sys/class/hwmon
+      # 配置文件夹
+      - /vol3/1000/docker-volume/coolercontrol:/etc/coolercontrol
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.56
+    mac_address: 10:00:00:00:00:56
+    ports:
+      - "11987:11987"
 
 # 需要提前手动创建这个网络
 # docker network create --driver macvlan --subnet 10.0.0.0/24 --gateway 10.0.0.1 --opt parent=eno1 macvlan
