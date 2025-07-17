@@ -224,6 +224,8 @@ services:
     container_name: coolercontrol
     hostname: coolercontrol
     restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     privileged: true  # 开启特权模式
     volumes:
       - /sys/class/hwmon:/sys/class/hwmon
