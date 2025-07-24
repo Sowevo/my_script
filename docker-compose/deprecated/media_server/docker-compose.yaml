@@ -2,6 +2,7 @@ services:
   # 使用macvlan的网络,使得容器获得独立的ip
   # ip范围10.0.0.51~10.0.0.100
   # 方便做流量控制
+
 #  moviepilot-v2
   moviepilot-v2:
     image: jxxghp/moviepilot-v2:latest
@@ -11,8 +12,9 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
+      - jellyfin
       - qbittorrent
-      - plex
+      # - emby
       - clouddrive
     networks:
       macvlan:
@@ -37,11 +39,18 @@ services:
       - "3000:3000"
     volumes:
       # 配置文件夹
-      - /vol3/1000/docker-volume/moviepilot/config:/config
-      - /vol3/1000/docker-volume/moviepilot/core:/moviepilot/.cache/ms-playwright
+      - /share/Container/docker-volumes/moviepilot-v2/config:/config
+      - /share/Container/docker-volumes/moviepilot-v2/core:/moviepilot/.cache/ms-playwright
       - /var/run/docker.sock:/var/run/docker.sock:ro
       # 媒体目录
-      - /vol1/1000/media_volume:/vol1/1000/media_volume
+      - /share:/share
+    env_file:
+      # 站点认证相关的数据还是需要写到.env文件中
+      # 需要的有
+      # AUTH_SITE,AUDIENCES_UID,AUDIENCES_PASSKEY,IYUU_SIGN等
+      - .env
+
+
   plex:
     image: linuxserver/plex
     container_name: plex
@@ -64,11 +73,12 @@ services:
       - /dev/dri:/dev/dri
     volumes:
       # 配置文件夹
-      - /vol3/1000/docker-volume/plex/config:/config
+      - /share/Container/docker-volumes/plex/config:/config
       # 媒体目录
-      - /vol1/1000/media_volume:/vol1/1000/media_volume
+      - /share:/share
     ports:
       - "32400:32400"
+
 
   jellyfin:
     image: nyanmisaka/jellyfin
@@ -91,9 +101,63 @@ services:
       - /dev/dri:/dev/dri
     volumes:
       # 配置文件夹
-      - /vol3/1000/docker-volume/jellyfin/config:/config
+      - /share/Container/docker-volumes/jellyfin/config:/config
       # 媒体目录
-      - /vol1/1000/media_volume:/vol1/1000/media_volume:ro
+      - /share:/share:ro
+
+#  # emby 测试下开心不开心
+#  emby:
+#    image: amilys/embyserver
+#    container_name: emby
+#    hostname: emby
+#    restart: always
+#    labels:
+#      - "com.centurylinklabs.watchtower.enable=true"
+#    networks:
+#      macvlan:
+#        ipv4_address: 10.0.0.60
+#    mac_address: 10:00:00:00:00:60
+#    depends_on:
+#      - alist
+#      - medialinker
+#      - clouddrive
+#    environment:
+#      # 用户id
+#      - PUID=1000
+#      # 用户组id
+#      - PGID=100
+#      - TZ=Asia/Shanghai
+#    devices:
+#      - /dev/dri:/dev/dri
+#    volumes:
+#      # 配置文件夹
+#      - /share/Container/docker-volumes/emby/config:/config
+#      # 媒体目录
+#      - /share:/share:ro
+
+
+#  # 解决emby302重定向的问题,实际上是一个nginx
+#  medialinker:
+#    image: thsrite/medialinker:latest
+#    container_name: medialinker
+#    hostname: medialinker
+#    restart: always
+#    networks:
+#      macvlan:
+#        ipv4_address: 10.0.0.66
+#    mac_address: 10:00:00:00:00:66
+#    environment:
+#      - AUTO_UPDATE=false
+#      - SERVER=emby
+#      - NGINX_PORT=8091
+#    volumes:
+#      # https://raw.githubusercontent.com/thsrite/MediaLinker/refs/heads/main/config/emby/constant.js
+#      # 上面这个文件下载到opt中
+#      - /share/Container/docker-volumes/medialinker/opt/:/opt/
+#    ports:
+#      - "8091:8091"
+
+
 
   # 下载器
   qbittorrent:
@@ -113,13 +177,37 @@ services:
       - TZ=Asia/Shanghai
       - WEBUI_PORT=8080 # QB webui的端口，你可以换成其他端口
     volumes:
-      - /vol3/1000/docker-volume/qbittorrent/config:/config
-      # 媒体目录
-      - /vol1/1000/media_volume:/vol1/1000/media_volume
+      - /share/Container/docker-volumes/qbittorrent/config:/config
+      - /share:/share
     ports:
       - "50126:50126"
       - "50126:50126/udp"
       - "8080:8080"
+
+  # 云盘
+  clouddrive:
+    image: cloudnas/clouddrive2
+    container_name: clouddrive
+    hostname: clouddrive
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.58
+    mac_address: 10:00:00:00:00:58
+    environment:
+      - TZ=Asia/Shanghai
+      - CLOUDDRIVE_HOME=/Config
+    volumes:
+      - /share/CACHEDEV1_DATA/Vol1/media_volume:/share/CACHEDEV1_DATA/Vol1/media_volume:shared
+      - /share/Container/docker-volumes/clouddrive/config:/Config
+    privileged: true
+    devices:
+      - /dev/fuse:/dev/fuse
+    ports:
+      - "19798:19798"
+
 
   # IPTV相关
   feiyang_allinone:
@@ -139,107 +227,8 @@ services:
     env_file:
       - .env
 
-  # 云盘
-  clouddrive:
-    image: cloudnas/clouddrive2
-    container_name: clouddrive
-    hostname: clouddrive
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.58
-    mac_address: 10:00:00:00:00:58
-    environment:
-      - TZ=Asia/Shanghai
-      - CLOUDDRIVE_HOME=/Config
-    volumes:
-      # 媒体目录
-      - /vol1/1000/media_volume:/vol1/1000/media_volume:shared
-      - /vol3/1000/docker-volume/clouddrive/config:/Config
-    privileged: true
-    devices:
-      - /dev/fuse:/dev/fuse
-    ports:
-      - "19798:19798"
-  # icloud 同步01
-  icloudpd_01:
-    image: boredazfcuk/icloudpd:latest
-    container_name: icloudpd_01
-    hostname: icloudpd_01
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.54
-    mac_address: 10:00:00:00:00:54
-    environment:
-      - TZ=Asia/Shanghai
-    volumes:
-      # 配置文件夹
-      - /vol3/1000/docker-volume/icloudpd_01:/config
-      # 媒体目录
-      - /vol2/1000/photo/照片/iCloud/01:/iCloud
-
-  # icloud 同步02
-  icloudpd_02:
-    image: boredazfcuk/icloudpd:latest
-    container_name: icloudpd_02
-    hostname: icloudpd_02
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.55
-    mac_address: 10:00:00:00:00:55
-    environment:
-      - TZ=Asia/Shanghai
-    volumes:
-      # 配置文件夹
-      - /vol3/1000/docker-volume/icloudpd_02:/config
-      # 媒体目录
-      - /vol2/1000/photo/照片/iCloud/02:/iCloud
-
-  # watchtower 自动更新
-  watchtower:
-    image: containrrr/watchtower
-    container_name: watchtower
-    hostname: watchtower
-    restart: always
-    environment:
-      - WATCHTOWER_LABEL_ENABLE=true  # 只监控带有 com.centurylinklabs.watchtower.enable=true 标签的容器
-      - WATCHTOWER_POLL_INTERVAL=3600  # 检查间隔时间
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.52
-    mac_address: 10:00:00:00:00:52
-  # coolercontrol 风扇控制
-  coolercontrol:
-    image: ghcr.io/guniv/coolercontrol-docker
-    container_name: coolercontrol
-    hostname: coolercontrol
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    privileged: true  # 开启特权模式
-    volumes:
-      - /sys/class/hwmon:/sys/class/hwmon
-      # 配置文件夹
-      - /vol3/1000/docker-volume/coolercontrol:/etc/coolercontrol
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.56
-    mac_address: 10:00:00:00:00:56
-    ports:
-      - "11987:11987"
-
 # 需要提前手动创建这个网络
-# docker network create --driver macvlan --subnet 10.0.0.0/24 --gateway 10.0.0.1 --opt parent=eno1 macvlan
+# docker network create --driver macvlan --subnet 10.0.0.0/24 --gateway 10.0.0.1 --opt parent=eth0 macvlan
 networks:
   macvlan:
     external: true
