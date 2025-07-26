@@ -123,23 +123,23 @@ services:
       - "50126:50126/udp"
       - "8080:8080"
 
-  # IPTV相关
-  feiyang_allinone:
-    image: youshandefeiyang/allinone
-    container_name: feiyang_allinone
-    hostname: feiyang_allinone
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.57
-    mac_address: 10:00:00:00:00:57
-    command: -tv=true -aesKey=${FY_AES_KEY} -userid=${FY_USER_ID} -token=${FY_TOKEN}
-    ports:
-      - "35455:35455"
-    env_file:
-      - .env
+#  # IPTV相关
+#  feiyang_allinone:
+#    image: youshandefeiyang/allinone
+#    container_name: feiyang_allinone
+#    hostname: feiyang_allinone
+#    restart: always
+#    labels:
+#      - "com.centurylinklabs.watchtower.enable=true"
+#    networks:
+#      macvlan:
+#        ipv4_address: 10.0.0.57
+#    mac_address: 10:00:00:00:00:57
+#    command: -tv=true -aesKey=${FY_AES_KEY} -userid=${FY_USER_ID} -token=${FY_TOKEN}
+#    ports:
+#      - "35455:35455"
+#    env_file:
+#      - .env
 
   # 云盘
   clouddrive:
