@@ -42,6 +42,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       # 媒体目录
       - /vol1/1000/media_volume:/vol1/1000/media_volume
+
+
   plex:
     image: linuxserver/plex
     container_name: plex
@@ -113,7 +115,9 @@ services:
       # 用户组id
       - PGID=100
       - TZ=Asia/Shanghai
-      - WEBUI_PORT=8080 # QB webui的端口，你可以换成其他端口
+      - WEBUI_PORT=8080 # QB webui的端口，可以换成其他端口
+      # 开启 vuetorrent 插件
+      - DOCKER_MODS=ghcr.io/vuetorrent/vuetorrent-lsio-mod:latest
     volumes:
       - /vol3/1000/docker-volume/qbittorrent/config:/config
       # 媒体目录
@@ -122,24 +126,6 @@ services:
       - "50126:50126"
       - "50126:50126/udp"
       - "8080:8080"
-
-#  # IPTV相关
-#  feiyang_allinone:
-#    image: youshandefeiyang/allinone
-#    container_name: feiyang_allinone
-#    hostname: feiyang_allinone
-#    restart: always
-#    labels:
-#      - "com.centurylinklabs.watchtower.enable=true"
-#    networks:
-#      macvlan:
-#        ipv4_address: 10.0.0.57
-#    mac_address: 10:00:00:00:00:57
-#    command: -tv=true -aesKey=${FY_AES_KEY} -userid=${FY_USER_ID} -token=${FY_TOKEN}
-#    ports:
-#      - "35455:35455"
-#    env_file:
-#      - .env
 
   # 云盘
   clouddrive:
