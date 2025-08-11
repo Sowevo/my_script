@@ -84,8 +84,6 @@ services:
       macvlan:
         ipv4_address: 10.0.0.60
     mac_address: 10:00:00:00:00:60
-    depends_on:
-      - pixman
     environment:
       # 用户id
       - PUID=1000
