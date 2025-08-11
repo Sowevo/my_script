@@ -72,6 +72,35 @@ services:
     ports:
       - "32400:32400"
 
+  # emby 测试下开心不开心
+  emby:
+    image: amilys/embyserver
+    container_name: emby
+    hostname: emby
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.60
+    mac_address: 10:00:00:00:00:60
+    depends_on:
+      - pixman
+    environment:
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
+      - TZ=Asia/Shanghai
+    devices:
+      - /dev/dri:/dev/dri
+    volumes:
+      # 配置文件夹
+      - /vol3/1000/docker-volume/emby/config:/config
+      # 媒体目录
+      - /vol1/1000/media_volume:/vol1/1000/media_volume:ro
+
+
   jellyfin:
     image: nyanmisaka/jellyfin
     container_name: jellyfin
