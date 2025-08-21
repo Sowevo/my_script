@@ -110,6 +110,9 @@ services:
     image: dimitri/pgloader:latest
     volumes:
       - /vol3/1000/docker-volume/moviepilot/config:/mp_config
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.156
     command: >
       pgloader 
       sqlite:///mp_config/user.db 
