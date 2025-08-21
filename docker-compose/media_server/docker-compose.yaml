@@ -115,7 +115,7 @@ services:
       sqlite:///mp_config/user.db 
       postgresql://moviepilot:password@moviepilot-postgres:5432/moviepilot
     depends_on:
-      postgresql:
+      moviepilot-postgres:
         condition: service_healthy
 
   plex:
