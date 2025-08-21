@@ -115,20 +115,20 @@ services:
       timeout: 5s
       retries: 5
 
-#  pgloader:
-#    image: dimitri/pgloader:latest
-#    volumes:
-#      - /vol3/1000/docker-volume/moviepilot/config:/mp_config
-#    networks:
-#      macvlan:
-#        ipv4_address: 10.0.0.156
-#    command: >
-#      pgloader
-#      sqlite:///mp_config/user.db
-#      postgresql://moviepilot:password@moviepilot-postgres:5432/moviepilot
-#    depends_on:
-#      moviepilot-postgres:
-#        condition: service_healthy
+  pgloader:
+    image: dimitri/pgloader:latest
+    volumes:
+      - /vol3/1000/docker-volume/moviepilot/config:/mp_config
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.156
+    command: >
+      pgloader
+      sqlite:///mp_config/user.db
+      postgresql://moviepilot:password@moviepilot-postgres:5432/moviepilot
+    depends_on:
+      moviepilot-postgres:
+        condition: service_healthy
 
   plex:
     image: linuxserver/plex
