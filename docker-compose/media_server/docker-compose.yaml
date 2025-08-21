@@ -11,9 +11,15 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
-      - qbittorrent
-      - plex
-      - clouddrive
+      # 依赖服务
+      qbittorrent:
+        condition: service_started
+      plex:
+        condition: service_started
+      clouddrive:
+        condition: service_started
+      moviepilot-redis:
+        condition: service_healthy
     networks:
       macvlan:
         ipv4_address: 10.0.0.51
@@ -33,6 +39,10 @@ services:
       - UMASK=022
       # 管理用户id
       - SUPERUSER=sowevo
+      # 缓存后端类型
+      - CACHE_BACKEND_TYPE=redis
+      # 缓存后端url
+      - CACHE_BACKEND_URL=redis://:password@moviepilot-redis:6379
     ports:
       - "3000:3000"
     volumes:
@@ -43,6 +53,30 @@ services:
       # 媒体目录
       - /vol1/1000/media_volume:/vol1/1000/media_volume
 
+  moviepilot-redis:
+    image: redis:8-alpine
+    container_name: moviepilot-redi
+    hostname: moviepilot-redi
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        - ipv4_address: 10.0.0.57
+    mac_address: 10:00:00:00:00:57
+    environment:
+      # 时区
+      - TZ=Asia/Shanghai
+    ports:
+      - "6379:6379"
+    volumes:
+      - /vol3/1000/docker-volume/redis/data:/data
+    command: redis-server --save 600 1 --requirepass password
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   plex:
     image: linuxserver/plex
