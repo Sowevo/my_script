@@ -62,7 +62,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
       macvlan:
-        - ipv4_address: 10.0.0.57
+        ipv4_address: 10.0.0.57
     mac_address: 10:00:00:00:00:57
     environment:
       # 时区
