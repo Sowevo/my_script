@@ -46,12 +46,12 @@ services:
       # 缓存后端url
       - CACHE_BACKEND_URL=redis://:password@moviepilot-redis:6379
 #      # 外置数据库配置
-#      - DB_TYPE=postgresql
-#      - DB_POSTGRESQL_HOST=moviepilot-postgres
-#      - DB_POSTGRESQL_PORT=5432
-#      - DB_POSTGRESQL_DATABASE=moviepilot
-#      - DB_POSTGRESQL_USERNAME=moviepilot
-#      - DB_POSTGRESQL_PASSWORD=password
+      - DB_TYPE=postgresql
+      - DB_POSTGRESQL_HOST=moviepilot-postgres
+      - DB_POSTGRESQL_PORT=5432
+      - DB_POSTGRESQL_DATABASE=moviepilot
+      - DB_POSTGRESQL_USERNAME=moviepilot
+      - DB_POSTGRESQL_PASSWORD=password
     ports:
       - "3000:3000"
     volumes:
@@ -115,20 +115,20 @@ services:
       timeout: 5s
       retries: 5
 
-  pgloader:
-    image: dimitri/pgloader:latest
-    volumes:
-      - /vol3/1000/docker-volume/moviepilot/config:/mp_config
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.156
-    command: >
-      pgloader
-      sqlite:///mp_config/user.db
-      postgresql://moviepilot:password@moviepilot-postgres:5432/moviepilot
-    depends_on:
-      moviepilot-postgres:
-        condition: service_healthy
+#  pgloader:
+#    image: dimitri/pgloader:latest
+#    volumes:
+#      - /vol3/1000/docker-volume/moviepilot/config:/mp_config
+#    networks:
+#      macvlan:
+#        ipv4_address: 10.0.0.156
+#    command: >
+#      pgloader
+#      sqlite:///mp_config/user.db
+#      postgresql://moviepilot:password@moviepilot-postgres:5432/moviepilot
+#    depends_on:
+#      moviepilot-postgres:
+#        condition: service_healthy
 
   plex:
     image: linuxserver/plex
