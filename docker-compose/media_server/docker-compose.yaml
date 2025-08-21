@@ -60,7 +60,7 @@ services:
       - PUID=1000
       # 用户组id
       - PGID=100
-      - TZ=Asia/Shanghai
+      - TZ=Asia/Shanghai # 时区
       - VERSION=docker
     devices:
       - /dev/dri:/dev/dri
@@ -115,7 +115,7 @@ services:
       - PUID=1000
       # 用户组id
       - PGID=100
-      - TZ=Asia/Shanghai
+      - TZ=Asia/Shanghai # 时区
     devices:
       - /dev/dri:/dev/dri
     volumes:
@@ -141,7 +141,7 @@ services:
       - PUID=1000
       # 用户组id
       - PGID=100
-      - TZ=Asia/Shanghai
+      - TZ=Asia/Shanghai # 时区
       - WEBUI_PORT=8080 # QB webui的端口，可以换成其他端口
       # 开启 vuetorrent 插件
       - DOCKER_MODS=ghcr.io/vuetorrent/vuetorrent-lsio-mod:latest
@@ -167,7 +167,7 @@ services:
         ipv4_address: 10.0.0.58
     mac_address: 10:00:00:00:00:58
     environment:
-      - TZ=Asia/Shanghai
+      - TZ=Asia/Shanghai # 时区
       - CLOUDDRIVE_HOME=/Config
     volumes:
       # 媒体目录
@@ -193,7 +193,7 @@ services:
         ipv4_address: 10.0.0.54
     mac_address: 10:00:00:00:00:54
     environment:
-      - TZ=Asia/Shanghai
+      - TZ=Asia/Shanghai # 时区
     volumes:
       # 配置文件夹
       - /vol3/1000/docker-volume/icloudpd_01:/config
@@ -213,7 +213,7 @@ services:
         ipv4_address: 10.0.0.55
     mac_address: 10:00:00:00:00:55
     environment:
-      - TZ=Asia/Shanghai
+      - TZ=Asia/Shanghai # 时区
     volumes:
       # 配置文件夹
       - /vol3/1000/docker-volume/icloudpd_02:/config
@@ -229,6 +229,8 @@ services:
     environment:
       - WATCHTOWER_LABEL_ENABLE=true  # 只监控带有 com.centurylinklabs.watchtower.enable=true 标签的容器
       - WATCHTOWER_POLL_INTERVAL=3600  # 检查间隔时间
+      - WATCHTOWER_CLEANUP=true # 自动清理旧镜像
+      - TZ=Asia/Shanghai # 时区
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
