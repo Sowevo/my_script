@@ -55,8 +55,8 @@ services:
 
   moviepilot-redis:
     image: redis:8-alpine
-    container_name: moviepilot-redi
-    hostname: moviepilot-redi
+    container_name: moviepilot-redis
+    hostname: moviepilot-redis
     restart: always
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
@@ -77,6 +77,46 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+
+  moviepilot-postgres:
+    image: postgres:17.6-alpine
+    container_name: moviepilot-postgres
+    hostname: moviepilot-postgres
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.59
+    mac_address: 10:00:00:00:00:59
+    environment:
+      - POSTGRES_DB=moviepilot
+      - POSTGRES_USER=moviepilot
+      - POSTGRES_PASSWORD=password
+      # 时区
+      - TZ=Asia/Shanghai
+    ports:
+      - "5432:5432"
+    volumes:
+      - /vol3/1000/docker-volume/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U moviepilot -d moviepilot" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgloader:
+    image: dimitri/pgloader:latest
+    volumes:
+      - /vol3/1000/docker-volume/moviepilot/config:/mp_config
+    command: >
+      pgloader 
+      sqlite:///mp_config/user.db 
+      postgresql://moviepilot:password@moviepilot-postgres:5432/moviepilot
+    depends_on:
+      postgresql:
+        condition: service_healthy
 
   plex:
     image: linuxserver/plex
