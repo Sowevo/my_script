@@ -115,20 +115,6 @@ services:
       timeout: 5s
       retries: 5
 
-#  pgloader:
-#    image: dimitri/pgloader:latest
-#    volumes:
-#      - /vol3/1000/docker-volume/moviepilot/config:/mp_config
-#    networks:
-#      macvlan:
-#        ipv4_address: 10.0.0.156
-#    command: >
-#      pgloader
-#      sqlite:///mp_config/user.db
-#      postgresql://moviepilot:password@moviepilot-postgres:5432/moviepilot
-#    depends_on:
-#      moviepilot-postgres:
-#        condition: service_healthy
 
   plex:
     image: linuxserver/plex
@@ -157,6 +143,12 @@ services:
       - /vol1/1000/media_volume:/vol1/1000/media_volume
     ports:
       - "32400:32400"
+    healthcheck:
+      test: curl -fsS http://localhost:32400/identity > /dev/null || exit 1
+      start_period: 20s
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 #  # emby 测试下开心不开心
 #  emby:
@@ -211,6 +203,12 @@ services:
       - /vol1/1000/media_volume:/vol1/1000/media_volume:ro
     ports:
       - "8096:8096"
+    healthcheck:
+      test: curl -fsS http://localhost:8096/health > /dev/null || exit 1
+      start_period: 20s
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   # 下载器
   qbittorrent:
@@ -229,8 +227,6 @@ services:
       - PGID=100
       - TZ=Asia/Shanghai # 时区
       - WEBUI_PORT=8080 # QB webui的端口，可以换成其他端口
-      # 开启 vuetorrent 插件
-      - DOCKER_MODS=ghcr.io/vuetorrent/vuetorrent-lsio-mod:latest
     volumes:
       - /vol3/1000/docker-volume/qbittorrent/config:/config
       # 媒体目录
@@ -239,6 +235,12 @@ services:
       - "50126:50126"
       - "50126:50126/udp"
       - "8080:8080"
+    healthcheck:
+      test: curl -fsS http://localhost:8080 > /dev/null || exit 1
+      start_period: 20s
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   # 云盘
   clouddrive:
