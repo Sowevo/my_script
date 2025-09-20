@@ -45,6 +45,8 @@ services:
       - CACHE_BACKEND_TYPE=redis
       # 缓存后端url
       - CACHE_BACKEND_URL=redis://:password@moviepilot-redis:6379
+      # 插件仓库token
+      - REPO_GITHUB_TOKEN=${REPO_GITHUB_TOKEN}
 #      # 外置数据库配置
       - DB_TYPE=postgresql
       - DB_POSTGRESQL_HOST=moviepilot-postgres
