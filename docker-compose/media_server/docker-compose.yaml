@@ -261,6 +261,7 @@ services:
     volumes:
       # 媒体目录
       - /vol1/1000/media_volume:/vol1/1000/media_volume:shared
+      - /vol2/1000/photo:/vol2/1000/photo:shared
       - /vol3/1000/docker-volume/clouddrive/config:/Config
     privileged: true
     devices:
