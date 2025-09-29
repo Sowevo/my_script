@@ -14,8 +14,6 @@ services:
       # 依赖服务
       qbittorrent:
         condition: service_started
-      plex:
-        condition: service_started
       clouddrive:
         condition: service_started
       moviepilot-redis:
@@ -116,41 +114,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-
-  plex:
-    image: linuxserver/plex
-    container_name: plex
-    hostname: plex
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.61
-    mac_address: 10:00:00:00:00:61
-    environment:
-      # 用户id
-      - PUID=1000
-      # 用户组id
-      - PGID=100
-      - TZ=Asia/Shanghai # 时区
-      - VERSION=docker
-    devices:
-      - /dev/dri:/dev/dri
-    volumes:
-      # 配置文件夹
-      - /vol3/1000/docker-volume/plex/config:/config
-      # 媒体目录
-      - /vol1/1000/media_volume:/vol1/1000/media_volume
-    ports:
-      - "32400:32400"
-    healthcheck:
-      test: curl -fsS http://localhost:32400/identity > /dev/null || exit 1
-      start_period: 20s
-      interval: 10s
-      timeout: 5s
-      retries: 3
 
   emby:
     image: amilys/embyserver
