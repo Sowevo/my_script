@@ -79,7 +79,7 @@ while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 # 2.判断系统版本
 if [[ "$OS" != "Darwin" ]]; then
   echo "此脚本只能运行在 Mac OS"
-  exit 0
+  exit 1
 fi
 
 echo -e "开始执行\n"
@@ -87,6 +87,7 @@ echo -e "开始执行\n"
 # 2.1. 禁用在网络存储和U盘中.DS_Store灯文件的生成
 defaults write com.apple.desktopservices DSDontWriteNetworkStores true
 defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
+killall Finder 2>/dev/null || true
 
 # 3.判断Git是否安装,没安装的话喊用户安装...
 git --version > /dev/null 2>&1
@@ -95,7 +96,7 @@ if [ $? -ne 0 ];then
   echo -e "Git未安装!请安装后再运行此脚本\n在系统弹窗中点击“安装”按钮"
   echo -e "如果没有弹窗的老系统,需要自己下载安装\nhttps://sourceforge.net/projects/git-osx-installer/"
   xcode-select --install > /dev/null 2>&1
-  exit 0
+  exit 1
 fi
 
 # 4.判断rosetta是否安装
@@ -136,7 +137,7 @@ if [ $? -ne 0 ];then
     echo -e "请执行以下脚本手动安装\n"
     echo -e "/bin/zsh -c \"\$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/Homebrew.sh)\"\n"
     echo -e "此脚本将退出,安装完成再来执行!"
-    exit 0
+  exit 1
   ;;
   esac
 fi
@@ -151,7 +152,7 @@ read UPDATE_SUCCESS
 case $UPDATE_SUCCESS in
 n|N)
   echo -e "brew update执行异常\n请修复后继续执行!"
-  exit 0
+  exit 1
 ;;
 esac
 
