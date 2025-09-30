@@ -48,7 +48,7 @@ fi
 
 # 自动安装brew的软件列表
 RECOMMEND_APPS=(
-  git mas maven telnet unar vim wget zsh ffmpeg android-platform-tools
+  git mas maven telnet unar vim wget zsh ffmpeg android-platform-tools code
   google-chrome iina jetbrains-toolbox keka openinterminal-lite qlvideo utools
 )
 
