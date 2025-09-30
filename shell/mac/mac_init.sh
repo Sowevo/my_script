@@ -222,12 +222,12 @@ fi
 new_task1="2 * * * * ${HOMEBREW_PREFIX}/bin/brew bundle dump --describe --force --file=\"$BREWFILE_PATH\""
 new_task2="3 * * * * ls -1 /Applications > \"$APPLIST_PATH\""
 
-# 获取现有的定时任务并追加新任务
-existing_tasks=$(crontab -l 2>/dev/null)  # 为了处理没有现有任务的情况，将错误输出重定向到/dev/null
-# 将新的任务添加到现有任务列表中
-all_tasks="${existing_tasks}"$'\n'"${new_task1}"$'\n'"${new_task2}"
-# 将所有任务写回到cron表
-echo "$all_tasks" | crontab -
+# 获取现有的定时任务并去重追加新任务
+existing_tasks=$(crontab -l 2>/dev/null || true)
+# 合并并去重非空行
+all_tasks=$(printf "%s\n%s\n%s\n" "$existing_tasks" "$new_task1" "$new_task2" | awk 'NF' | sort -u)
+# 将去重后的任务写回到 cron 表
+printf "%s\n" "$all_tasks" | crontab -
 
 # TODO
 # mackup的使用...
