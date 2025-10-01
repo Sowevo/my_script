@@ -115,6 +115,40 @@ services:
       timeout: 5s
       retries: 5
 
+  danmu-app:
+    image: l429609201/misaka_danmu_server:latest
+    container_name: danmu-server
+    hostname: danmu-server
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.61
+    mac_address: 10:00:00:00:00:61
+    depends_on:
+      moviepilot-postgres:
+        condition: service_healthy
+    environment:
+      # 设置运行容器的用户和组ID，以匹配您宿主机的用户，避免挂载卷的权限问题。
+      - PUID=1000
+      - PGID=1000
+      - UMASK=0022
+      - TZ=Asia/Shanghai
+      # --- 数据库连接配置 ---
+      - DANMUAPI_DATABASE__TYPE=postgresql                              # 数据库类型
+      - DANMUAPI_DATABASE__HOST=moviepilot-postgres                     # 使用服务名
+      - DANMUAPI_DATABASE__PORT=5432                                    # 数据库端口
+      - DANMUAPI_DATABASE__NAME=danmuapi                                # 数据库名称
+      - DANMUAPI_DATABASE__USER=moviepilot                              # 数据库用户名
+      - DANMUAPI_DATABASE__PASSWORD=password                            # 数据库密码
+      # --- 初始管理员配置 ---
+      - DANMUAPI_ADMIN__INITIAL_USER=admin
+    volumes:
+      - /vol3/1000/docker-volume/danmu-server:/app/config
+    ports:
+      - "7768:7768"
+
   emby:
     image: amilys/embyserver
     container_name: emby
