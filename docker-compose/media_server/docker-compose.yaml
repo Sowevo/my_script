@@ -143,7 +143,7 @@ services:
       - DANMUAPI_DATABASE__USER=moviepilot                              # 数据库用户名
       - DANMUAPI_DATABASE__PASSWORD=password                            # 数据库密码
       # --- 初始管理员配置 ---
-      - DANMUAPI_ADMIN__INITIAL_USER=admin
+      - DANMUAPI_ADMIN__INITIAL_USER=sowevo
     volumes:
       - /vol3/1000/docker-volume/danmu-server:/app/config
     ports:
