@@ -115,6 +115,35 @@ services:
       timeout: 5s
       retries: 5
 
+
+  bili-sync-rs:
+    image: amtoaer/bili-sync-rs
+    container_name: bili-sync-rs
+    hostname: bili-sync-rs
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.61
+    mac_address: 10:00:00:00:00:61
+    environment:
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
+      - TZ=Asia/Shanghai
+    volumes:
+      # 配置文件夹
+      - /vol3/1000/docker-volume/bili-sync-rs/config:/app/.config/bili-sync
+      # 媒体目录
+      - /vol1/1000/media_volume:/vol1/1000/media_volume
+      # metadata/people 正确挂载才能在 Emby 或 Jellyfin 中显示 UP 主头像
+      # 右边的目标目录不固定，只需要确保目标目录与 bili-sync 中填写的“UP 主头像保存路径”保持一致即可
+      - /vol3/1000/docker-volume/emby/config/metadata/people:/app/.config/bili-sync/upper_face
+    ports:
+      - "12345:12345"
+
   emby:
     image: amilys/embyserver
     container_name: emby
@@ -139,6 +168,8 @@ services:
       - /vol3/1000/docker-volume/emby/config:/config
       # 媒体目录
       - /vol1/1000/media_volume:/vol1/1000/media_volume:ro
+    ports:
+      - "8096:8096"
 
 
   jellyfin:
