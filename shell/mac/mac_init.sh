@@ -28,6 +28,30 @@ get_device_info() {
   fi
 }
 
+configure_github_ssh() {
+  local ssh_dir="${HOME}/.ssh"
+  local ssh_config="${ssh_dir}/config"
+  local block=$'Host github.com\n\tHostName ssh.github.com\n\tPort 443\n\tUser git'
+
+  mkdir -p "$ssh_dir"
+  if [ ! -f "$ssh_config" ]; then
+    touch "$ssh_config"
+    chmod 600 "$ssh_config"
+  fi
+
+  if grep -qE '^[[:space:]]*Host[[:space:]]+github\.com($|[[:space:]])' "$ssh_config"; then
+    echo "已检测到 github.com 的 SSH 配置，跳过追加。"
+  else
+    {
+      echo ""
+      echo "# Added by mac_init.sh to route GitHub SSH via port 443"
+      printf '%b\n' "$block"
+    } >> "$ssh_config"
+    chmod 600 "$ssh_config"
+    echo "已在 ~/.ssh/config 中追加 github.com 配置。"
+  fi
+}
+
 # 0.初始化用到的变量
 # 系统名称
 CURRENT_DATE=$(date +"%Y%m%d")
@@ -98,6 +122,9 @@ if [ $? -ne 0 ];then
   xcode-select --install > /dev/null 2>&1
   exit 1
 fi
+
+echo -e "\n配置 GitHub SSH 443 端口"
+configure_github_ssh
 
 # 4.判断rosetta是否安装
 if [[ "$UNAME_MACHINE" == "arm64" ]]; then
