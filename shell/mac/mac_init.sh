@@ -207,27 +207,39 @@ fi
 # 9.备份软件安装列表数据到iCloud中
 echo "添加定时任务以自动备份软件列表"
 echo "如果有权限弹窗,请选择允许!"
-# 设置变量
-LIST_DIR="${HOME}/Library/Mobile Documents/com~apple~CloudDocs/MacConfig/${DEVICE_INFO}/${CURRENT_DATE}"
-BREWFILE_PATH="${LIST_DIR}/Brewfile"
-APPLIST_PATH="${LIST_DIR}/AppList"
 
-# 检查并创建目录
-if [ ! -d "$LIST_DIR" ]; then
-    echo "目录不存在，创建目录：${LIST_DIR}"
-    mkdir -p "$LIST_DIR"
+ICLOUD_DRIVE_DIR="${HOME}/Library/Mobile Documents"
+if ls "$ICLOUD_DRIVE_DIR" >/dev/null 2>&1; then
+  # 设置变量
+  LIST_DIR="${ICLOUD_DRIVE_DIR}/com~apple~CloudDocs/MacConfig/${DEVICE_INFO}/${CURRENT_DATE}"
+  BREWFILE_PATH="${LIST_DIR}/Brewfile"
+  APPLIST_PATH="${LIST_DIR}/AppList"
+
+  # 检查并创建目录
+  if [ ! -d "$LIST_DIR" ]; then
+      echo "目录不存在，创建目录：${LIST_DIR}"
+      mkdir -p "$LIST_DIR"
+  fi
+
+  # 使用定时任务
+  new_task1="2 * * * * ${HOMEBREW_PREFIX}/bin/brew bundle dump --describe --force --file=\"$BREWFILE_PATH\""
+  new_task2="3 * * * * ls -1 /Applications > \"$APPLIST_PATH\""
+
+  # 获取现有的定时任务并去重追加新任务
+  existing_tasks=$(crontab -l 2>/dev/null || true)
+  # 合并并去重非空行
+  all_tasks=$(printf "%s\n%s\n%s\n" "$existing_tasks" "$new_task1" "$new_task2" | awk 'NF' | sort -u)
+  # 将去重后的任务写回到 cron 表
+  printf "%s\n" "$all_tasks" | crontab -
+else
+  cat <<'EOF'
+未能访问 iCloud Drive 目录，可能因为当前终端没有“文件与文件夹”或“完全磁盘访问”权限:
+  1. 打开“系统设置 -> 隐私与安全”。
+  2. 在“文件与文件夹”或“完全磁盘访问”中勾选当前终端 (例如 Terminal、iTerm)。
+  3. 重新运行本脚本以添加自动备份定时任务。
+将跳过 iCloud 备份步骤。
+EOF
 fi
-
-# 使用定时任务
-new_task1="2 * * * * ${HOMEBREW_PREFIX}/bin/brew bundle dump --describe --force --file=\"$BREWFILE_PATH\""
-new_task2="3 * * * * ls -1 /Applications > \"$APPLIST_PATH\""
-
-# 获取现有的定时任务并去重追加新任务
-existing_tasks=$(crontab -l 2>/dev/null || true)
-# 合并并去重非空行
-all_tasks=$(printf "%s\n%s\n%s\n" "$existing_tasks" "$new_task1" "$new_task2" | awk 'NF' | sort -u)
-# 将去重后的任务写回到 cron 表
-printf "%s\n" "$all_tasks" | crontab -
 
 # TODO
 # mackup的使用...
