@@ -566,7 +566,11 @@ def build_geojson_features(
     features: List[Dict[str, Any]] = []
     summaries: List[Dict[str, Any]] = []
     first_center: Optional[Tuple[float, float]] = None
-    for seq, entry in enumerate(detailed_tracks, 1):
+    ordered_tracks = sorted(
+        detailed_tracks,
+        key=lambda entry: to_int(entry.get("summary", {}).get("startTime")),
+    )
+    for seq, entry in enumerate(ordered_tracks, 1):
         track = entry.get("summary", {})
         detail = entry.get("detail", {})
         track_id = str(track.get("trackId", ""))
@@ -902,9 +906,10 @@ def render_map_html(
         map.setZoom(12);
       }}
     }});
-    const listSource = trackData.features.length
-      ? chronologicalFeatures.map((feature) => feature.properties)
-      : trackSummaries.sort((a, b) => (a.startTimeMs || 0) - (b.startTimeMs || 0));
+    const listSource = (trackSummaries.length
+      ? [...trackSummaries]
+      : chronologicalFeatures.map((feature) => feature.properties)
+    ).sort((a, b) => (a.startTimeMs || 0) - (b.startTimeMs || 0));
     listEl.innerHTML = listSource.map((props, idx) => {{
       const color = props.color || defaultColors[idx % defaultColors.length];
       return `<li><span class="dot" style="background:${{color}}"></span>
