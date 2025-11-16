@@ -6,3 +6,4 @@ env.conf
 /python/jorudan/schedule_info.sqlite
 /python/jorudan/schedule_infos.json
 /python/kml/rail/app/data/
+/python/niu_token_cache.bin
