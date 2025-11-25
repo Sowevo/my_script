@@ -52,7 +52,7 @@ configure_github_ssh() {
   fi
 }
 
-# 0.初始化用到的变量
+# 1.初始化用到的变量
 # 系统名称
 CURRENT_DATE=$(date +"%Y%m%d")
 OS="$(uname)"
@@ -95,12 +95,12 @@ esac
 
 
 echo "您的设备标识是[$DEVICE_INFO]"
-# 1.获取sudo权限
+# 2.获取sudo权限
 sudo -v -p "请输入开机密码，输入过程不显示，输入完后回车:"
 # 更新sudo不过期,直到脚本完成
 while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 
-# 2.判断系统版本
+# 3.判断系统版本
 if [[ "$OS" != "Darwin" ]]; then
   echo "此脚本只能运行在 Mac OS"
   exit 1
@@ -108,12 +108,7 @@ fi
 
 echo -e "开始执行\n"
 
-# 2.1. 禁用在网络存储和U盘中.DS_Store灯文件的生成
-defaults write com.apple.desktopservices DSDontWriteNetworkStores true
-defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
-killall Finder 2>/dev/null || true
-
-# 3.判断Git是否安装,没安装的话喊用户安装...
+# 4.判断Git是否安装,没安装的话喊用户安装...
 git --version > /dev/null 2>&1
 if [ $? -ne 0 ];then
   sudo rm -rf "/Library/Developer/CommandLineTools/"
@@ -126,7 +121,7 @@ fi
 echo -e "\n配置 GitHub SSH 443 端口"
 configure_github_ssh
 
-# 4.判断rosetta是否安装
+# 5.判断rosetta是否安装
 if [[ "$UNAME_MACHINE" == "arm64" ]]; then
   HAS_ROSETTA=$(/usr/bin/pgrep -q oahd && echo Y || echo N)
   if [[ "$HAS_ROSETTA" == "N" ]]; then
@@ -138,7 +133,7 @@ if [[ "$UNAME_MACHINE" == "arm64" ]]; then
   fi
 fi
 
-# 5.判断brew是否安装,没安装的话喊用户安装
+# 6.判断brew是否安装,没安装的话喊用户安装
 source ${SHELL_PROFILE} 2>/dev/null # 可能刚装的,source一下试试
 brew --version > /dev/null 2>&1
 if [ $? -ne 0 ];then
@@ -170,7 +165,7 @@ if [ $? -ne 0 ];then
 fi
 
 
-# 6.查看brew update 是否正常
+# 7.查看brew update 是否正常
 echo -e "尝试执行brew update\n\n==================================="
 brew update&&brew upgrade
 echo -e "===================================\n\n"
@@ -183,7 +178,7 @@ n|N)
 ;;
 esac
 
-# 7.安装常用软件
+# 8.安装常用软件
 echo -e "brew安装成功,是否安装常用软件"
 echo -e "1、不安装\n2、安装推荐的软件\n3、使用brew bundle恢复软件\n"
 echo -e "请输入序号:"
@@ -208,7 +203,15 @@ case $BREW_INSTALL in
   ;;
   esac
 
-# 8.安装Oh My Zsh
+# 9.禁用在网络存储和U盘中.DS_Store等文件的生成
+defaults write com.apple.desktopservices DSDontWriteNetworkStores true
+defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
+killall Finder 2>/dev/null || true
+
+# 10.禁用 Chrome 触控板左右滑动返回/前进
+defaults write com.google.Chrome AppleEnableSwipeNavigateWithScrolls -bool false
+
+# 11.安装Oh My Zsh
 if [ -d "$ZSH" ]; then
   echo "恭喜！Oh My Zsh 已安装。"
 else
@@ -231,7 +234,7 @@ else
   esac
 fi
 
-# 9.备份软件安装列表数据到iCloud中
+# 12.备份软件安装列表数据到iCloud中
 echo "添加定时任务以自动备份软件列表"
 echo "如果有权限弹窗,请选择允许!"
 
