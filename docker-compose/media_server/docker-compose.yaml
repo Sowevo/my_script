@@ -3,117 +3,117 @@ services:
   # ip范围10.0.0.51~10.0.0.100
   # 方便做流量控制
 #  moviepilot-v2
-#  moviepilot-v2:
-#    image: jxxghp/moviepilot-v2:latest
-#    container_name: moviepilot-v2
-#    hostname: moviepilot-v2
-#    restart: always
-#    labels:
-#      - "com.centurylinklabs.watchtower.enable=true"
-#    depends_on:
-#      # 依赖服务
-#      qbittorrent:
-#        condition: service_started
-#      clouddrive:
-#        condition: service_started
-#      moviepilot-redis:
-#        condition: service_healthy
-#      moviepilot-postgres:
-#        condition: service_healthy
-#    networks:
-#      macvlan:
-#        ipv4_address: 10.0.0.51
-#    mac_address: 10:00:00:00:00:51
-#    environment:
-#      # 时区
-#      - TZ=Asia/Shanghai
-#      # WEB服务端口，默认3000，可自行修改，不能与API服务端口冲突
-#      - NGINX_PORT=3000
-#      # API服务端口，默认3001，可自行修改，不能与WEB服务端口冲突
-#      - PORT=3001
-#      # 用户id
-#      - PUID=1000
-#      # 用户组id
-#      - PGID=100
-#      # 掩码权限，默认000，可以考虑设置为022
-#      - UMASK=022
-#      # 管理用户id
-#      - SUPERUSER=sowevo
-#      # 缓存后端类型
-#      - CACHE_BACKEND_TYPE=redis
-#      # 缓存后端url
-#      - CACHE_BACKEND_URL=redis://:password@moviepilot-redis:6379
-#      # 插件仓库token
-#      - REPO_GITHUB_TOKEN=${REPO_GITHUB_TOKEN}
-##      # 外置数据库配置
-#      - DB_TYPE=postgresql
-#      - DB_POSTGRESQL_HOST=moviepilot-postgres
-#      - DB_POSTGRESQL_PORT=5432
-#      - DB_POSTGRESQL_DATABASE=moviepilot
-#      - DB_POSTGRESQL_USERNAME=moviepilot
-#      - DB_POSTGRESQL_PASSWORD=password
-#    ports:
-#      - "3000:3000"
-#    volumes:
-#      # 配置文件夹
-#      - /vol3/1000/docker-volume/moviepilot/config:/config
-#      - /vol3/1000/docker-volume/moviepilot/core:/moviepilot/.cache/ms-playwright
-#      - /var/run/docker.sock:/var/run/docker.sock:ro
-#      # 媒体目录
-#      - /vol1/1000/media_volume:/vol1/1000/media_volume
-#
-#  moviepilot-redis:
-#    image: redis:8-alpine
-#    container_name: moviepilot-redis
-#    hostname: moviepilot-redis
-#    restart: always
-#    labels:
-#      - "com.centurylinklabs.watchtower.enable=true"
-#    networks:
-#      macvlan:
-#        ipv4_address: 10.0.0.57
-#    mac_address: 10:00:00:00:00:57
-#    environment:
-#      # 时区
-#      - TZ=Asia/Shanghai
-#    ports:
-#      - "6379:6379"
-#    volumes:
-#      - /vol3/1000/docker-volume/redis/data:/data
-#    command: redis-server --save 600 1 --requirepass password
-#    healthcheck:
-#      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 5
-#
-#
-#  moviepilot-postgres:
-#    image: postgres:17.6-alpine
-#    container_name: moviepilot-postgres
-#    hostname: moviepilot-postgres
-#    restart: always
-#    labels:
-#      - "com.centurylinklabs.watchtower.enable=true"
-#    networks:
-#      macvlan:
-#        ipv4_address: 10.0.0.59
-#    mac_address: 10:00:00:00:00:59
-#    environment:
-#      - POSTGRES_DB=moviepilot
-#      - POSTGRES_USER=moviepilot
-#      - POSTGRES_PASSWORD=password
-#      # 时区
-#      - TZ=Asia/Shanghai
-#    ports:
-#      - "5432:5432"
-#    volumes:
-#      - /vol3/1000/docker-volume/postgres:/var/lib/postgresql/data
-#    healthcheck:
-#      test: [ "CMD-SHELL", "pg_isready -U moviepilot -d moviepilot" ]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 5
+  moviepilot-v2:
+    image: jxxghp/moviepilot-v2:latest
+    container_name: moviepilot-v2
+    hostname: moviepilot-v2
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    depends_on:
+      # 依赖服务
+      qbittorrent:
+        condition: service_started
+      clouddrive:
+        condition: service_started
+      moviepilot-redis:
+        condition: service_healthy
+      moviepilot-postgres:
+        condition: service_healthy
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.51
+    mac_address: 10:00:00:00:00:51
+    environment:
+      # 时区
+      - TZ=Asia/Shanghai
+      # WEB服务端口，默认3000，可自行修改，不能与API服务端口冲突
+      - NGINX_PORT=3000
+      # API服务端口，默认3001，可自行修改，不能与WEB服务端口冲突
+      - PORT=3001
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
+      # 掩码权限，默认000，可以考虑设置为022
+      - UMASK=022
+      # 管理用户id
+      - SUPERUSER=sowevo
+      # 缓存后端类型
+      - CACHE_BACKEND_TYPE=redis
+      # 缓存后端url
+      - CACHE_BACKEND_URL=redis://:password@moviepilot-redis:6379
+      # 插件仓库token
+      - REPO_GITHUB_TOKEN=${REPO_GITHUB_TOKEN}
+#      # 外置数据库配置
+      - DB_TYPE=postgresql
+      - DB_POSTGRESQL_HOST=moviepilot-postgres
+      - DB_POSTGRESQL_PORT=5432
+      - DB_POSTGRESQL_DATABASE=moviepilot
+      - DB_POSTGRESQL_USERNAME=moviepilot
+      - DB_POSTGRESQL_PASSWORD=password
+    ports:
+      - "3000:3000"
+    volumes:
+      # 配置文件夹
+      - /vol3/1000/docker-volume/moviepilot/config:/config
+      - /vol3/1000/docker-volume/moviepilot/core:/moviepilot/.cache/ms-playwright
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # 媒体目录
+      - /vol1/1000/media_volume:/vol1/1000/media_volume
+
+  moviepilot-redis:
+    image: redis:8-alpine
+    container_name: moviepilot-redis
+    hostname: moviepilot-redis
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.57
+    mac_address: 10:00:00:00:00:57
+    environment:
+      # 时区
+      - TZ=Asia/Shanghai
+    ports:
+      - "6379:6379"
+    volumes:
+      - /vol3/1000/docker-volume/redis/data:/data
+    command: redis-server --save 600 1 --requirepass password
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  moviepilot-postgres:
+    image: postgres:17.6-alpine
+    container_name: moviepilot-postgres
+    hostname: moviepilot-postgres
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.59
+    mac_address: 10:00:00:00:00:59
+    environment:
+      - POSTGRES_DB=moviepilot
+      - POSTGRES_USER=moviepilot
+      - POSTGRES_PASSWORD=password
+      # 时区
+      - TZ=Asia/Shanghai
+    ports:
+      - "5432:5432"
+    volumes:
+      - /vol3/1000/docker-volume/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U moviepilot -d moviepilot" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 
   bili-sync-rs:
@@ -205,37 +205,37 @@ services:
       timeout: 5s
       retries: 3
 
-#  # 下载器
-#  qbittorrent:
-#    image: linuxserver/qbittorrent:4.4.5
-#    container_name: qbittorrent
-#    hostname: qbittorrent
-#    restart: always
-#    networks:
-#      macvlan:
-#        ipv4_address: 10.0.0.53
-#    mac_address: 10:00:00:00:00:53
-#    environment:
-#      # 用户id
-#      - PUID=1000
-#      # 用户组id
-#      - PGID=100
-#      - TZ=Asia/Shanghai # 时区
-#      - WEBUI_PORT=8080 # QB webui的端口，可以换成其他端口
-#    volumes:
-#      - /vol3/1000/docker-volume/qbittorrent/config:/config
-#      # 媒体目录
-#      - /vol1/1000/media_volume:/vol1/1000/media_volume
-#    ports:
-#      - "50126:50126"
-#      - "50126:50126/udp"
-#      - "8080:8080"
-#    healthcheck:
-#      test: curl -fsS http://localhost:8080 > /dev/null || exit 1
-#      start_period: 20s
-#      interval: 10s
-#      timeout: 5s
-#      retries: 3
+  # 下载器
+  qbittorrent:
+    image: linuxserver/qbittorrent:4.4.5
+    container_name: qbittorrent
+    hostname: qbittorrent
+    restart: always
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.53
+    mac_address: 10:00:00:00:00:53
+    environment:
+      # 用户id
+      - PUID=1000
+      # 用户组id
+      - PGID=100
+      - TZ=Asia/Shanghai # 时区
+      - WEBUI_PORT=8080 # QB webui的端口，可以换成其他端口
+    volumes:
+      - /vol3/1000/docker-volume/qbittorrent/config:/config
+      # 媒体目录
+      - /vol1/1000/media_volume:/vol1/1000/media_volume
+    ports:
+      - "50126:50126"
+      - "50126:50126/udp"
+      - "8080:8080"
+    healthcheck:
+      test: curl -fsS http://localhost:8080 > /dev/null || exit 1
+      start_period: 20s
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   # 云盘
   clouddrive:
@@ -264,26 +264,26 @@ services:
       - "19798:19798"
 
 
-#  # icloud 同步01
-#  icloudpd_01:
-#    image: boredazfcuk/icloudpd:latest
-#    container_name: icloudpd_01
-#    hostname: icloudpd_01
-#    restart: always
-#    labels:
-#      - "com.centurylinklabs.watchtower.enable=true"
-#    networks:
-#      macvlan:
-#        ipv4_address: 10.0.0.54
-#    mac_address: 10:00:00:00:00:54
-#    environment:
-#      - TZ=Asia/Shanghai # 时区
-#    volumes:
-#      # 配置文件夹
-#      - /vol3/1000/docker-volume/icloudpd_01:/config
-#      # 媒体目录
-#      - /vol2/1000/photo/照片/iCloud/01:/iCloud
-#
+  # icloud 同步01
+  icloudpd_01:
+    image: boredazfcuk/icloudpd:latest
+    container_name: icloudpd_01
+    hostname: icloudpd_01
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.54
+    mac_address: 10:00:00:00:00:54
+    environment:
+      - TZ=Asia/Shanghai # 时区
+    volumes:
+      # 配置文件夹
+      - /vol3/1000/docker-volume/icloudpd_01:/config
+      # 媒体目录
+      - /vol2/1000/photo/照片/iCloud/01:/iCloud
+
 #  # icloud 同步02
 #  icloudpd_02:
 #    image: boredazfcuk/icloudpd:latest
