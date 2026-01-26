@@ -284,25 +284,25 @@ services:
       # 媒体目录
       - /vol2/1000/photo/照片/iCloud/01:/iCloud
 
-  # icloud 同步02
-  icloudpd_02:
-    image: boredazfcuk/icloudpd:latest
-    container_name: icloudpd_02
-    hostname: icloudpd_02
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.55
-    mac_address: 10:00:00:00:00:55
-    environment:
-      - TZ=Asia/Shanghai # 时区
-    volumes:
-      # 配置文件夹
-      - /vol3/1000/docker-volume/icloudpd_02:/config
-      # 媒体目录
-      - /vol2/1000/photo/照片/iCloud/02:/iCloud
+#  # icloud 同步02
+#  icloudpd_02:
+#    image: boredazfcuk/icloudpd:latest
+#    container_name: icloudpd_02
+#    hostname: icloudpd_02
+#    restart: always
+#    labels:
+#      - "com.centurylinklabs.watchtower.enable=true"
+#    networks:
+#      macvlan:
+#        ipv4_address: 10.0.0.55
+#    mac_address: 10:00:00:00:00:55
+#    environment:
+#      - TZ=Asia/Shanghai # 时区
+#    volumes:
+#      # 配置文件夹
+#      - /vol3/1000/docker-volume/icloudpd_02:/config
+#      # 媒体目录
+#      - /vol2/1000/photo/照片/iCloud/02:/iCloud
 
   # watchtower 自动更新
   watchtower:
