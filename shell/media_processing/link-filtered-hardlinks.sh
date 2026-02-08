@@ -26,7 +26,7 @@ print_help() {
   <目标目录>   输出目录（会自动创建并保留同样的子目录结构）
 
 选项：
-  --exclude PATTERN   排除匹配 PATTERN 的文件（通配符，例如 "*.nef"），可重复多次
+  --exclude PATTERN   排除匹配 PATTERN 的文件（通配符，例如 "*.nef"），可重复多次（不区分大小写）
   --dry-run           演练模式：只打印将执行的操作，不实际创建目录/链接
   -h, --help          显示帮助
 
@@ -86,19 +86,17 @@ if [[ ! -d "$src" ]]; then
   exit 1
 fi
 
-# 目标目录先创建出来（即使 dry-run 也创建无妨；如需 dry-run 完全不动文件系统，可再改）
+# 目标目录先创建出来（如需 dry-run 完全不动文件系统，可再改）
 mkdir -p "$dst"
 
 # -------------------------
-# 获取“物理路径”（避免符号链接路径导致判断混乱）
-# 不用 realpath 是为了兼容 macOS 默认环境
+# 获取“物理路径”
 # -------------------------
 src_abs="$(cd "$src" && pwd -P)"
 dst_abs="$(cd "$dst" && pwd -P)"
 
 # -------------------------
 # 检测是否跨分区/跨文件系统
-# df -P 输出是 POSIX 风格，兼容性更好
 # -------------------------
 src_dev="$(df -P "$src_abs" | awk 'NR==2 {print $1}')"
 dst_dev="$(df -P "$dst_abs" | awk 'NR==2 {print $1}')"
@@ -114,17 +112,15 @@ if [[ "$src_dev" != "$dst_dev" ]]; then
 fi
 
 # -------------------------
-# 组装 find 过滤条件
-# 默认排除 *.nef（不区分大小写）
-# 额外排除规则：每个 --exclude 都会变成一个 ! -iname "PATTERN"
+# 组装 find 过滤条件（注意：find 这里仍然从 . 开始找）
 # -------------------------
 declare -a find_expr
 find_expr=( . -type f )
 
-# 默认排除 NEF
+# 默认排除 NEF（不区分大小写）
 find_expr+=( ! -iname "*.nef" )
 
-# 追加用户自定义排除
+# 追加用户自定义排除（同样不区分大小写）
 for pat in "${excludes[@]}"; do
   find_expr+=( ! -iname "$pat" )
 done
@@ -138,7 +134,7 @@ excluded_files=$(( total_files - included_files ))
 
 # -------------------------
 # 主流程：遍历文件并创建硬链接（保留目录结构）
-# 使用 -print0 + read -d '' 处理带空格/特殊字符的路径
+# 把 rel 前缀 "./" 去掉，避免路径里出现 /./
 # -------------------------
 linked=0
 skipped_exists=0
@@ -153,7 +149,9 @@ fi
 cd "$src_abs"
 
 while IFS= read -r -d '' rel; do
-  # rel 形如：./2025-01-01/IMG 001.jpg
+  # rel 形如：./2017-11-11/IMG 001.jpg
+  rel="${rel#./}"  # 去掉开头的 "./"
+
   target="$dst_abs/$rel"
   tdir="$(dirname "$target")"
 
@@ -172,10 +170,10 @@ while IFS= read -r -d '' rel; do
 
   # 创建硬链接
   if [[ $dry_run -eq 1 ]]; then
-    echo "ln \"$rel\" \"$target\""
+    echo "ln \"$src_abs/$rel\" \"$target\""
     ((linked++))
   else
-    if ln "$rel" "$target"; then
+    if ln "$src_abs/$rel" "$target"; then
       ((linked++))
     else
       ((errors++))
