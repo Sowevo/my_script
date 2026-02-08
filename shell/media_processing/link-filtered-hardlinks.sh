@@ -6,20 +6,24 @@ set -euo pipefail
 # 默认排除：*.nef（不区分大小写）
 #
 # 用法：
-#   link-filtered-hardlinks [--dry-run] [--exclude PATTERN ...] <源目录> <目标目录>
+#   link-filtered-hardlinks [--dry-run] [--exclude PATTERN ...] [--verbose] <源目录> <目标目录>
 #
 # 示例：
 #   link-filtered-hardlinks photos photos_no_nef
-#   link-filtered-hardlinks --dry-run --exclude "*.nef" --exclude "*.cr2" photos out
+#   link-filtered-hardlinks --exclude "*.cr2" photos out
+#   link-filtered-hardlinks --dry-run photos out
 #
 # 注意：
 #   硬链接要求 源目录 与 目标目录 在同一文件系统/同一分区。
 #   脚本会提前检测，若跨分区会直接报错退出。
+#
+# 进度日志：
+#   固定每处理 10 个文件输出一次进度。
 
 print_help() {
   cat <<'EOF'
 用法：
-  link-filtered-hardlinks [--dry-run] [--exclude PATTERN ...] <源目录> <目标目录>
+  link-filtered-hardlinks [--dry-run] [--exclude PATTERN ...] [--verbose] <源目录> <目标目录>
 
 参数：
   <源目录>     需要扫描的原始照片目录（含子目录）
@@ -27,13 +31,15 @@ print_help() {
 
 选项：
   --exclude PATTERN   排除匹配 PATTERN 的文件（通配符，例如 "*.nef"），可重复多次（不区分大小写）
-  --dry-run           演练模式：只打印将执行的操作，不实际创建目录/链接
+  --dry-run           演练模式：不实际创建目录/链接
+  --verbose           打印每个文件的 ln 操作（非常刷屏，不建议大量文件时开启）
   -h, --help          显示帮助
 
 说明：
   - 会保留源目录的子目录结构到目标目录中。
   - 默认排除：*.nef（不区分大小写）。
   - 硬链接无法跨磁盘/跨分区；若检测到跨分区会报错退出。
+  - 进度日志固定每处理 10 个文件提示一次。
 EOF
 }
 
@@ -41,12 +47,17 @@ EOF
 # 解析命令行参数
 # -------------------------
 dry_run=0
+verbose=0
 declare -a excludes=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --dry-run)
       dry_run=1
+      shift
+      ;;
+    --verbose)
+      verbose=1
       shift
       ;;
     --exclude)
@@ -86,12 +97,8 @@ if [[ ! -d "$src" ]]; then
   exit 1
 fi
 
-# 目标目录先创建出来（如需 dry-run 完全不动文件系统，可再改）
 mkdir -p "$dst"
 
-# -------------------------
-# 获取“物理路径”
-# -------------------------
 src_abs="$(cd "$src" && pwd -P)"
 dst_abs="$(cd "$dst" && pwd -P)"
 
@@ -112,7 +119,7 @@ if [[ "$src_dev" != "$dst_dev" ]]; then
 fi
 
 # -------------------------
-# 组装 find 过滤条件（find 从 . 开始找）
+# 组装 find 过滤条件
 # -------------------------
 declare -a find_expr
 find_expr=( . -type f )
@@ -132,69 +139,78 @@ total_files=$(cd "$src_abs" && find . -type f -print | wc -l | tr -d ' ')
 included_files=$(cd "$src_abs" && find "${find_expr[@]}" -print | wc -l | tr -d ' ')
 excluded_files=$(( total_files - included_files ))
 
+echo "开始处理…"
+echo "  源目录：$src_abs"
+echo "  目标目录：$dst_abs"
+echo "  源目录文件总数：$total_files"
+echo "  被排除的文件数：$excluded_files"
+echo "  预计需要处理：  $included_files"
+if [[ $dry_run -eq 1 ]]; then
+  echo "  模式：演练（dry-run，不会实际创建目录/链接）"
+else
+  echo "  模式：执行（将创建硬链接）"
+fi
+echo "  进度日志：每处理 10 个文件提示一次"
+
 # -------------------------
-# 主流程：遍历文件并创建硬链接（保留目录结构）
-# 把 rel 前缀 "./" 去掉，避免路径里出现 /./
+# 主流程
 # -------------------------
+processed=0
 linked=0
 skipped_exists=0
 errors=0
-
-if [[ $dry_run -eq 1 ]]; then
-  echo "【演练模式】不会实际创建目录/链接，只打印将执行的操作。"
-  echo "源目录：$src_abs"
-  echo "目标目录：$dst_abs"
-fi
+progress_every=10
 
 cd "$src_abs"
 
 while IFS= read -r -d '' rel; do
-  # rel 形如：./2017-11-11/IMG 001.jpg
-  rel="${rel#./}"  # 去掉开头的 "./"
+  rel="${rel#./}"  # 去掉 "./"
+  processed=$((processed + 1))
 
   target="$dst_abs/$rel"
   tdir="$(dirname "$target")"
 
-  # 创建目标子目录
-  if [[ $dry_run -eq 1 ]]; then
-    echo "mkdir -p \"$tdir\""
-  else
+  if [[ $dry_run -eq 0 ]]; then
     mkdir -p "$tdir"
   fi
 
-  # 如果目标已存在则跳过（避免覆盖）
   if [[ -e "$target" ]]; then
     skipped_exists=$((skipped_exists + 1))
-    continue
+  else
+    if [[ $dry_run -eq 1 ]]; then
+      linked=$((linked + 1))
+      if [[ $verbose -eq 1 ]]; then
+        echo "ln \"$src_abs/$rel\" \"$target\""
+      fi
+    else
+      if ln "$src_abs/$rel" "$target"; then
+        linked=$((linked + 1))
+        if [[ $verbose -eq 1 ]]; then
+          echo "ln \"$src_abs/$rel\" \"$target\""
+        fi
+      else
+        errors=$((errors + 1))
+        echo "警告：创建硬链接失败：$src_abs/$rel" >&2
+      fi
+    fi
   fi
 
-  # 创建硬链接
-  if [[ $dry_run -eq 1 ]]; then
-    echo "ln \"$src_abs/$rel\" \"$target\""
-    linked=$((linked + 1))
-  else
-    if ln "$src_abs/$rel" "$target"; then
-      linked=$((linked + 1))
-    else
-      errors=$((errors + 1))
-    fi
+  if (( processed % progress_every == 0 )); then
+    echo "进度：已处理 $processed / $included_files（已链接/将链接 $linked，已存在跳过 $skipped_exists，错误 $errors）"
   fi
 done < <(find "${find_expr[@]}" -print0)
 
 # -------------------------
-# 输出总结
+# 结束汇总
 # -------------------------
 echo "完成。"
-echo "  源目录：$src_abs"
-echo "  目标目录：$dst_abs"
-echo "  源目录文件总数：        $total_files"
-echo "  被排除的文件数：        $excluded_files"
-echo "  已链接/将链接的文件数： $linked"
-echo "  因已存在而跳过：        $skipped_exists"
-echo "  错误数：                $errors"
+echo "  已处理：              $processed"
+echo "  已链接/将链接：       $linked"
+echo "  因已存在而跳过：      $skipped_exists"
+echo "  错误数：              $errors"
 
 if [[ $dry_run -eq 1 ]]; then
-  echo "提示：当前为演练模式，未对文件系统做任何实际更改（目标目录本身可能已创建）。"
+  echo "提示：演练模式未做实际更改（目标目录本身可能已创建）。"
 fi
 
 exit $(( errors > 0 ? 1 : 0 ))
