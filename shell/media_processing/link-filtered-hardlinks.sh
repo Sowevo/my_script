@@ -112,7 +112,7 @@ if [[ "$src_dev" != "$dst_dev" ]]; then
 fi
 
 # -------------------------
-# 组装 find 过滤条件（注意：find 这里仍然从 . 开始找）
+# 组装 find 过滤条件（find 从 . 开始找）
 # -------------------------
 declare -a find_expr
 find_expr=( . -type f )
@@ -164,19 +164,19 @@ while IFS= read -r -d '' rel; do
 
   # 如果目标已存在则跳过（避免覆盖）
   if [[ -e "$target" ]]; then
-    ((skipped_exists++))
+    skipped_exists=$((skipped_exists + 1))
     continue
   fi
 
   # 创建硬链接
   if [[ $dry_run -eq 1 ]]; then
     echo "ln \"$src_abs/$rel\" \"$target\""
-    ((linked++))
+    linked=$((linked + 1))
   else
     if ln "$src_abs/$rel" "$target"; then
-      ((linked++))
+      linked=$((linked + 1))
     else
-      ((errors++))
+      errors=$((errors + 1))
     fi
   fi
 done < <(find "${find_expr[@]}" -print0)
