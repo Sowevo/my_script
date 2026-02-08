@@ -150,7 +150,7 @@ if [[ $dry_run -eq 1 ]]; then
 else
   echo "  模式：执行（将创建硬链接）"
 fi
-echo "  进度日志：每处理 10 个文件提示一次"
+echo "  进度日志：每处理 50 个文件提示一次"
 
 # -------------------------
 # 主流程
@@ -159,7 +159,7 @@ processed=0
 linked=0
 skipped_exists=0
 errors=0
-progress_every=10
+progress_every=50
 
 cd "$src_abs"
 
