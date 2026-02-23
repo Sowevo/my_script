@@ -12,6 +12,7 @@ services:
       - DIFFICULTY=hard
       - MOTD=\u00A76Welcome to the \u00A7bFabric Realm\u00A7r
       - OPS=Sowevo
+      - MAX_PLAYERS=5
       - TZ=Asia/Shanghai
       - PUID=1000
       - PGID=100
