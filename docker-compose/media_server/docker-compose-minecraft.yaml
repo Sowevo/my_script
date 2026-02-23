@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  minecraft:
+    image: itzg/minecraft-server:latest
+    container_name: minecraft-server
+    ports:
+      - "25565:25565"
+    environment:
+      - EULA=TRUE
+      - TYPE=FABRIC
+      - VERSION=1.21.11
+      - FABRIC_LOADER_VERSION=latest
+      - DIFFICULTY=hard
+      - TZ=Asia/Shanghai
+      - PUID=1000
+      - PGID=100
+    volumes:
+      - /vol3/1000/docker-volume/minecraft/data:/data
+    restart: unless-stopped
