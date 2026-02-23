@@ -56,8 +56,8 @@ services:
       - "3000:3000"
     volumes:
       # 配置文件夹
-      - /vol3/1000/docker-volume/moviepilot/config:/config
-      - /vol3/1000/docker-volume/moviepilot/core:/moviepilot/.cache/ms-playwright
+      - /vol3/1000/docker_volume/moviepilot/config:/config
+      - /vol3/1000/docker_volume/moviepilot/core:/moviepilot/.cache/ms-playwright
       - /var/run/docker.sock:/var/run/docker.sock:ro
       # 媒体目录
       - /vol1/1000/media_volume:/vol1/1000/media_volume
@@ -79,7 +79,7 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - /vol3/1000/docker-volume/redis/data:/data
+      - /vol3/1000/docker_volume/redis/data:/data
     command: redis-server --save 600 1 --requirepass password
     healthcheck:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
@@ -108,7 +108,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - /vol3/1000/docker-volume/postgres:/var/lib/postgresql/data
+      - /vol3/1000/docker_volume/postgres:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U moviepilot -d moviepilot" ]
       interval: 10s
@@ -135,12 +135,12 @@ services:
       - TZ=Asia/Shanghai
     volumes:
       # 配置文件夹
-      - /vol3/1000/docker-volume/bili-sync-rs/config:/app/.config/bili-sync
+      - /vol3/1000/docker_volume/bili-sync-rs/config:/app/.config/bili-sync
       # 媒体目录
       - /vol1/1000/media_volume:/vol1/1000/media_volume
       # metadata/people 正确挂载才能在 Emby 或 Jellyfin 中显示 UP 主头像
       # 右边的目标目录不固定，只需要确保目标目录与 bili-sync 中填写的“UP 主头像保存路径”保持一致即可
-      - /vol3/1000/docker-volume/emby/config/metadata/people:/app/.config/bili-sync/upper_face
+      - /vol3/1000/docker_volume/emby/config/metadata/people:/app/.config/bili-sync/upper_face
     ports:
       - "12345:12345"
 
@@ -165,7 +165,7 @@ services:
       - /dev/dri:/dev/dri
     volumes:
       # 配置文件夹
-      - /vol3/1000/docker-volume/emby/config:/config
+      - /vol3/1000/docker_volume/emby/config:/config
       # 媒体目录
       - /vol1/1000/media_volume:/vol1/1000/media_volume:ro
     ports:
@@ -193,7 +193,7 @@ services:
       - /dev/dri:/dev/dri
     volumes:
       # 配置文件夹
-      - /vol3/1000/docker-volume/jellyfin/config:/config
+      - /vol3/1000/docker_volume/jellyfin/config:/config
       # 媒体目录
       - /vol1/1000/media_volume:/vol1/1000/media_volume:ro
     ports:
@@ -223,7 +223,7 @@ services:
       - TZ=Asia/Shanghai # 时区
       - WEBUI_PORT=8080 # QB webui的端口，可以换成其他端口
     volumes:
-      - /vol3/1000/docker-volume/qbittorrent/config:/config
+      - /vol3/1000/docker_volume/qbittorrent/config:/config
       # 媒体目录
       - /vol1/1000/media_volume:/vol1/1000/media_volume
     ports:
@@ -255,8 +255,8 @@ services:
     volumes:
       # 媒体目录
       - /vol1/1000/media_volume:/vol1/1000/media_volume:shared
-      - /vol2/1000/photo:/vol2/1000/photo:shared
-      - /vol3/1000/docker-volume/clouddrive/config:/Config
+      - /vol2/1000/personal_volume/photos:/vol2/1000/personal_volume/photos:shared
+      - /vol3/1000/docker_volume/clouddrive/config:/Config
     privileged: true
     devices:
       - /dev/fuse:/dev/fuse
@@ -280,9 +280,9 @@ services:
       - TZ=Asia/Shanghai # 时区
     volumes:
       # 配置文件夹
-      - /vol3/1000/docker-volume/icloudpd_01:/config
+      - /vol3/1000/docker_volume/icloudpd_01:/config
       # 媒体目录
-      - /vol2/1000/photo/照片/iCloud/01:/iCloud
+      - /vol2/1000/personal_volume/photos/iCloud/01:/iCloud
 
 #  # icloud 同步02
 #  icloudpd_02:
@@ -300,9 +300,9 @@ services:
 #      - TZ=Asia/Shanghai # 时区
 #    volumes:
 #      # 配置文件夹
-#      - /vol3/1000/docker-volume/icloudpd_02:/config
+#      - /vol3/1000/docker_volume/icloudpd_02:/config
 #      # 媒体目录
-#      - /vol2/1000/photo/照片/iCloud/02:/iCloud
+#      - /vol2/1000/personal_volume/photos/iCloud/02:/iCloud
 
   # watchtower 自动更新
   watchtower:
@@ -333,7 +333,7 @@ services:
     volumes:
       - /sys/class/hwmon:/sys/class/hwmon
       # 配置文件夹
-      - /vol3/1000/docker-volume/coolercontrol:/etc/coolercontrol
+      - /vol3/1000/docker_volume/coolercontrol:/etc/coolercontrol
     networks:
       macvlan:
         ipv4_address: 10.0.0.56
