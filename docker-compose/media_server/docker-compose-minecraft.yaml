@@ -17,5 +17,5 @@ services:
       - PUID=1000
       - PGID=100
     volumes:
-      - /vol3/1000/docker-volume/minecraft/data:/data
+      - /vol3/1000/docker_volume/minecraft/data:/data
     restart: unless-stopped
