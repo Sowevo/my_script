@@ -431,7 +431,7 @@ services:
       - POSTGRES_DB=sub2api
       - TZ=Asia/Shanghai
     volumes:
-      - /vol3/1000/docker_volume/sub2api/postgres:/var/lib/postgresql/data
+      - /vol3/1000/docker_volume/sub2api/postgres:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sub2api -d sub2api"]
       interval: 10s
