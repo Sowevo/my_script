@@ -367,6 +367,99 @@ services:
     ports:
       - "11987:11987"
 
+
+  sub2api:
+    image: weishaw/sub2api:latest
+    container_name: sub2api
+    hostname: sub2api
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    depends_on:
+      sub2api-postgres:
+        condition: service_healthy
+      sub2api-redis:
+        condition: service_healthy
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.66
+    mac_address: 10:00:00:00:00:66
+    environment:
+      - AUTO_SETUP=true
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8080
+      - TZ=Asia/Shanghai
+      - DATABASE_HOST=sub2api-postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=sub2api
+      - DATABASE_PASSWORD=${SUB2API_POSTGRES_PASSWORD}
+      - DATABASE_DBNAME=sub2api
+      - DATABASE_SSLMODE=disable
+      - REDIS_HOST=sub2api-redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${SUB2API_REDIS_PASSWORD}
+      - REDIS_DB=0
+      - ADMIN_EMAIL=${SUB2API_ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${SUB2API_ADMIN_PASSWORD}
+      - JWT_SECRET=${SUB2API_JWT_SECRET}
+      - TOTP_ENCRYPTION_KEY=${SUB2API_TOTP_KEY}
+    volumes:
+      - /vol3/1000/docker_volume/sub2api/data:/app/data
+    ports:
+      - "8088:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  sub2api-postgres:
+    image: postgres:18-alpine
+    container_name: sub2api-postgres
+    hostname: sub2api-postgres
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.67
+    mac_address: 10:00:00:00:00:67
+    environment:
+      - POSTGRES_USER=sub2api
+      - POSTGRES_PASSWORD=${SUB2API_POSTGRES_PASSWORD}
+      - POSTGRES_DB=sub2api
+      - TZ=Asia/Shanghai
+    volumes:
+      - /vol3/1000/docker_volume/sub2api/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sub2api -d sub2api"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  sub2api-redis:
+    image: redis:8-alpine
+    container_name: sub2api-redis
+    hostname: sub2api-redis
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.68
+    mac_address: 10:00:00:00:00:68
+    environment:
+      - TZ=Asia/Shanghai
+    command: redis-server --save 60 1 --appendonly yes --requirepass ${SUB2API_REDIS_PASSWORD}
+    volumes:
+      - /vol3/1000/docker_volume/sub2api/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${SUB2API_REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 ## 需要提前手动创建这个网络
 ## docker network create --driver macvlan --subnet 10.0.0.0/24 --gateway 10.0.0.1 --opt parent=eno1 macvlan
 #networks:
