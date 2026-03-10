@@ -8,3 +8,5 @@ env.conf
 /python/kml/rail/app/data/
 /python/niu_token_cache.bin
 .spec-workflow
+
+docker-compose/media_server/.env
