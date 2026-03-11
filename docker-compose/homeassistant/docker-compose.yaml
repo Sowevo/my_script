@@ -16,7 +16,7 @@ services:
     environment:
       - TZ=Asia/Shanghai
     volumes:
-      - ${HOME}/homeassistant:/config
+      - /vol3/1000/docker_volume/homeassistant/config:/config
       - /etc/localtime:/etc/localtime:ro
 
   # https://github.com/XiaoMi/xiaomi-miloco
@@ -38,7 +38,7 @@ services:
       - BACKEND_LOG_LEVEL=${MILOCO_LOG_LEVEL:-warning}
       - TZ=${TZ:-Asia/Shanghai}
     volumes:
-      - ${HOME}/homeassistant/micam/miloco:/app/miloco_server/.temp
+      - /vol3/1000/docker_volume/homeassistant/micam/miloco:/app/miloco_server/.temp
 
   # https://github.com/AlexxIT/go2rtc
   go2rtc:
@@ -59,7 +59,7 @@ services:
     environment:
       - TZ=${TZ:-Asia/Shanghai}
     volumes:
-      - ${HOME}/homeassistant/micam/go2rtc:/config
+      - /vol3/1000/docker_volume/homeassistant/micam/go2rtc:/config
 
   micam1: &micam
     image: ghcr.nju.edu.cn/miiot/micam:main
