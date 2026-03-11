@@ -84,31 +84,7 @@ services:
       - STREAM_CHANNEL=${STREAM_CHANNEL:-0}
       - TZ=${TZ:-Asia/Shanghai}
 
-  # 第二路摄像头（默认关闭）
-  micam2:
-    <<: *micam
-    container_name: micam2
-    hostname: micam2
-    profiles: ["cam2"]
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.73
-    mac_address: 10:00:00:00:00:73
-    environment:
-      - MILOCO_BASE_URL=${MILOCO_BASE_URL:-https://miloco:8000}
-      - MILOCO_PASSWORD=${MILOCO_PASSWORD}
-      - CAMERA_ID=${CAMERA_2_ID}
-      - RTSP_URL=${CAMERA_2_RTSP_URL}
-      - VIDEO_CODEC=${VIDEO_CODEC:-hevc}
-      - STREAM_CHANNEL=${STREAM_CHANNEL:-0}
-      - TZ=${TZ:-Asia/Shanghai}
-
 networks:
   macvlan:
-    driver: macvlan
-    driver_opts:
-      parent: eno1
-    ipam:
-      config:
-        - subnet: 10.0.0.0/24
-          gateway: 10.0.0.1
+    external: true
+    name: macvlan
