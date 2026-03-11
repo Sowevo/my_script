@@ -16,7 +16,8 @@ services:
   miloco:
     container_name: miloco
     image: ghcr.nju.edu.cn/miiot/miloco:main
-    network_mode: host
+    ports:
+      - "8000:8000"
     environment:
       BACKEND_PORT: ${MILOCO_PORT:-8000}
       BACKEND_LOG_LEVEL: ${MILOCO_LOG_LEVEL:-warning}
@@ -29,7 +30,9 @@ services:
   go2rtc:
     container_name: go2rtc
     image: ghcr.nju.edu.cn/alexxit/go2rtc
-    network_mode: host
+    ports:
+      - "1984:1984"
+      - "8554:8554"
     privileged: true
     restart: unless-stopped
     environment:
@@ -44,7 +47,7 @@ services:
       - miloco
       - go2rtc
     environment: &micam_envs
-      MILOCO_BASE_URL: ${MILOCO_BASE_URL:-https://miloco:8000}
+      MILOCO_BASE_URL: ${MILOCO_BASE_URL:-https://host.docker.internal:8000}
       MILOCO_PASSWORD: ${MILOCO_PASSWORD}
       CAMERA_ID: ${CAMERA_ID}
       RTSP_URL: ${RTSP_URL}
