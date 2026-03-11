@@ -2,7 +2,14 @@ services:
   homeassistant:
     image: homeassistant/home-assistant:stable
     container_name: homeassistant
-    restart: unless-stopped
+    hostname: homeassistant
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.69
+    mac_address: 10:00:00:00:00:69
     ports:
       - "8123:8123"
     privileged: true
@@ -14,56 +21,94 @@ services:
 
   # https://github.com/XiaoMi/xiaomi-miloco
   miloco:
-    container_name: miloco
     image: ghcr.nju.edu.cn/miiot/miloco:main
+    container_name: miloco
+    hostname: miloco
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.70
+    mac_address: 10:00:00:00:00:70
     ports:
       - "8000:8000"
     environment:
-      BACKEND_PORT: ${MILOCO_PORT:-8000}
-      BACKEND_LOG_LEVEL: ${MILOCO_LOG_LEVEL:-warning}
-      TZ: ${TZ:-Asia/Shanghai}
+      - BACKEND_PORT=${MILOCO_PORT:-8000}
+      - BACKEND_LOG_LEVEL=${MILOCO_LOG_LEVEL:-warning}
+      - TZ=${TZ:-Asia/Shanghai}
     volumes:
       - ${HOME}/homeassistant/micam/miloco:/app/miloco_server/.temp
-    restart: unless-stopped
 
   # https://github.com/AlexxIT/go2rtc
   go2rtc:
-    container_name: go2rtc
     image: ghcr.nju.edu.cn/alexxit/go2rtc
+    container_name: go2rtc
+    hostname: go2rtc
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.71
+    mac_address: 10:00:00:00:00:71
     ports:
       - "1984:1984"
       - "8554:8554"
     privileged: true
-    restart: unless-stopped
     environment:
-      TZ: ${TZ:-Asia/Shanghai}
+      - TZ=${TZ:-Asia/Shanghai}
     volumes:
       - ${HOME}/homeassistant/micam/go2rtc:/config
 
   micam1: &micam
     image: ghcr.nju.edu.cn/miiot/micam:main
     container_name: micam1
+    hostname: micam1
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
       - miloco
       - go2rtc
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.72
+    mac_address: 10:00:00:00:00:72
     environment: &micam_envs
-      MILOCO_BASE_URL: ${MILOCO_BASE_URL:-https://host.docker.internal:8000}
-      MILOCO_PASSWORD: ${MILOCO_PASSWORD}
-      CAMERA_ID: ${CAMERA_ID}
-      RTSP_URL: ${RTSP_URL}
-      VIDEO_CODEC: ${VIDEO_CODEC:-hevc}
-      STREAM_CHANNEL: ${STREAM_CHANNEL:-0}
-      TZ: ${TZ:-Asia/Shanghai}
-    restart: unless-stopped
-    extra_hosts:
-      - "miloco:${MILOCO_HOST_IP:-host-gateway}"
+      - MILOCO_BASE_URL=${MILOCO_BASE_URL:-https://miloco:8000}
+      - MILOCO_PASSWORD=${MILOCO_PASSWORD}
+      - CAMERA_ID=${CAMERA_ID}
+      - RTSP_URL=${RTSP_URL}
+      - VIDEO_CODEC=${VIDEO_CODEC:-hevc}
+      - STREAM_CHANNEL=${STREAM_CHANNEL:-0}
+      - TZ=${TZ:-Asia/Shanghai}
 
   # 第二路摄像头（默认关闭）
   micam2:
     <<: *micam
     container_name: micam2
+    hostname: micam2
     profiles: ["cam2"]
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.73
+    mac_address: 10:00:00:00:00:73
     environment:
-      <<: *micam_envs
-      CAMERA_ID: ${CAMERA_2_ID}
-      RTSP_URL: ${CAMERA_2_RTSP_URL}
+      - MILOCO_BASE_URL=${MILOCO_BASE_URL:-https://miloco:8000}
+      - MILOCO_PASSWORD=${MILOCO_PASSWORD}
+      - CAMERA_ID=${CAMERA_2_ID}
+      - RTSP_URL=${CAMERA_2_RTSP_URL}
+      - VIDEO_CODEC=${VIDEO_CODEC:-hevc}
+      - STREAM_CHANNEL=${STREAM_CHANNEL:-0}
+      - TZ=${TZ:-Asia/Shanghai}
+
+networks:
+  macvlan:
+    driver: macvlan
+    driver_opts:
+      parent: eno1
+    ipam:
+      config:
+        - subnet: 10.0.0.0/24
+          gateway: 10.0.0.1
