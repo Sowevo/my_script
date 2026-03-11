@@ -10,3 +10,5 @@ env.conf
 .spec-workflow
 
 docker-compose/media_server/.env
+
+docker-compose/homeassistant/.env
