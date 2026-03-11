@@ -11,3 +11,56 @@ services:
     volumes:
       - ${HOME}/homeassistant:/config
       - /etc/localtime:/etc/localtime:ro
+
+  # https://github.com/XiaoMi/xiaomi-miloco
+  miloco:
+    container_name: miloco
+    image: ghcr.nju.edu.cn/miiot/miloco:main
+    network_mode: host
+    environment:
+      BACKEND_PORT: ${MILOCO_PORT:-8000}
+      BACKEND_LOG_LEVEL: ${MILOCO_LOG_LEVEL:-warning}
+      TZ: ${TZ:-Asia/Shanghai}
+    volumes:
+      - ${HOME}/homeassistant/micam/miloco:/app/miloco_server/.temp
+    restart: unless-stopped
+
+  # https://github.com/AlexxIT/go2rtc
+  go2rtc:
+    container_name: go2rtc
+    image: ghcr.nju.edu.cn/alexxit/go2rtc
+    network_mode: host
+    privileged: true
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+    volumes:
+      - ${HOME}/homeassistant/micam/go2rtc:/config
+
+  micam1: &micam
+    image: ghcr.nju.edu.cn/miiot/micam:main
+    container_name: micam1
+    depends_on:
+      - miloco
+      - go2rtc
+    environment: &micam_envs
+      MILOCO_BASE_URL: ${MILOCO_BASE_URL:-https://miloco:8000}
+      MILOCO_PASSWORD: ${MILOCO_PASSWORD}
+      CAMERA_ID: ${CAMERA_ID}
+      RTSP_URL: ${RTSP_URL}
+      VIDEO_CODEC: ${VIDEO_CODEC:-hevc}
+      STREAM_CHANNEL: ${STREAM_CHANNEL:-0}
+      TZ: ${TZ:-Asia/Shanghai}
+    restart: unless-stopped
+    extra_hosts:
+      - "miloco:${MILOCO_HOST_IP:-host-gateway}"
+
+  # 第二路摄像头（默认关闭）
+  micam2:
+    <<: *micam
+    container_name: micam2
+    profiles: ["cam2"]
+    environment:
+      <<: *micam_envs
+      CAMERA_ID: ${CAMERA_2_ID}
+      RTSP_URL: ${CAMERA_2_RTSP_URL}
