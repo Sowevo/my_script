@@ -2,8 +2,9 @@ services:
   homeassistant:
     image: homeassistant/home-assistant:stable
     container_name: homeassistant
-    network_mode: host
     restart: unless-stopped
+    ports:
+      - "8123:8123"
     privileged: true
     environment:
       - TZ=Asia/Shanghai
