@@ -87,4 +87,4 @@ services:
 networks:
   macvlan:
     external: true
-    name: macvlan
+    name: media_server_macvlan
