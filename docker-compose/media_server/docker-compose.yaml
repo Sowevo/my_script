@@ -460,6 +460,26 @@ services:
       timeout: 5s
       retries: 5
 
+  homeassistant:
+    image: homeassistant/home-assistant:stable
+    container_name: homeassistant
+    hostname: homeassistant
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.69
+    mac_address: 10:00:00:00:00:69
+    ports:
+      - "8123:8123"
+    privileged: true
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - /vol3/1000/docker_volume/homeassistant/config:/config
+      - /etc/localtime:/etc/localtime:ro
+
 ## 需要提前手动创建这个网络
 ## docker network create --driver macvlan --subnet 10.0.0.0/24 --gateway 10.0.0.1 --opt parent=eno1 macvlan
 #networks:
