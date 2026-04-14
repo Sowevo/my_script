@@ -116,33 +116,33 @@ services:
       retries: 5
 
 
-  bili-sync-rs:
-    image: amtoaer/bili-sync-rs
-    container_name: bili-sync-rs
-    hostname: bili-sync-rs
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    networks:
-      macvlan:
-        ipv4_address: 10.0.0.61
-    mac_address: 10:00:00:00:00:61
-    environment:
-      # 用户id
-      - PUID=1000
-      # 用户组id
-      - PGID=100
-      - TZ=Asia/Shanghai
-    volumes:
-      # 配置文件夹
-      - /vol3/1000/docker_volume/bili-sync-rs/config:/app/.config/bili-sync
-      # 媒体目录
-      - /vol1/1000/media_volume:/vol1/1000/media_volume
-      # metadata/people 正确挂载才能在 Emby 或 Jellyfin 中显示 UP 主头像
-      # 右边的目标目录不固定，只需要确保目标目录与 bili-sync 中填写的“UP 主头像保存路径”保持一致即可
-      - /vol3/1000/docker_volume/emby/config/metadata/people:/app/.config/bili-sync/upper_face
-    ports:
-      - "12345:12345"
+#  bili-sync-rs:
+#    image: amtoaer/bili-sync-rs
+#    container_name: bili-sync-rs
+#    hostname: bili-sync-rs
+#    restart: always
+#    labels:
+#      - "com.centurylinklabs.watchtower.enable=true"
+#    networks:
+#      macvlan:
+#        ipv4_address: 10.0.0.61
+#    mac_address: 10:00:00:00:00:61
+#    environment:
+#      # 用户id
+#      - PUID=1000
+#      # 用户组id
+#      - PGID=100
+#      - TZ=Asia/Shanghai
+#    volumes:
+#      # 配置文件夹
+#      - /vol3/1000/docker_volume/bili-sync-rs/config:/app/.config/bili-sync
+#      # 媒体目录
+#      - /vol1/1000/media_volume:/vol1/1000/media_volume
+#      # metadata/people 正确挂载才能在 Emby 或 Jellyfin 中显示 UP 主头像
+#      # 右边的目标目录不固定，只需要确保目标目录与 bili-sync 中填写的“UP 主头像保存路径”保持一致即可
+#      - /vol3/1000/docker_volume/emby/config/metadata/people:/app/.config/bili-sync/upper_face
+#    ports:
+#      - "12345:12345"
 
   emby:
     image: amilys/embyserver
@@ -478,6 +478,45 @@ services:
       - TZ=Asia/Shanghai
     volumes:
       - /vol3/1000/docker_volume/homeassistant/config:/config
+      - /etc/localtime:/etc/localtime:ro
+
+  sgcc-electricity:
+    image: registry.cn-hangzhou.aliyuncs.com/arcw/sgcc_electricity:latest
+    container_name: sgcc-electricity
+    hostname: sgcc-electricity
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    depends_on:
+      homeassistant:
+        condition: service_started
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.62
+    mac_address: 10:00:00:00:00:62
+    environment:
+      - TZ=Asia/Shanghai
+      - PHONE_NUMBER=${SGCC_PHONE_NUMBER}
+      - PASSWORD=${SGCC_PASSWORD}
+      - IGNORE_USER_ID=${SGCC_IGNORE_USER_ID}
+      - DB_TYPE=${SGCC_DB_TYPE:-NONE}
+      - DB_NAME=${SGCC_DB_NAME:-homeassistant.db}
+      - HASS_URL=${SGCC_HASS_URL:-http://homeassistant:8123/}
+      - HASS_TOKEN=${SGCC_HASS_TOKEN}
+      - JOB_START_TIME=${SGCC_JOB_START_TIME:-07:00}
+      - RETRY_WAIT_TIME_OFFSET_UNIT=${SGCC_RETRY_WAIT_TIME_OFFSET_UNIT:-15}
+      - DATA_RETENTION_DAYS=${SGCC_DATA_RETENTION_DAYS:-7}
+      - PUSH_TYPE=${SGCC_PUSH_TYPE:-None}
+      - BALANCE=${SGCC_BALANCE:-5.0}
+      - PUSHPLUS_TOKEN=${SGCC_PUSHPLUS_TOKEN:-}
+      - PUSH_URL=${SGCC_PUSH_URL:-}
+      - LOGIN_FALLBACK=${SGCC_LOGIN_FALLBACK:-qrcode}
+      - PUSH_QRCODE_URL=${SGCC_PUSH_QRCODE_URL:-}
+      - QR_CODE_LOGIN_WAIT_COUNT=${SGCC_QR_CODE_LOGIN_WAIT_COUNT:-30}
+      - QR_CODE_LOGIN_WAIT_TIME_INTERVAL_UNIT=${SGCC_QR_CODE_LOGIN_WAIT_TIME_INTERVAL_UNIT:-10}
+      - OP_NUM_THREADS=${SGCC_OP_NUM_THREADS:-}
+    volumes:
+      - /vol3/1000/docker_volume/sgcc_electricity/data:/app/data
       - /etc/localtime:/etc/localtime:ro
 
 ## 需要提前手动创建这个网络
