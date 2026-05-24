@@ -372,7 +372,7 @@ services:
     image: weishaw/sub2api:latest
     container_name: sub2api
     hostname: sub2api
-    restart: unless-stopped
+    restart: always
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
@@ -418,7 +418,7 @@ services:
     image: postgres:18-alpine
     container_name: sub2api-postgres
     hostname: sub2api-postgres
-    restart: unless-stopped
+    restart: always
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
@@ -442,7 +442,7 @@ services:
     image: redis:8-alpine
     container_name: sub2api-redis
     hostname: sub2api-redis
-    restart: unless-stopped
+    restart: always
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
