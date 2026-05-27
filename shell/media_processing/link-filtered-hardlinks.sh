@@ -1,24 +1,26 @@
 #!/usr/bin/env bash
-set -euo pipefail
-
 # link-filtered-hardlinks
-# 作用：在目标目录中为源目录里的文件创建“硬链接”，并保留目录结构。
+# 作用：在目标目录中为源目录里的文件创建”硬链接”，并保留目录结构。
 # 默认排除：*.nef（不区分大小写）
 #
 # 用法：
-#   link-filtered-hardlinks [--dry-run] [--exclude PATTERN ...] [--verbose] <源目录> <目标目录>
+#   bash link-filtered-hardlinks.sh [--dry-run] [--exclude PATTERN ...] [--verbose] <源目录> <目标目录>
 #
 # 示例：
-#   link-filtered-hardlinks photos photos_no_nef
-#   link-filtered-hardlinks --exclude "*.cr2" photos out
-#   link-filtered-hardlinks --dry-run photos out
+#   bash link-filtered-hardlinks.sh photos photos_no_nef
+#   bash link-filtered-hardlinks.sh --exclude “*.cr2” photos out
+#   bash link-filtered-hardlinks.sh --dry-run photos out
+# 在线示例：
+#   bash <(curl -fsSL https://raw.githubusercontent.com/Sowevo/my_script/main/shell/media_processing/link-filtered-hardlinks.sh) --exclude “*.nef” /vol2/1000/personal_volume/photos/D5300/ /vol2/1000/personal_volume/photo_library/D5300_NO_NEF
+#   bash <(curl -fsSL https://jsd.eagleyao.com/gh/Sowevo/my_script@main/shell/media_processing/link-filtered-hardlinks.sh) --exclude “*.nef” /vol2/1000/personal_volume/photos/D5300/ /vol2/1000/personal_volume/photo_library/D5300_NO_NEF
 #
 # 注意：
 #   硬链接要求 源目录 与 目标目录 在同一文件系统/同一分区。
 #   脚本会提前检测，若跨分区会直接报错退出。
 #
 # 进度日志：
-#   固定每处理 10 个文件输出一次进度。
+#   固定每处理 50 个文件输出一次进度。
+set -euo pipefail
 
 print_help() {
   cat <<'EOF'
