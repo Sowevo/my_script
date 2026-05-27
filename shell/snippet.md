@@ -73,6 +73,11 @@
   # 没什么用
   $ history | awk '{CMD[$2]++;count++;} END { for (a in CMD )print CMD[ a ]" " CMD[ a ]/count*100 "% " a }' | grep -v "./" | column -c3 -s " " -t |sort -nr | nl | head -n10
   ```
+## link-filtered-hardlinks
+- 为源目录里的文件创建"硬链接"到目标目录，保留目录结构，默认排除 *.nef
+  ```shell
+  bash <(curl -fsSL https://raw.githubusercontent.com/Sowevo/my_script/main/shell/media_processing/link-filtered-hardlinks.sh) --exclude "*.nef" /vol2/1000/personal_volume/photos/D5300/ /vol2/1000/personal_volume/photo_library/D5300_NO_NEF
+  ```
 
 
 
