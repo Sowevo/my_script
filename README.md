@@ -58,5 +58,4 @@
 ## [userscript](./userscript)
 
 - 浏览器用户脚本
-  - YuanbaoFontSize.user.js：网页字体大小自定义脚本
-
+  - JDOrderExport.user.js：京东订单列表导出脚本，支持按年份筛选、自动翻页、CSV/JSON 导出，并补全京东外卖、POP 店铺与动态服务订单信息
