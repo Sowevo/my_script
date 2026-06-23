@@ -480,6 +480,48 @@ services:
       - /vol3/1000/docker_volume/homeassistant/config:/config
       - /etc/localtime:/etc/localtime:ro
 
+  # 3D打印耗材管理 - Spoolman
+  spoolman:
+    image: ghcr.io/donkie/spoolman:latest
+    container_name: spoolman
+    hostname: spoolman
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.62
+    mac_address: 10:00:00:00:00:62
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - /vol3/1000/docker_volume/spoolman/data:/home/app/.local/share/spoolman
+    ports:
+      - "7912:8000"
+
+  # SpoolmanSync - 拓竹打印机与Spoolman的桥接
+  spoolmansync:
+    image: ghcr.io/gibz104/spoolmansync:latest
+    container_name: spoolmansync
+    hostname: spoolmansync
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    depends_on:
+      spoolman:
+        condition: service_started
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.63
+    mac_address: 10:00:00:00:00:63
+    environment:
+      - TZ=Asia/Shanghai
+      - HA_URL=http://10.0.0.69:8123
+      - HA_TOKEN=${HA_TOKEN}
+      - SPOOLMAN_URL=http://10.0.0.62:7912
+    ports:
+      - "3002:3000"
+
 ## 需要提前手动创建这个网络
 ## docker network create --driver macvlan --subnet 10.0.0.0/24 --gateway 10.0.0.1 --opt parent=eno1 macvlan
 #networks:
