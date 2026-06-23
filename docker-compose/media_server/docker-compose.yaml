@@ -497,7 +497,7 @@ services:
     volumes:
       - /vol3/1000/docker_volume/spoolman/data:/home/app/.local/share/spoolman
     ports:
-      - "7912:8000"
+      - "8000:8000"
 
   # SpoolmanSync - 拓竹打印机与Spoolman的桥接
   spoolmansync:
@@ -510,6 +510,8 @@ services:
     depends_on:
       spoolman:
         condition: service_started
+      homeassistant:
+        condition: service_started
     networks:
       macvlan:
         ipv4_address: 10.0.0.63
@@ -518,9 +520,9 @@ services:
       - TZ=Asia/Shanghai
       - HA_URL=http://10.0.0.69:8123
       - HA_TOKEN=${HA_TOKEN}
-      - SPOOLMAN_URL=http://10.0.0.62:7912
+      - SPOOLMAN_URL=http://10.0.0.62:8000
     ports:
-      - "3002:3000"
+      - "3000:3000"
 
 ## 需要提前手动创建这个网络
 ## docker network create --driver macvlan --subnet 10.0.0.0/24 --gateway 10.0.0.1 --opt parent=eno1 macvlan
