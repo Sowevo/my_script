@@ -518,9 +518,6 @@ services:
     mac_address: 10:00:00:00:00:63
     environment:
       - TZ=Asia/Shanghai
-      - HA_URL=http://10.0.0.69:8123
-      - HA_TOKEN=${HA_TOKEN}
-      - SPOOLMAN_URL=http://10.0.0.62:8000
     ports:
       - "3000:3000"
 
