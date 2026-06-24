@@ -518,6 +518,9 @@ services:
     mac_address: 10:00:00:00:00:63
     environment:
       - TZ=Asia/Shanghai
+      - HA_MODE=external
+    volumes:
+      - /vol3/1000/docker_volume/spoolmansync/data:/data
     ports:
       - "3000:3000"
 
