@@ -338,7 +338,7 @@ services:
     restart: always
     environment:
       - WATCHTOWER_LABEL_ENABLE=true  # 只监控带有 com.centurylinklabs.watchtower.enable=true 标签的容器
-      - WATCHTOWER_POLL_INTERVAL=3600  # 检查间隔时间
+      - WATCHTOWER_SCHEDULE=0 37 */6 * * *  # 每6小时第37分钟检查更新，避开整点
       - WATCHTOWER_CLEANUP=true # 自动清理旧镜像
       - TZ=Asia/Shanghai # 时区
     volumes:
