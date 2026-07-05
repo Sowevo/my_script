@@ -460,6 +460,37 @@ services:
       timeout: 5s
       retries: 5
 
+  # 网络流量分析面板
+  neko-master:
+    image: foru17/neko-master:latest
+    container_name: neko-master
+    hostname: neko-master
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      macvlan:
+        ipv4_address: 10.0.0.61
+    mac_address: 10:00:00:00:00:61
+    environment:
+      - NODE_ENV=production
+      - TZ=Asia/Shanghai
+      - DB_PATH=/app/data/stats.db
+      - WEB_EXTERNAL_PORT=3000
+      - WS_EXTERNAL_PORT=3002
+      - COOKIE_SECRET=${NEKO_MASTER_COOKIE_SECRET}
+    ports:
+      - "3000:3000"
+      - "3002:3002"
+    volumes:
+      - /vol3/1000/docker_volume/neko-master/data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3001/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   homeassistant:
     image: homeassistant/home-assistant:stable
     container_name: homeassistant
