@@ -52,6 +52,8 @@ services:
       - DB_POSTGRESQL_DATABASE=moviepilot
       - DB_POSTGRESQL_USERNAME=moviepilot
       - DB_POSTGRESQL_PASSWORD=password
+      # Clash fake-IP 段，否则图片代理会拦截非公网 IP
+      - IMAGE_PROXY_ALLOWED_PRIVATE_RANGES=["198.18.0.0/16"]
     ports:
       - "3000:3000"
     volumes:
