@@ -753,6 +753,12 @@ def judge_hint(s: UiState) -> str:
                 f"Reply: order with labels = correct top→bottom sequence using EXACT options: {s.options}. "
                 "Script will drag then tap 检查."
             )
+        if ch == "gap_fill" or (s.options and s.chips and "完成" in (s.instruction or "")):
+            return (
+                "STORY GAP-FILL (文章完成): blanks in prompt [填空文]; word bank in options/chips. "
+                f"Reply: chips with words filling blanks left→right using EXACT bank: {s.options}. "
+                "Multi-blank → multiple words. Script taps then continue. No check."
+            )
         if s.options:
             return (
                 "STORY quiz — answerable options present. "
@@ -904,14 +910,19 @@ def classify(ns: list[Node], activity: str) -> UiState:
                 "storiesHeaderTitleText",
             } and n.text:
                 ctx.append(n.text.strip())
+        # gap-fill passage (sentence with blanks)
+        sent = by_id("sentenceText")
+        if sent and sent.text and sent.text.strip():
+            ctx.append(f"[填空文] {sent.text.strip()}")
         if stem and stem.text and stem.text.strip() not in ctx:
             # e.g. ルーシーはオスカーのリュックが _____
             ctx.insert(0, f"[填空] {stem.text.strip()}")
         if ctx:
-            st.prompt = " | ".join(ctx[:5])
+            st.prompt = " | ".join(ctx[:6])
 
         opt_nodes: list[Node] = []
         opt_labels: list[str] = []
+        gap_fill = False
 
         # A) storiesMultipleOption0/1/2 cards + nested optionText
         for n in ns:
@@ -996,6 +1007,56 @@ def classify(ns: list[Node], activity: str) -> UiState:
                     opt_labels.append(t)
                     opt_nodes.append(n)
 
+        # E) gap-fill word bank: storiesGapFillOption + gapFillOptionN pad
+        #    (文章を完成させてください — was misread as "no options / wait audio")
+        gap_nodes: list[Node] = []
+        for n in ns:
+            if n.short_id != "storiesGapFillOption" or not n.text:
+                continue
+            t = n.text.strip()
+            if not t or t in opt_labels:
+                continue
+            tb = parse_bounds(n.bounds)
+            hit = Node(
+                text=t,
+                desc=n.desc or t,
+                rid=n.rid,
+                clickable=True,
+                enabled=n.enabled,
+                bounds=n.bounds,
+                cls=n.cls,
+            )
+            if tb:
+                tcx, tcy = (tb[0] + tb[2]) // 2, (tb[1] + tb[3]) // 2
+                best_a = 10**18
+                for p in ns:
+                    sid = p.short_id or ""
+                    if not re.match(r"gapFillOption\d+$", sid) or not p.bounds:
+                        continue
+                    pb = parse_bounds(p.bounds)
+                    if not pb:
+                        continue
+                    if not (pb[0] <= tcx <= pb[2] and pb[1] <= tcy <= pb[3]):
+                        continue
+                    a = (pb[2] - pb[0]) * (pb[3] - pb[1])
+                    if 800 < a < 200_000 and a < best_a:
+                        best_a = a
+                        hit = Node(
+                            text=t,
+                            desc=t,
+                            rid=p.rid or n.rid,
+                            clickable=True,
+                            enabled=True,
+                            bounds=p.bounds,
+                            cls=p.cls,
+                        )
+            opt_labels.append(t)
+            opt_nodes.append(hit)
+            gap_nodes.append(hit)
+        if gap_nodes:
+            gap_fill = True
+            st.challenge = "gap_fill"  # type: ignore[attr-defined]
+
         # D) 排序题：content-desc 干净的句子卡（text 带 bidi 标记）
         is_sort = bool(
             by_id("storiesLessonCheckButton")
@@ -1046,8 +1107,13 @@ def classify(ns: list[Node], activity: str) -> UiState:
 
         st._option_nodes = opt_nodes
         st.options = list(dict.fromkeys(opt_labels))
-        st._chip_nodes = []
-        st.chips = []
+        # gap-fill bank is also chips so multi-blank can use chips op
+        if gap_fill and gap_nodes:
+            st._chip_nodes = list(gap_nodes)
+            st.chips = list(dict.fromkeys(opt_labels))
+        else:
+            st._chip_nodes = []
+            st.chips = []
         st.image_options = []  # type: ignore[attr-defined]
         # Re-detect feedback with story-aware rules (buttons already set)
         st.feedback = detect_feedback(ns, st.buttons, st.raw_texts, activity=activity)
@@ -2494,18 +2560,33 @@ def cmd_chips(args: argparse.Namespace) -> int:
 
     words: list[str] = args.words
     st = get_state()
+    is_story = getattr(st, "mode", None) == "story" or _is_stories_ui(st._all, st.activity)
+    is_gap = getattr(st, "challenge", None) == "gap_fill" or bool(st.chips and is_story)
+
+    # Stories gap-fill: options live in _option_nodes; also mirror into chip pools
+    chip_source = list(st._chip_nodes)
+    if is_gap and not chip_source and st._option_nodes:
+        chip_source = list(st._option_nodes)
+
     need: dict[str, int] = {}
     for w in words:
         need[w] = need.get(w, 0) + 1
-    short = {w: need[w] for w in need if count_chip(st, w) < need[w]}
+
+    def _count_in(src: list[Node], label: str) -> int:
+        return sum(1 for n in src if _chip_label_match(n, label) and n.bounds)
+
+    short = {w: need[w] for w in need if _count_in(chip_source, w) < need[w]}
+    if short and not is_gap:
+        # lesson path: fall back to st._chip_nodes via count_chip
+        short = {w: need[w] for w in need if count_chip(st, w) < need[w]}
     if short:
         emit(
             {
                 "error": "not enough chip copies",
                 "need": need,
                 "short": short,
-                "available": st.chips,
-                "available_counts": {w: count_chip(st, w) for w in need},
+                "available": st.chips or st.options,
+                "available_counts": {w: _count_in(chip_source, w) for w in need},
             }
         )
         return 1
@@ -2513,8 +2594,8 @@ def cmd_chips(args: argparse.Namespace) -> int:
     # pools of distinct positions per label
     pools: dict[str, deque] = defaultdict(deque)
     seen_keys: set[tuple] = set()
-    for n in st._chip_nodes:
-        lab = n.label
+    for n in chip_source or st._chip_nodes:
+        lab = n.label or n.text
         if not lab or not n.bounds:
             continue
         key = (lab, _center_key(n.bounds))
@@ -2540,7 +2621,7 @@ def cmd_chips(args: argparse.Namespace) -> int:
                     "error": "chip vanished while planning",
                     "missing": w,
                     "planned": [p["word"] for p in plan],
-                    "available": st.chips,
+                    "available": st.chips or st.options,
                 }
             )
             return 1
@@ -2556,6 +2637,49 @@ def cmd_chips(args: argparse.Namespace) -> int:
         tapped.append({"word": item["word"], "bounds": item["bounds"], "center": [x, y]})
 
     time.sleep(AFTER_CHIPS)
+    if is_story or is_gap:
+        # Stories: no 检查 — wait for green 继续 (gap-fill may need a beat)
+        advance: dict | list | None = None
+        st_mid = get_state() if not QUIET else None
+        for _ in range(4):
+            st_now = st_mid if st_mid is not None else get_state()
+            cont_on = getattr(st_now, "continue_enabled", None)
+            if cont_on is True or (st_now.feedback or {}).get("is_feedback"):
+                advance = _tap_story_continue(st_now)
+                time.sleep(AFTER_CONTINUE)
+                # praise banner
+                if not QUIET:
+                    st2 = get_state()
+                    if (st2.feedback or {}).get("is_feedback") or (
+                        "你太棒了" in " ".join(st2.raw_texts)
+                    ):
+                        advance = {
+                            "fill_continue": advance,
+                            "praise_continue": _tap_story_continue(st2),
+                        }
+                        time.sleep(AFTER_CONTINUE * 0.5)
+                break
+            time.sleep(0.35)
+            st_mid = get_state()
+        else:
+            advance = _tap_story_continue(st_mid if st_mid is not None else st)
+            time.sleep(AFTER_CONTINUE)
+        st_final = get_state() if not QUIET else None
+        emit(
+            {
+                "tapped": tapped,
+                "tray_ok": None,
+                "checked": False,
+                "advanced": True,
+                "mode": "story_gap_fill_chips",
+                "cta": advance,
+                "state": st_final.to_public_dict()
+                if st_final is not None
+                else {"note": "quiet skip full dump"},
+            }
+        )
+        return 0
+
     # 检查 → 继续：固定底栏，0 次 dump（坐标来自本题已读到的 submitButton）
     advance = submit_and_advance(check_bounds=_submit_bounds_from_state(st))
     st_final = get_state() if not QUIET else None
@@ -2604,8 +2728,28 @@ def cmd_choice(args: argparse.Namespace) -> int:
         time.sleep(0.08)
         if is_story:
             # Stories: select answer → (often praise) → 继续; no 检查
+            # gap-fill multi-blank: continue stays gray until all blanks filled —
+            # do NOT force continue so the loop can apply the next choice/chips.
             time.sleep(0.35)
             st_mid = get_state() if not QUIET else st
+            cont_on = getattr(st_mid, "continue_enabled", None) if st_mid else None
+            still_gap = (
+                getattr(st_mid, "challenge", None) == "gap_fill"
+                if st_mid is not None
+                else getattr(st, "challenge", None) == "gap_fill"
+            )
+            if cont_on is False and still_gap:
+                emit(
+                    {
+                        "tapped": tapped,
+                        "checked": False,
+                        "advanced": False,
+                        "mode": "story_gap_fill_partial",
+                        "continue_enabled": cont_on,
+                        "state": None if QUIET or st_mid is None else st_mid.to_public_dict(),
+                    }
+                )
+                return 0
             advance = _tap_story_continue(st_mid if st_mid is not None else st)
             time.sleep(AFTER_CONTINUE)
             # praise page may need a second 继续

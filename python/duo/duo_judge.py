@@ -59,6 +59,11 @@ SYSTEM_PROMPT = """你是多邻国答题器。根据 UI 状态 JSON 决定要点
      · 多选：instruction 是题干残句，options 是完整选项（如 重いと思いました）。
      · 点选词段：options 是句子切段（如 苦労）。
      返回 choice，label=正确选项原文。不要 chips，不要 check。
+   - challenge=gap_fill 或 instruction 含「文章を完成」「完成文章」：
+     prompt 里 [填空文] 是带空的句子，options/chips 是词库。
+     按空位从左到右选词填入，返回 chips，words=填空用词（必须用 options 原文）。
+     多空就多个词。例：{"actions":[{"op":"chips","words":["水","室温"]}],"reason":"..."}
+     不要 order/check/continue。
    - challenge=sort 或 instruction 含「順番に並べ」「並べて」：
      把 options 按故事时间顺序从上到下排列。
      返回 order，labels=正确顺序的全文列表（必须用 options 原文，每个恰好一次）。
@@ -311,10 +316,21 @@ def judge_openai(status: dict) -> dict:
         or "並べ" in instr_l
         or "顺序" in instr_l
     )
+    story_gap = is_story and (
+        status.get("challenge") == "gap_fill"
+        or "文章を完成" in instr_l
+        or "完成文章" in instr_l
+        or (
+            bool(status.get("chips"))
+            and bool(status.get("options"))
+            and "完成" in instr_l
+        )
+    )
     story_quiz = (
         is_story
         and bool(status.get("options"))
         and not story_sort
+        and not story_gap
         and status.get("continue_enabled") is False
     )
 
@@ -369,6 +385,26 @@ def judge_openai(status: dict) -> dict:
         slim["example"] = {
             "actions": [{"op": "order", "labels": opts}],
             "reason": "chronological",
+        }
+    elif story_gap:
+        opts = list(status.get("options") or status.get("chips") or [])
+        slim["type"] = "story_gap_fill"
+        slim["mode"] = "story"
+        slim["challenge"] = "gap_fill"
+        slim["question"] = status.get("instruction")
+        slim["passage"] = status.get("prompt")
+        slim["word_bank"] = opts
+        slim["chips"] = status.get("chips") or opts
+        slim["raw_texts"] = (status.get("raw_texts") or [])[:20]
+        slim["rule"] = (
+            "Complete the passage blanks left→right. "
+            "MUST return one chips action; words = fill-in words from word_bank (exact strings). "
+            "Multi-blank → multiple words in blank order. "
+            "No choice/order/check/continue."
+        )
+        slim["example"] = {
+            "actions": [{"op": "chips", "words": opts[:2] or opts[:1] or ["…"]}],
+            "reason": "fill blanks L→R",
         }
     elif story_quiz:
         slim["type"] = "story_quiz"
