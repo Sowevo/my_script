@@ -617,12 +617,14 @@ class UiState:
     _chip_nodes: list[Node] = field(default_factory=list, repr=False)
     _option_nodes: list[Node] = field(default_factory=list, repr=False)
     _all: list[Node] = field(default_factory=list, repr=False)
+    _retry_tray_nodes: list[Node] = field(default_factory=list, repr=False)
 
     def to_public_dict(self) -> dict:
         pkg = current_package()
         img = getattr(self, "image_options", None) or []
         return {
             "screen": self.screen,
+            "learn_path": is_learn_path_ui(self._all),
             "package": pkg,
             "duolingo": pkg == DUOLINGO_PKG,
             "activity": self.activity,
@@ -630,6 +632,7 @@ class UiState:
             "instruction": self.instruction,
             "prompt": self.prompt,
             "chips": self.chips,
+            "retry_tray": [n.label for n in self._retry_tray_nodes],
             "options": self.options,
             "match_left": getattr(self, "match_left", None) or [],
             "match_right": getattr(self, "match_right", None) or [],
@@ -651,6 +654,17 @@ class UiState:
         }
 
 
+def is_learn_path_ui(ns: list[Node]) -> bool:
+    """True only for the Learn path, not Practice Hub or another bottom tab."""
+    has_header = any(
+        n.short_id in {"basicHeaderContainer", "sectionUnitText"} for n in ns
+    )
+    has_path_node = any(
+        n.short_id in {"oval", "chest"} and n.bounds for n in ns
+    )
+    return has_header and has_path_node
+
+
 def _is_stories_ui(ns: list[Node], activity: str = "") -> bool:
     if "Stories" in (activity or ""):
         return True
@@ -665,11 +679,15 @@ def infer_gap_fill_words(sentence: str, bank: list[str]) -> list[str]:
     """
     if not sentence or not bank:
         return []
-    # longest first so メッセージ wins over メー if both existed
-    ordered = sorted({w for w in bank if w}, key=lambda w: (-len(w), w))
+    # Longest first so メッセージ wins over メー if both existed. Keep duplicate
+    # bank entries: a sentence may require the same visible chip more than once.
+    ordered = sorted(
+        [(i, w) for i, w in enumerate(bank) if w],
+        key=lambda item: (-len(item[1]), item[0]),
+    )
     used: list[tuple[int, int]] = []
     hits: list[tuple[int, str]] = []
-    for w in ordered:
+    for _, w in ordered:
         start = 0
         while True:
             i = sentence.find(w, start)
@@ -916,7 +934,7 @@ def classify(ns: list[Node], activity: str) -> UiState:
     st.feedback = detect_feedback(ns, buttons, st.raw_texts, activity=activity)
 
     # home?
-    if by_id("tabLearn") and (by_id("primaryCardView") or by_id("sectionUnitText") or by_id("xpBoostLearnButton")):
+    if by_id("tabLearn") and is_learn_path_ui(ns):
         st.screen = "home"
         return st
 
@@ -1060,6 +1078,52 @@ def classify(ns: list[Node], activity: str) -> UiState:
                     opt_labels.append(t)
                     opt_nodes.append(n)
 
+        # C2) heard-text tap sequence: each label is nested in a clickable
+        # storiesArrangeOptionN card. Accessibility exposes the spoken sentence,
+        # so its chips can be ordered without image recognition or answer storage.
+        arrange_nodes: list[Node] = []
+        for n in ns:
+            if n.short_id != "storiesArrangeOptionText" or not n.text:
+                continue
+            t = n.text.strip()
+            tb = parse_bounds(n.bounds)
+            hit = n
+            if tb:
+                tcx, tcy = (tb[0] + tb[2]) // 2, (tb[1] + tb[3]) // 2
+                for p in ns:
+                    if not re.match(r"storiesArrangeOption\d+$", p.short_id or ""):
+                        continue
+                    pb = parse_bounds(p.bounds)
+                    if pb and pb[0] <= tcx <= pb[2] and pb[1] <= tcy <= pb[3]:
+                        hit = Node(
+                            text=t,
+                            desc=t,
+                            rid=p.rid,
+                            clickable=True,
+                            enabled=p.enabled,
+                            bounds=p.bounds,
+                            cls=p.cls,
+                        )
+                        break
+            opt_labels.append(t)
+            opt_nodes.append(hit)
+            arrange_nodes.append(hit)
+
+        if arrange_nodes:
+            st.challenge = "tap_sequence"  # type: ignore[attr-defined]
+            spoken = next(
+                (
+                    n.text.strip()
+                    for n in reversed(ns)
+                    if n.short_id == "storiesCharacterText" and n.text and n.text.strip()
+                ),
+                "",
+            )
+            st.gap_sentence = spoken  # type: ignore[attr-defined]
+            inferred = infer_gap_fill_words(spoken, opt_labels)
+            st.gap_words = inferred  # type: ignore[attr-defined]
+            st.blank_count = len(inferred) if inferred else None  # type: ignore[attr-defined]
+
         # E) gap-fill word bank: storiesGapFillOption + gapFillOptionN pad
         #    Multi-blank: tap several bank words L→R (sentence a11y often contains answers).
         gap_nodes: list[Node] = []
@@ -1116,7 +1180,7 @@ def classify(ns: list[Node], activity: str) -> UiState:
             else:
                 # already used / disabled — still list for context, not in chip pool
                 pass
-        if opt_labels and (
+        if not arrange_nodes and opt_labels and (
             gap_nodes
             or gap_sentence
             or "完成" in (st.instruction or "")
@@ -1183,7 +1247,10 @@ def classify(ns: list[Node], activity: str) -> UiState:
         st._option_nodes = opt_nodes
         st.options = list(dict.fromkeys(opt_labels))
         # gap-fill bank is also chips so multi-blank can use chips op
-        if gap_fill and gap_nodes:
+        if arrange_nodes:
+            st._chip_nodes = list(arrange_nodes)
+            st.chips = [(n.text or n.desc or "").strip() for n in arrange_nodes if n.text or n.desc]
+        elif gap_fill and gap_nodes:
             st._chip_nodes = list(gap_nodes)
             # chips = currently tappable bank words; options = full bank labels
             st.chips = list(dict.fromkeys([(n.text or n.desc or "").strip() for n in gap_nodes if n.text or n.desc]))
@@ -1277,8 +1344,10 @@ def classify(ns: list[Node], activity: str) -> UiState:
     chip_nodes = unique_chips(chip_nodes)
     # drop feedback chrome mis-parsed as chips (你太棒了 etc.)
     chip_nodes = [c for c in chip_nodes if c.label not in _FEEDBACK_NOISE]
-    st._chip_nodes = chip_nodes
-    st.chips = [c.label for c in chip_nodes]
+    tray_nodes, bank_nodes = split_retry_chip_regions(chip_nodes)
+    st._retry_tray_nodes = tray_nodes
+    st._chip_nodes = bank_nodes if tray_nodes else chip_nodes
+    st.chips = [c.label for c in st._chip_nodes]
 
     # options: mid-screen selectable answers + optionText labels (match pairs)
     # + image cards (选择对应的图片): option1..option4 with imageText caption
@@ -1455,27 +1524,39 @@ def cmd_status(_: argparse.Namespace) -> int:
 
 
 def cmd_path_targets(_: argparse.Namespace) -> int:
-    """List gold vs incomplete path nodes without tapping."""
+    """List visible path nodes and the order start will try, without tapping."""
     try:
         require_duolingo()
     except RuntimeError as e:
         emit({"error": str(e), "package": current_package()})
         return 3
     st = get_state()
-    gold = []
+    linear_nodes = []
     for n in st._all:
         if n.short_id == "oval" and n.cls == "LinearLayout" and n.clickable and n.bounds:
             b = parse_bounds(n.bounds)
             if b and 250 < b[1] < 2150:
-                gold.append({"y": b[1], "bounds": n.bounds, "kind": "gold"})
-    gold.sort(key=lambda g: g["y"])
+                linear_nodes.append({"y": b[1], "bounds": n.bounds})
+    linear_nodes.sort(key=lambda g: g["y"])
     inc = incomplete_path_targets(st._all)
+    chests = chest_path_targets(st._all)
+    lessons = lesson_path_targets(st._all)
+    ordered = ordered_path_targets(st._all)
     emit(
         {
             "package": current_package(),
-            "gold_linearlayout": gold,
+            "linearlayout_nodes": linear_nodes,
             "incomplete_framelayout": [{"y": t["y"], "bounds": t["bounds"]} for t in inc],
-            "rule": "only tap incomplete_framelayout (FrameLayout oval+icon)",
+            "chests": [{"y": t["y"], "bounds": t["bounds"]} for t in chests],
+            "lesson_targets": [
+                {"y": t["y"], "bounds": t["bounds"], "source": t["source"]}
+                for t in lessons
+            ],
+            "ordered_targets": [
+                {"y": t["y"], "bounds": t["bounds"], "kind": t["kind"]}
+                for t in ordered
+            ],
+            "rule": "try lessons top-to-bottom; popup semantics decide review vs start",
         }
     )
     return 0
@@ -1835,6 +1916,11 @@ def _find_start_cta(ns: list[Node]) -> Node | None:
 def _popup_kind(ns: list[Node]) -> str:
     """Classify popup. 黑名单优先，其余有可点主钮 → startable。"""
     blob = " ".join((n.text or "") + (n.desc or "") for n in ns)
+    if any(
+        n.short_id in {"sidequestIntroStartChallenge", "sidequestIntroTitle"}
+        for n in ns
+    ):
+        return "timed_sidequest"
     # 阶段总览图
     if any(n.short_id == "courseTitle" for n in ns):
         return "section_map"
@@ -1861,7 +1947,7 @@ def _dismiss_same_entry(entry_bounds: str | None, steps: list[str], *, tag: str 
     """
     if entry_bounds:
         steps.append(f"{tag}:same_entry:{entry_bounds}")
-        tap_bounds(entry_bounds, delay=0.35)
+        tap_path_target(entry_bounds, delay=0.35)
         time.sleep(0.4)
         return
     steps.append(f"{tag}:no_entry→back")
@@ -2056,6 +2142,70 @@ def chest_path_targets(ns: list[Node] | None = None) -> list[dict]:
     return out
 
 
+def lesson_path_targets(ns: list[Node]) -> list[dict]:
+    """All fully visible lesson nodes; popup text decides whether each is replay or start."""
+    targets: list[dict] = []
+    seen: set[str] = set()
+    header_bottom = 250
+    for n in ns:
+        if not n.bounds:
+            continue
+        b = parse_bounds(n.bounds)
+        if not b:
+            continue
+        if n.short_id == "persistentUnitHeader":
+            header_bottom = max(header_bottom, b[3])
+
+    for t in incomplete_path_targets(ns):
+        b = parse_bounds(t["bounds"])
+        if (
+            not b
+            or b[1] <= header_bottom
+            or b[3] - b[1] < 120
+        ):
+            continue
+        seen.add(t["bounds"])
+        targets.append({**t, "kind": "lesson", "source": "frame"})
+
+    for n in ns:
+        if n.short_id != "oval" or n.cls != "LinearLayout" or not n.clickable or not n.bounds:
+            continue
+        b = parse_bounds(n.bounds)
+        if (
+            not b
+            or b[1] <= header_bottom
+            or b[1] > 2120
+            or b[3] - b[1] < 120
+        ):
+            continue
+        if n.bounds in seen:
+            continue
+        seen.add(n.bounds)
+        targets.append(
+            {
+                "y": b[1],
+                "bounds": n.bounds,
+                "tap_node": n,
+                "kind": "lesson",
+                "source": "linear",
+            }
+        )
+
+    targets.sort(key=lambda t: t["y"])
+    return targets
+
+
+def tap_path_target(bounds: str, *, delay: float = PATH_TAP) -> dict:
+    """Tap left of center to avoid the overlapping character animation hitbox."""
+    b = parse_bounds(bounds)
+    if not b:
+        raise RuntimeError(f"bad path bounds: {bounds!r}")
+    x = b[0] + (b[2] - b[0]) // 4
+    y = (b[1] + b[3]) // 2
+    tap_xy(x, y, delay=delay)
+    return {"x": x, "y": y}
+
+
 def path_action_targets(ns: list[Node] | None = None) -> list[dict]:
     """
     Path nodes to interact with, top→bottom:
@@ -2064,6 +2214,19 @@ def path_action_targets(ns: list[Node] | None = None) -> list[dict]:
     if ns is None:
         ns = get_state()._all
     targets = incomplete_path_targets(ns) + chest_path_targets(ns)
+    targets.sort(key=lambda t: t["y"])
+    return targets
+
+
+def ordered_path_targets(ns: list[Node]) -> list[dict]:
+    """Return visible lessons in path order, plus a chest only when explicitly openable."""
+    lessons = lesson_path_targets(ns)
+    chests = chest_path_targets(ns)
+    has_open_hint = any(
+        n.short_id == "popupText" and (n.text or n.desc or "").strip() in {"打开", "Open"}
+        for n in ns
+    )
+    targets = lessons + (chests if has_open_hint else [])
     targets.sort(key=lambda t: t["y"])
     return targets
 
@@ -2193,6 +2356,17 @@ def _ensure_learn_path(steps: list[str]) -> UiState:
     st = get_state()
     for _ in range(4):
         kind = _popup_kind(st._all)
+        if kind == "timed_sidequest":
+            steps.append("dismiss_timed_sidequest")
+            for n in st._all:
+                if n.short_id == "xButton" and n.bounds:
+                    tap_bounds(n.bounds, delay=0.4)
+                    break
+            else:
+                adb("shell", "input", "keyevent", "4", check=False)
+            time.sleep(0.6)
+            st = get_state()
+            continue
         if kind == "section_map":
             steps.append("leave_section_map")
             for n in st._all:
@@ -2220,7 +2394,7 @@ def _ensure_learn_path(steps: list[str]) -> UiState:
             _dismiss_listening_popup(st._all, steps)
             st = get_state()
             continue
-        if st.screen == "home":
+        if st.screen == "home" and is_learn_path_ui(st._all):
             return st
         # try Learn tab
         for n in st._all:
@@ -2246,6 +2420,7 @@ def cmd_start(_: argparse.Namespace) -> int:
       Popup handling:
         开始 +经验 → enter
         打开/领取 → claim chest
+        限时星级挑战/开玩 → close and skip
         开始收听 + 稍后选择 → 稍后选择，再试下一个节点
         开始收听且无稍后选择 → 关弹窗，跳过本单元
         开始测试+下次再说 → 下次再说
@@ -2263,10 +2438,35 @@ def cmd_start(_: argparse.Namespace) -> int:
     skip_bounds: set[str] = set()
 
     st = _ensure_learn_path(steps)
+    if not is_learn_path_ui(st._all):
+        emit(
+            {
+                "error": "not on Learn path after recovery",
+                "started": False,
+                "steps": steps,
+                "package": current_package(),
+                "state": st.to_public_dict(),
+            }
+        )
+        return 1
 
     def _handle_open_popup(st_now: UiState, *, picked: dict | None = None) -> tuple[bool, dict]:
         kind = _popup_kind(st_now._all)
         steps.append(f"popup:{kind}")
+        entry = str(picked["bounds"]) if picked and picked.get("bounds") else None
+
+        if kind == "timed_sidequest":
+            steps.append("timed_sidequest_skip")
+            for n in st_now._all:
+                if n.short_id == "xButton" and n.bounds:
+                    tap_bounds(n.bounds, delay=0.4)
+                    break
+            else:
+                adb("shell", "input", "keyevent", "4", check=False)
+            time.sleep(0.6)
+            if entry:
+                skip_bounds.add(entry)
+            return False, {"dismissed": "timed_sidequest", "skip_unit": True}
 
         if kind == "section_map":
             steps.append("unexpected_section_map")
@@ -2278,8 +2478,6 @@ def cmd_start(_: argparse.Namespace) -> int:
                 adb("shell", "input", "keyevent", "4", check=False)
             time.sleep(0.5)
             return False, {"dismissed": "section_map"}
-
-        entry = str(picked["bounds"]) if picked and picked.get("bounds") else None
 
         if kind == "listening":
             how = _dismiss_listening_popup(st_now._all, steps, entry_bounds=entry)
@@ -2314,6 +2512,24 @@ def cmd_start(_: argparse.Namespace) -> int:
             return False, {"skip_unit": True}
 
         if kind == "review_only":
+            if picked and picked.get("kind") == "lesson":
+                legendary = next(
+                    (
+                        n
+                        for n in st_now._all
+                        if n.short_id == "legendaryButton" and n.clickable and n.bounds
+                    ),
+                    None,
+                )
+                if legendary:
+                    steps.append(f"current_orange_legendary:{legendary.text}")
+                    tap_bounds(legendary.bounds, delay=AFTER_CTA * 0.5)
+                    time.sleep(AFTER_CTA * 0.8)
+                    ok, extra = _confirm_start_screens(
+                        steps, primary_cta=legendary.text or "晋升传奇"
+                    )
+                    if ok:
+                        return True, {**extra, "picked": picked, "started": True}
             # 复习：点谁打开就点谁关掉（不要乱点空白/黄条）
             steps.append("review_only_skip")
             _dismiss_same_entry(entry, steps, tag="review_close")
@@ -2428,16 +2644,9 @@ def cmd_start(_: argparse.Namespace) -> int:
     if _try_home_startable("pass1_5"):
         return 0
 
-    # Pass 2: incomplete lessons first, then chests (locked chests won't block forever)
-    def _ordered_targets(ns: list[Node]) -> list[dict]:
-        inc = incomplete_path_targets(ns)
-        chests = chest_path_targets(ns)
-        # 未完成课优先；宝箱穿插在路径 y 序里但跳过点不开的
-        mixed = inc + chests
-        mixed.sort(key=lambda t: t["y"])
-        return mixed
-
-    targets = _ordered_targets(st._all)
+    # Pass 2: try visible lessons in path order. Popup semantics distinguish
+    # completed review nodes from startable orange nodes without image/color checks.
+    targets = ordered_path_targets(st._all)
     steps.append(f"path_targets:{len(targets)}")
     for t in targets:
         steps.append(f"path_{t['kind']}_y:{t['y']}")
@@ -2464,7 +2673,8 @@ def cmd_start(_: argparse.Namespace) -> int:
             continue
 
         steps.append(f"tap_{t['kind']}:{t['bounds']}")
-        tap_bounds(t["bounds"], delay=PATH_TAP)
+        tap_point = tap_path_target(t["bounds"], delay=PATH_TAP)
+        steps.append(f"tap_point:{tap_point['x']},{tap_point['y']}")
         time.sleep(0.85)
         st = get_state()
         kind = _popup_kind(st._all)
@@ -2477,7 +2687,13 @@ def cmd_start(_: argparse.Namespace) -> int:
             continue
 
         done, extra = _handle_open_popup(
-            st, picked={"y": t.get("y"), "bounds": t.get("bounds"), "kind": t.get("kind")}
+            st,
+            picked={
+                "y": t.get("y"),
+                "bounds": t.get("bounds"),
+                "kind": t.get("kind"),
+                "source": t.get("source"),
+            },
         )
         if done and extra.get("started"):
             emit(
@@ -2490,8 +2706,16 @@ def cmd_start(_: argparse.Namespace) -> int:
             return 0
         if done and extra.get("chest_opened"):
             steps.append("chest_opened_ok")
-            st = _ensure_learn_path(steps)
-            continue
+            # Opening a chest changes/scrolls the path. Return so the loop performs a
+            # fresh UI dump instead of tapping coordinates captured before the reward.
+            emit(
+                {
+                    "steps": steps,
+                    **{k: v for k, v in extra.items() if k != "state"},
+                    "state": get_state().to_public_dict(),
+                }
+            )
+            return 0
         if extra.get("skip_unit") or extra.get("dismissed") in {
             "listening_later",
             "listening_skip_unit",
@@ -2504,6 +2728,16 @@ def cmd_start(_: argparse.Namespace) -> int:
             if extra.get("dismissed") in {"listening_later", "listening_skip_unit"}:
                 if _try_home_startable("after_listening"):
                     return 0
+                emit(
+                    {
+                        "steps": steps,
+                        "started": False,
+                        "path_advanced": True,
+                        "dismissed": extra.get("dismissed"),
+                        "state": st.to_public_dict(),
+                    }
+                )
+                return 0
             continue
 
     # Pass 3：路径扫完仍未开课 → 再试屏上任意非黑名单开始
@@ -2623,6 +2857,38 @@ def answer_tray_labels(st: UiState) -> list[str]:
     return out
 
 
+def split_retry_chip_regions(chip_nodes: list[Node]) -> tuple[list[Node], list[Node]]:
+    """Split retained answer-tray words from the lower bank after a wrong answer."""
+    nodes = [n for n in unique_chips(chip_nodes) if parse_bounds(n.bounds)]
+    if len(nodes) < 2:
+        return [], nodes
+
+    by_y = sorted(
+        nodes,
+        key=lambda n: ((parse_bounds(n.bounds) or (0, 0, 0, 0))[1], (parse_bounds(n.bounds) or (0, 0, 0, 0))[0]),
+    )
+    centers = [center_of(n.bounds)[1] for n in by_y if center_of(n.bounds)]
+    if len(centers) != len(by_y):
+        return [], nodes
+
+    gaps = [(centers[i + 1] - centers[i], i) for i in range(len(centers) - 1)]
+    gap, idx = max(gaps, default=(0, -1))
+    upper = by_y[: idx + 1]
+    lower = by_y[idx + 1 :]
+    upper_y = [center_of(n.bounds)[1] for n in upper if center_of(n.bounds)]
+    lower_y = [center_of(n.bounds)[1] for n in lower if center_of(n.bounds)]
+    if (
+        gap < 180
+        or not upper_y
+        or not lower_y
+        or min(upper_y) < 850
+        or max(upper_y) >= 1700
+        or min(lower_y) < 1450
+    ):
+        return [], nodes
+    return upper, lower
+
+
 def cmd_chips(args: argparse.Namespace) -> int:
     """
     Fast path: 1 dump → plan all chip centers → rapid taps → 1 verify dump.
@@ -2639,7 +2905,23 @@ def cmd_chips(args: argparse.Namespace) -> int:
     words: list[str] = args.words
     st = get_state()
     is_story = getattr(st, "mode", None) == "story" or _is_stories_ui(st._all, st.activity)
-    is_gap = getattr(st, "challenge", None) == "gap_fill" or bool(st.chips and is_story)
+    is_gap = getattr(st, "challenge", None) in {"gap_fill", "tap_sequence"} or bool(st.chips and is_story)
+    cleared_tray: list[str] = []
+
+    if not is_story and st._retry_tray_nodes:
+        # Remove retained wrong-answer words from end to start. Earlier chip
+        # coordinates stay stable when the final chip is removed first.
+        tray = sorted(
+            st._retry_tray_nodes,
+            key=lambda n: ((parse_bounds(n.bounds) or (0, 0, 0, 0))[1], (parse_bounds(n.bounds) or (0, 0, 0, 0))[0]),
+            reverse=True,
+        )
+        for n in tray:
+            bounds = clickable_bounds_for(n, st._all)
+            tap_bounds(bounds, delay=CHIP_TAP)
+            cleared_tray.append(n.label)
+        time.sleep(AFTER_CHIPS)
+        st = get_state()
 
     # Stories gap-fill: options live in _option_nodes; also mirror into chip pools
     chip_source = list(st._chip_nodes)
@@ -2777,6 +3059,7 @@ def cmd_chips(args: argparse.Namespace) -> int:
             "advanced": True,
             "mode": "batch+fixed_cta_fast",
             "cta": advance,
+            "cleared_tray": cleared_tray,
             "state": st_final.to_public_dict()
             if st_final is not None
             else {"note": "quiet skip full dump"},
@@ -3087,7 +3370,11 @@ def _story_sort_items(st: UiState | None = None) -> list[dict]:
         c = center_of(n.bounds) if n.bounds else None
         if not lab or not c:
             continue
-        items.append({"label": lab, "center": c, "bounds": n.bounds})
+        b = parse_bounds(n.bounds)
+        # The Compose card itself is not exposed with a label. Its drag handle
+        # sits immediately left of the labelled TextView, at the same y.
+        handle = (max(1, b[0] - 72), c[1]) if b else c
+        items.append({"label": lab, "center": handle, "bounds": n.bounds})
     if items:
         items.sort(key=lambda it: (parse_bounds(it["bounds"]) or (0, 0, 0, 0))[1])
         return items
@@ -3102,7 +3389,8 @@ def _story_sort_items(st: UiState | None = None) -> list[dict]:
         c = center_of(n.bounds)
         if not c:
             continue
-        items.append({"label": lab, "center": c, "bounds": n.bounds})
+        handle = (max(1, b[0] - 72), c[1])
+        items.append({"label": lab, "center": handle, "bounds": n.bounds})
     items.sort(key=lambda it: (parse_bounds(it["bounds"]) or (0, 0, 0, 0))[1])
     # dedupe
     seen: set[str] = set()
@@ -3167,7 +3455,7 @@ def _reorder_story_sort(target: list[str]) -> dict:
     st_final = get_state()
     final = [x["label"] for x in _story_sort_items(st_final)]
     return {
-        "ok": final == target or set(final) == set(target),
+        "ok": final == target,
         "moves": moves,
         "final_order": final,
         "target": target,
@@ -3225,9 +3513,30 @@ def cmd_order(args: argparse.Namespace) -> int:
             return 1
 
     result = _reorder_story_sort(labels)
+    if not result.get("ok"):
+        emit(
+            {
+                "ordered": labels,
+                "reorder": result,
+                "checked": False,
+                "mode": "story_order_reorder_failed",
+            }
+        )
+        return 1
     time.sleep(0.25)
     # 检查 (becomes enabled after drag)
     st1 = get_state()
+    if not result.get("moves") and getattr(st1, "check_enabled", None) is False:
+        emit(
+            {
+                "error": "order unchanged while check remains disabled",
+                "ordered": labels,
+                "reorder": result,
+                "checked": False,
+                "mode": "story_order_unchanged",
+            }
+        )
+        return 1
     check_tap = _tap_story_check(st1)
     time.sleep(AFTER_CHECK)
     # praise / 继续

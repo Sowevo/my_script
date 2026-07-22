@@ -318,7 +318,7 @@ def judge_openai(status: dict) -> dict:
         or "顺序" in instr_l
     )
     story_gap = is_story and (
-        status.get("challenge") == "gap_fill"
+        status.get("challenge") in {"gap_fill", "tap_sequence"}
         or "文章を完成" in instr_l
         or "完成文章" in instr_l
         or (
@@ -373,7 +373,7 @@ def judge_openai(status: dict) -> dict:
         slim["mode"] = "story"
         slim["challenge"] = "sort"
         slim["question"] = status.get("instruction")
-        slim["context"] = status.get("prompt")
+        slim["context"] = status.get("story_history") or status.get("prompt")
         slim["options"] = opts
         slim["current_order_top_to_bottom"] = opts
         slim["must_label_count"] = len(opts)
@@ -451,7 +451,22 @@ def judge_openai(status: dict) -> dict:
         slim["raw_texts"] = (status.get("raw_texts") or [])[:20]
     else:
         slim["mode"] = status.get("mode")
-        slim["chips"] = status.get("chips")
+        chips = list(status.get("chips") or [])
+        retry_tray = list(status.get("retry_tray") or [])
+        if retry_tray and not status.get("options"):
+            # After an incorrect word-bank answer, Duolingo keeps the previous
+            # selection in the upper tray and restores the remaining words below.
+            # The executor clears that tray before retrying, so the judge needs
+            # the complete multiset to build a fresh full answer.
+            slim["chips"] = retry_tray + chips
+            slim["retry_tray"] = retry_tray
+            slim["rule"] = (
+                "Retry state: chips contains the COMPLETE word bank (upper retained "
+                "+ lower remaining). Return a fresh full chips sequence using exact "
+                "strings; the executor will clear retry_tray first."
+            )
+        else:
+            slim["chips"] = chips
         slim["options"] = status.get("options")
         slim["raw_texts"] = (status.get("raw_texts") or [])[:30]
 
@@ -552,12 +567,21 @@ def judge_openai(status: dict) -> dict:
                 break
         from collections import Counter
 
-        if not opts or Counter(labels) != Counter(opts):
+        unchanged_unsolved = (
+            labels == opts and status.get("check_enabled") is False
+        )
+        if not opts or Counter(labels) != Counter(opts) or unchanged_unsolved:
             repair = {
-                "error": "bad_order",
+                "error": "unchanged_unsolved_order" if unchanged_unsolved else "bad_order",
                 "got": labels,
                 "options": opts,
-                "fix": f"labels must be a permutation of options (len={len(opts)}). Re-output order only.",
+                "story_context": status.get("story_history") or status.get("prompt"),
+                "fix": (
+                    "The current displayed order is still unsolved (Check is disabled). "
+                    "Use story_context and return a DIFFERENT chronological permutation."
+                    if unchanged_unsolved
+                    else f"labels must be a permutation of options (len={len(opts)}). Re-output order only."
+                ),
             }
             messages.append({"role": "assistant", "content": content})
             messages.append({"role": "user", "content": json.dumps(repair, ensure_ascii=False)})

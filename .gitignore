@@ -12,3 +12,5 @@ env.conf
 docker-compose/media_server/.env
 
 docker-compose/homeassistant/.env
+/python/duo/window_dump.xml
+/python/duo/logs/

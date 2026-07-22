@@ -371,7 +371,7 @@ def ensure_learn_home() -> dict:
     if st.get("screen") == "session":
         log("【准备】已在做题中，继续当前课（不回主页）")
         return st
-    if st.get("screen") == "home":
+    if st.get("screen") == "home" and st.get("learn_path") is True:
         log("【准备】已在学习路径主页")
         return st
     log("【准备】点房子回学习页…")
@@ -401,6 +401,7 @@ def play(lessons: int, judge_name: str, max_steps: int) -> None:
     idle = 0
     saw_session = False
     start_fails = 0
+    story_history: list[str] = []
 
     while finished < lessons and step < max_steps:
         step += 1
@@ -430,6 +431,15 @@ def play(lessons: int, judge_name: str, max_steps: int) -> None:
                 break
 
         screen = st.get("screen")
+        if st.get("mode") == "story" and screen == "session":
+            for part in str(st.get("prompt") or "").split(" | "):
+                part = part.strip()
+                if part and part not in story_history:
+                    story_history.append(part)
+            # Runtime-only context for questions about earlier story events.
+            st["story_history"] = story_history[-80:]
+        elif screen in {"home", "end"}:
+            story_history.clear()
         log(f"【读屏摘要】{_summarize_status(st)}")
         # 词库收起：「轻点此处查看词库」→ 硬编码点开再读一次
         raw_pre = " ".join(st.get("raw_texts") or [])
@@ -518,6 +528,19 @@ def play(lessons: int, judge_name: str, max_steps: int) -> None:
             time.sleep(0.35)
             continue
 
+        if (
+            screen == "session"
+            and not st.get("instruction")
+            and not st.get("prompt")
+            and not (st.get("chips") or [])
+            and not (st.get("options") or [])
+            and not (st.get("buttons") or [])
+            and not (st.get("raw_texts") or [])
+        ):
+            log("【硬编码】做题页瞬时空白 → 等待下一帧（不调 API）")
+            time.sleep(0.5)
+            continue
+
         fb = st.get("feedback") or {}
         mode = st.get("mode") or "lesson"
         # 普通课：继续且无检查 = 反馈页。小故事页本身只有「继续」，不能套这条。
@@ -552,7 +575,7 @@ def play(lessons: int, judge_name: str, max_steps: int) -> None:
                     f"continue={cont_on} check={st.get('check_enabled')}"
                 )
                 # 多空填空：句中 ∩ 词库已能推断全部空 → 硬编码一次点齐，不调 API
-                if ch == "gap_fill" or "文章を完成" in instr or "完成文章" in instr:
+                if ch in {"gap_fill", "tap_sequence"} or "文章を完成" in instr or "完成文章" in instr:
                     gap_words = list(st.get("gap_words") or [])
                     if not gap_words:
                         try:
@@ -638,20 +661,25 @@ def play(lessons: int, judge_name: str, max_steps: int) -> None:
             except Exception as e:
                 log(f"【硬编码】跳过失败：{e}")
 
-        # —— 需要 AI 答题 ——
-        log("【API】请求大模型答题…")
-        t_api = time.time()
-        try:
-            decision = judge(st)
-        except Exception as e:
-            log(f"【API】调用失败：{e}")
-            idle += 1
-            if idle >= 3:
-                log("【停止】API 连续失败")
-                break
-            time.sleep(0.5)
-            continue
-        log(f"【API】返回（{time.time() - t_api:.1f}s）", data=decision)
+        # 主页选课是确定性操作，不需要浪费一次模型调用。
+        if screen == "home":
+            log("【硬编码】主页/路径 → 直接选课并开课（不调 API）")
+            decision = {"actions": [{"op": "start"}], "reason": "home_hardcoded"}
+        else:
+            # —— 需要 AI 答题 ——
+            log("【API】请求大模型答题…")
+            t_api = time.time()
+            try:
+                decision = judge(st)
+            except Exception as e:
+                log(f"【API】调用失败：{e}")
+                idle += 1
+                if idle >= 3:
+                    log("【停止】API 连续失败")
+                    break
+                time.sleep(0.5)
+                continue
+            log(f"【API】返回（{time.time() - t_api:.1f}s）", data=decision)
 
         actions = decision.get("actions") or []
         if not actions:
@@ -768,7 +796,11 @@ def play(lessons: int, judge_name: str, max_steps: int) -> None:
                 break
 
             if act.get("op") == "start":
-                if result.get("started") is False or result.get("error") or result.get("rc", 0) != 0:
+                if result.get("chest_opened") or result.get("path_advanced"):
+                    reason = "已打开路径宝箱" if result.get("chest_opened") else "路径已推进"
+                    log(f"【开课】{reason}，下一步重新读屏选课")
+                    start_fails = 0
+                elif result.get("started") is False or result.get("error") or result.get("rc", 0) != 0:
                     # 若其实已进 session，不算失败
                     st_after = unwrap_state(result)
                     if st_after.get("screen") == "session" or st_after.get("instruction"):
