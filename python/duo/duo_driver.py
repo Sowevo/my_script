@@ -640,6 +640,10 @@ class UiState:
             # 小故事排序等：检查可点
             "check_enabled": getattr(self, "check_enabled", None),
             "challenge": getattr(self, "challenge", None),
+            # Stories multi-blank gap-fill (inferred from sentence ∩ word bank)
+            "gap_sentence": getattr(self, "gap_sentence", None) or "",
+            "gap_words": getattr(self, "gap_words", None) or [],
+            "blank_count": getattr(self, "blank_count", None),
             "hearts": self.hearts,
             "raw_texts": self.raw_texts[:40],
             "feedback": self.feedback,
@@ -651,6 +655,48 @@ def _is_stories_ui(ns: list[Node], activity: str = "") -> bool:
     if "Stories" in (activity or ""):
         return True
     return any((n.short_id or "").startswith("stories") for n in ns)
+
+
+def infer_gap_fill_words(sentence: str, bank: list[str]) -> list[str]:
+    """
+    Stories gap-fill: accessibility sentence often already contains the blank
+    answers as plain text. Bank words that appear in the sentence (L→R) are
+    the multi-blank answers. Prefer longer tokens; non-overlapping.
+    """
+    if not sentence or not bank:
+        return []
+    # longest first so メッセージ wins over メー if both existed
+    ordered = sorted({w for w in bank if w}, key=lambda w: (-len(w), w))
+    used: list[tuple[int, int]] = []
+    hits: list[tuple[int, str]] = []
+    for w in ordered:
+        start = 0
+        while True:
+            i = sentence.find(w, start)
+            if i < 0:
+                break
+            j = i + len(w)
+            if any(not (j <= a or i >= b) for a, b in used):
+                start = i + 1
+                continue
+            used.append((i, j))
+            hits.append((i, w))
+            break  # one placement per bank word
+    hits.sort(key=lambda x: x[0])
+    return [w for _, w in hits]
+
+
+def extract_gap_sentence(prompt: str = "", raw_texts: list[str] | None = None) -> str:
+    """Pull [填空文] passage or sentenceText-like line from status fields."""
+    p = prompt or ""
+    if "[填空文]" in p:
+        return p.split("[填空文]", 1)[1].strip().split(" | ")[0].strip()
+    for t in raw_texts or []:
+        if t and t not in {"继续", "检查", "文章を完成させてください"} and len(t) >= 8:
+            # prefer longer Japanese prose
+            if any(ch in t for ch in "。！？"):
+                return t
+    return ""
 
 
 def detect_feedback(ns: list[Node], buttons: list[str], raw_texts: list[str], *, activity: str = "") -> dict:
@@ -754,10 +800,17 @@ def judge_hint(s: UiState) -> str:
                 "Script will drag then tap 检查."
             )
         if ch == "gap_fill" or (s.options and s.chips and "完成" in (s.instruction or "")):
+            gw = getattr(s, "gap_words", None) or []
+            bc = getattr(s, "blank_count", None) or (len(gw) if gw else None)
+            extra = (
+                f" Inferred blanks L→R ({bc}): {gw}."
+                if gw
+                else " Count blanks from passage; usually 2+ words."
+            )
             return (
-                "STORY GAP-FILL (文章完成): blanks in prompt [填空文]; word bank in options/chips. "
-                f"Reply: chips with words filling blanks left→right using EXACT bank: {s.options}. "
-                "Multi-blank → multiple words. Script taps then continue. No check."
+                "STORY GAP-FILL multi-blank: fill EVERY blank left→right in one chips action. "
+                f"Word bank: {s.options}.{extra} "
+                "words length MUST equal blank count (not 1 unless single blank). No check."
             )
         if s.options:
             return (
@@ -1008,8 +1061,9 @@ def classify(ns: list[Node], activity: str) -> UiState:
                     opt_nodes.append(n)
 
         # E) gap-fill word bank: storiesGapFillOption + gapFillOptionN pad
-        #    (文章を完成させてください — was misread as "no options / wait audio")
+        #    Multi-blank: tap several bank words L→R (sentence a11y often contains answers).
         gap_nodes: list[Node] = []
+        gap_sentence = (sent.text.strip() if sent and sent.text else "") or ""
         for n in ns:
             if n.short_id != "storiesGapFillOption" or not n.text:
                 continue
@@ -1017,6 +1071,8 @@ def classify(ns: list[Node], activity: str) -> UiState:
             if not t or t in opt_labels:
                 continue
             tb = parse_bounds(n.bounds)
+            parent_en = True
+            parent_click = True
             hit = Node(
                 text=t,
                 desc=n.desc or t,
@@ -1041,21 +1097,40 @@ def classify(ns: list[Node], activity: str) -> UiState:
                     a = (pb[2] - pb[0]) * (pb[3] - pb[1])
                     if 800 < a < 200_000 and a < best_a:
                         best_a = a
+                        parent_en = p.enabled
+                        parent_click = p.clickable
                         hit = Node(
                             text=t,
                             desc=t,
                             rid=p.rid or n.rid,
                             clickable=True,
-                            enabled=True,
+                            enabled=p.enabled,
                             bounds=p.bounds,
                             cls=p.cls,
                         )
+            # Keep all labels for LLM context; only enabled chips are tappable.
             opt_labels.append(t)
             opt_nodes.append(hit)
-            gap_nodes.append(hit)
-        if gap_nodes:
+            if parent_en or parent_click or hit.enabled:
+                gap_nodes.append(hit)
+            else:
+                # already used / disabled — still list for context, not in chip pool
+                pass
+        if opt_labels and (
+            gap_nodes
+            or gap_sentence
+            or "完成" in (st.instruction or "")
+            or any(n.short_id == "storiesGapFillOption" for n in ns)
+        ):
+            # rebuild full gap pool including disabled labels' nodes for option list
+            if not gap_nodes:
+                gap_nodes = list(opt_nodes)
             gap_fill = True
             st.challenge = "gap_fill"  # type: ignore[attr-defined]
+            st.gap_sentence = gap_sentence  # type: ignore[attr-defined]
+            inferred = infer_gap_fill_words(gap_sentence, opt_labels)
+            st.gap_words = inferred  # type: ignore[attr-defined]
+            st.blank_count = len(inferred) if inferred else None  # type: ignore[attr-defined]
 
         # D) 排序题：content-desc 干净的句子卡（text 带 bidi 标记）
         is_sort = bool(
@@ -1110,7 +1185,10 @@ def classify(ns: list[Node], activity: str) -> UiState:
         # gap-fill bank is also chips so multi-blank can use chips op
         if gap_fill and gap_nodes:
             st._chip_nodes = list(gap_nodes)
-            st.chips = list(dict.fromkeys(opt_labels))
+            # chips = currently tappable bank words; options = full bank labels
+            st.chips = list(dict.fromkeys([(n.text or n.desc or "").strip() for n in gap_nodes if n.text or n.desc]))
+            if not st.chips:
+                st.chips = list(dict.fromkeys(opt_labels))
         else:
             st._chip_nodes = []
             st.chips = []
@@ -2638,16 +2716,18 @@ def cmd_chips(args: argparse.Namespace) -> int:
 
     time.sleep(AFTER_CHIPS)
     if is_story or is_gap:
-        # Stories: no 检查 — wait for green 继续 (gap-fill may need a beat)
+        # Stories: no 检查. Only advance when 继续 is green.
+        # Partial multi-blank (continue still gray) → return without long wait / blind tap.
         advance: dict | list | None = None
+        advanced = False
         st_mid = get_state() if not QUIET else None
-        for _ in range(4):
+        for _ in range(3):
             st_now = st_mid if st_mid is not None else get_state()
             cont_on = getattr(st_now, "continue_enabled", None)
             if cont_on is True or (st_now.feedback or {}).get("is_feedback"):
                 advance = _tap_story_continue(st_now)
                 time.sleep(AFTER_CONTINUE)
-                # praise banner
+                advanced = True
                 if not QUIET:
                     st2 = get_state()
                     if (st2.feedback or {}).get("is_feedback") or (
@@ -2659,20 +2739,26 @@ def cmd_chips(args: argparse.Namespace) -> int:
                         }
                         time.sleep(AFTER_CONTINUE * 0.5)
                 break
-            time.sleep(0.35)
+            # still gray — if more bank chips remain, treat as partial fill
+            if cont_on is False and (st_now.chips or st_now.options):
+                time.sleep(0.25)
+                st_mid = get_state()
+                cont_on2 = getattr(st_mid, "continue_enabled", None)
+                if cont_on2 is True:
+                    continue
+                break
+            time.sleep(0.25)
             st_mid = get_state()
-        else:
-            advance = _tap_story_continue(st_mid if st_mid is not None else st)
-            time.sleep(AFTER_CONTINUE)
-        st_final = get_state() if not QUIET else None
+        st_final = get_state() if not QUIET else st_mid
         emit(
             {
                 "tapped": tapped,
                 "tray_ok": None,
                 "checked": False,
-                "advanced": True,
-                "mode": "story_gap_fill_chips",
+                "advanced": advanced,
+                "mode": "story_gap_fill_chips" if advanced else "story_gap_fill_partial",
                 "cta": advance,
+                "words": words,
                 "state": st_final.to_public_dict()
                 if st_final is not None
                 else {"note": "quiet skip full dump"},

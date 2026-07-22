@@ -60,10 +60,11 @@ SYSTEM_PROMPT = """你是多邻国答题器。根据 UI 状态 JSON 决定要点
      · 点选词段：options 是句子切段（如 苦労）。
      返回 choice，label=正确选项原文。不要 chips，不要 check。
    - challenge=gap_fill 或 instruction 含「文章を完成」「完成文章」：
-     prompt 里 [填空文] 是带空的句子，options/chips 是词库。
-     按空位从左到右选词填入，返回 chips，words=填空用词（必须用 options 原文）。
-     多空就多个词。例：{"actions":[{"op":"chips","words":["水","室温"]}],"reason":"..."}
-     不要 order/check/continue。
+     多空填空！prompt/[填空文]/gap_sentence 是句子，options/chips 是词库。
+     若状态有 gap_words / blank_count：必须原样用 gap_words（已按空位左→右推断）。
+     否则：词库里出现在句子中的词，按在句中出现顺序全部选出（通常 2+ 个，禁止只回 1 个除非真的单空）。
+     返回一个 chips，words=全部空位用词。例：{"actions":[{"op":"chips","words":["きれい","メッセージ"]}],"reason":"..."}
+     不要只填第一个空。不要 order/check/continue。
    - challenge=sort 或 instruction 含「順番に並べ」「並べて」：
      把 options 按故事时间顺序从上到下排列。
      返回 order，labels=正确顺序的全文列表（必须用 options 原文，每个恰好一次）。
@@ -388,23 +389,43 @@ def judge_openai(status: dict) -> dict:
         }
     elif story_gap:
         opts = list(status.get("options") or status.get("chips") or [])
+        gap_words = list(status.get("gap_words") or [])
+        blank_count = status.get("blank_count") or (len(gap_words) if gap_words else None)
+        gap_sentence = status.get("gap_sentence") or ""
+        if not gap_sentence and isinstance(status.get("prompt"), str) and "[填空文]" in status["prompt"]:
+            gap_sentence = status["prompt"].split("[填空文]", 1)[1].strip()
+        # If driver already inferred multi-blank answers, force that multiset
+        if gap_words:
+            must_words = gap_words
+            must_n = len(gap_words)
+        else:
+            must_words = None
+            must_n = blank_count
         slim["type"] = "story_gap_fill"
         slim["mode"] = "story"
         slim["challenge"] = "gap_fill"
         slim["question"] = status.get("instruction")
-        slim["passage"] = status.get("prompt")
+        slim["gap_sentence"] = gap_sentence or status.get("prompt")
         slim["word_bank"] = opts
         slim["chips"] = status.get("chips") or opts
+        slim["gap_words"] = gap_words or None
+        slim["blank_count"] = must_n
         slim["raw_texts"] = (status.get("raw_texts") or [])[:20]
+        if must_words:
+            # Deterministic multi-blank — do not call the model (it often returns only 1 word).
+            return {
+                "actions": [{"op": "chips", "words": list(must_words)}],
+                "reason": f"gap_fill blanks×{must_n} from sentence∩bank",
+            }
         slim["rule"] = (
-            "Complete the passage blanks left→right. "
-            "MUST return one chips action; words = fill-in words from word_bank (exact strings). "
-            "Multi-blank → multiple words in blank order. "
+            "MULTI-BLANK gap-fill. Pick EVERY bank word that belongs in the sentence blanks, "
+            "left→right order, exact strings from word_bank. "
+            "Usually 2+ words — returning only 1 word is WRONG unless blank_count=1. "
             "No choice/order/check/continue."
         )
         slim["example"] = {
-            "actions": [{"op": "chips", "words": opts[:2] or opts[:1] or ["…"]}],
-            "reason": "fill blanks L→R",
+            "actions": [{"op": "chips", "words": opts[:2] if len(opts) >= 2 else opts[:1] or ["…"]}],
+            "reason": "fill all blanks L→R",
         }
     elif story_quiz:
         slim["type"] = "story_quiz"

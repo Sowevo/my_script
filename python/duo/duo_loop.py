@@ -551,6 +551,30 @@ def play(lessons: int, judge_name: str, max_steps: int) -> None:
                     f"【小故事】需答题 challenge={ch} options={len(opts)} "
                     f"continue={cont_on} check={st.get('check_enabled')}"
                 )
+                # 多空填空：句中 ∩ 词库已能推断全部空 → 硬编码一次点齐，不调 API
+                if ch == "gap_fill" or "文章を完成" in instr or "完成文章" in instr:
+                    gap_words = list(st.get("gap_words") or [])
+                    if not gap_words:
+                        try:
+                            from duo_driver import extract_gap_sentence, infer_gap_fill_words
+
+                            sent = st.get("gap_sentence") or extract_gap_sentence(
+                                st.get("prompt") or "", st.get("raw_texts") or []
+                            )
+                            gap_words = infer_gap_fill_words(
+                                sent, list(st.get("options") or st.get("chips") or [])
+                            )
+                        except Exception as e:
+                            log(f"【小故事】gap 推断失败：{e}")
+                            gap_words = []
+                    if len(gap_words) >= 1:
+                        log(
+                            f"【硬编码】小故事多空填空 → 一次点 {len(gap_words)} 词：{' '.join(gap_words)}"
+                        )
+                        run_driver("chips", *gap_words, phase="点击")
+                        time.sleep(0.35)
+                        idle = 0
+                        continue
                 # fall through to API
             elif cont_on is True:
                 log("【硬编码】小故事「继续」可点 → 点继续")
