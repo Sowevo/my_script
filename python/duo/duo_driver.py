@@ -88,33 +88,155 @@ _PKG_TTL = 2.5
 _PKG_TRUST_UNTIL = 0.0
 
 
+def _wm_size() -> tuple[int, int]:
+    """Physical screen size (w, h); fallback 1080×2400."""
+    try:
+        out = adb("shell", "wm", "size", check=False)
+        import re as _re
+
+        m = _re.search(r"(\d+)x(\d+)", out or "")
+        if m:
+            return int(m.group(1)), int(m.group(2))
+    except Exception:
+        pass
+    return 1080, 2400
+
+
 def bottom_cta_xy() -> tuple[int, int]:
     """Center of the big green bottom button; position is stable across 检查/继续/知道了."""
     global _BOTTOM_CTA_CACHE
     if _BOTTOM_CTA_CACHE is not None:
         return _BOTTOM_CTA_CACHE
-    try:
-        out = adb("shell", "wm", "size", check=False)
-        # Physical size: 1080x2400
-        import re as _re
-
-        m = _re.search(r"(\d+)x(\d+)", out)
-        if m:
-            w, h = int(m.group(1)), int(m.group(2))
-            # Observed: [44,2169][1036,2312] on 1080x2400 → ~50% x, ~93% y
-            _BOTTOM_CTA_CACHE = (w // 2, int(h * 0.932))
-            return _BOTTOM_CTA_CACHE
-    except Exception:
-        pass
-    _BOTTOM_CTA_CACHE = (540, 2240)
+    w, h = _wm_size()
+    # Observed lesson CTA: [44,2169][1036,2312] on 1080x2400 → ~50% x, ~93% y
+    _BOTTOM_CTA_CACHE = (w // 2, int(h * 0.932))
     return _BOTTOM_CTA_CACHE
 
 
+def bottom_cta_xy_candidates() -> list[tuple[int, int]]:
+    """
+    Bottom primary CTAs are not always at the same Y:
+      · normal 检查/继续 ~0.932h (y≈2240 on 2400)
+      · unit-complete / some reward sheets ~0.898h (y≈2155) — fixed 0.932 taps *below* the button
+    """
+    w, h = _wm_size()
+    cx = w // 2
+    ys = sorted({int(h * r) for r in (0.932, 0.915, 0.898)}, reverse=True)
+    return [(cx, y) for y in ys]
+
+
 def tap_bottom_cta(delay: float | None = None) -> dict:
-    """Blind-tap bottom primary CTA (no UI read)."""
+    """Blind-tap bottom primary CTA (no UI read). Uses classic lesson slot."""
     x, y = bottom_cta_xy()
     tap_xy(x, y, delay=delay if delay is not None else DEFAULT_TAP, force=True)
     return {"x": x, "y": y}
+
+
+def find_bottom_cta_bounds(st: "UiState | None") -> str | None:
+    """
+    Locate the wide bottom primary CTA from a dumped hierarchy.
+    Prefer resource-id, then label text expanded to covering Button, then widest bottom Button.
+    """
+    if st is None:
+        return None
+    sid_pref = (
+        "continueButton",
+        "continueButtonGreenStub",
+        "submitButton",
+        "storiesLessonGreenContinueButton",
+        "storiesLessonContinueButton",
+    )
+    for sid in sid_pref:
+        for n in st._all:
+            if n.short_id == sid and n.bounds:
+                return n.bounds
+
+    labels = {"继续", "知道了", "检查", "CHECK", "Continue", "Got it", "领取经验", "领取奖励"}
+    label_nodes = [
+        n
+        for n in st._all
+        if n.bounds and ((n.text in labels) or (n.desc in labels))
+    ]
+    for ln in label_nodes:
+        lb = parse_bounds(ln.bounds)
+        if not lb:
+            continue
+        lcx, lcy = (lb[0] + lb[2]) // 2, (lb[1] + lb[3]) // 2
+        best = ln.bounds
+        best_w = lb[2] - lb[0]
+        for n in st._all:
+            if not n.bounds:
+                continue
+            # Compose often marks Button clickable=false; still use geometry
+            if n.cls not in {"Button", "View", "FrameLayout", "LinearLayout"} and not n.clickable:
+                continue
+            b = parse_bounds(n.bounds)
+            if not b:
+                continue
+            w = b[2] - b[0]
+            h = b[3] - b[1]
+            if w < 280 or h < 60 or h > 400:
+                continue
+            if not (b[0] <= lcx <= b[2] and b[1] <= lcy <= b[3]):
+                continue
+            if w > best_w:
+                best, best_w = n.bounds, w
+        return best
+
+    # Fallback: widest Button / submit-like node in lower third of screen
+    _, sh = _wm_size()
+    y_min = int(sh * 0.72)
+    best_b: str | None = None
+    best_w = 0
+    for n in st._all:
+        if not n.bounds:
+            continue
+        if n.cls != "Button" and n.short_id not in sid_pref:
+            continue
+        b = parse_bounds(n.bounds)
+        if not b or b[1] < y_min:
+            continue
+        w = b[2] - b[0]
+        if w > best_w and w >= 400:
+            best_b, best_w = n.bounds, w
+    return best_b
+
+
+def tap_bottom_cta_smart(
+    st: "UiState | None" = None,
+    *,
+    dump: bool = False,
+    delay: float | None = None,
+    multi_y_fallback: bool = True,
+) -> dict:
+    """
+    Tap bottom primary CTA using dump bounds when available.
+    Falls back to classic fixed Y, then alternate higher Ys (unit-complete sheet).
+    """
+    d = delay if delay is not None else DEFAULT_TAP
+    if dump and st is None:
+        try:
+            st = get_state()
+        except Exception:
+            st = None
+    b = find_bottom_cta_bounds(st)
+    if b:
+        tap_bounds(b, delay=d)
+        return {"mode": "cta_bounds", "bounds": b, **(dict(zip(("x", "y"), center_of(b) or (0, 0))))}
+
+    t = tap_bottom_cta(delay=d)
+    if not multi_y_fallback:
+        return {"mode": "fixed_bottom", **t}
+
+    # Extra higher taps cover reward / unit-complete sheets where 0.932 is below the button
+    extras = []
+    primary = bottom_cta_xy()
+    for x, y in bottom_cta_xy_candidates():
+        if (x, y) == primary:
+            continue
+        tap_xy(x, y, delay=d * 0.5, force=True)
+        extras.append({"x": x, "y": y})
+    return {"mode": "fixed_bottom_multi_y", "primary": t, "extras": extras}
 
 
 def _submit_bounds_from_state(st: "UiState | None") -> str | None:
@@ -2604,7 +2726,7 @@ def cmd_continue(_: argparse.Namespace) -> int:
     """Tap bottom CTA once (= 继续 / 知道了 / 领取… / stories continue)."""
     # Prefer stories green button without full re-classify cost when dump available
     try:
-        st = get_state() if not QUIET else None
+        st = get_state()
     except Exception:
         st = None
     if st is not None and _is_stories_ui(st._all, st.activity):
@@ -2612,27 +2734,34 @@ def cmd_continue(_: argparse.Namespace) -> int:
         time.sleep(AFTER_CONTINUE)
         print(json.dumps({"continued": True, "cta": t, "mode": t.get("mode")}, ensure_ascii=False, indent=2))
         return 0
-    t = tap_bottom_cta()
+    t = tap_bottom_cta_smart(st, multi_y_fallback=True)
     time.sleep(AFTER_CONTINUE)
-    print(json.dumps({"continued": True, "cta": t, "mode": "fixed_bottom"}, ensure_ascii=False, indent=2))
+    print(json.dumps({"continued": True, "cta": t, "mode": t.get("mode")}, ensure_ascii=False, indent=2))
     return 0
 
 
 def cmd_handle_feedback(_: argparse.Namespace) -> int:
     """
-    Result page: same bottom button is 继续 or 知道了 — just tap it.
-    No text recognition. Optional second tap covers 知道了 → 继续.
+    Result / reward / unit-complete sheet: tap 继续 or 知道了.
+    Prefer real button bounds from dump (fixed Y 0.932 misses some higher CTAs).
+    Second tap covers 知道了 → 继续 chain.
     """
-    t1 = tap_bottom_cta()
+    try:
+        st = get_state()
+    except Exception:
+        st = None
+    # First tap must hit real CTA (unit-complete sheet is higher than lesson CTA).
+    t1 = tap_bottom_cta_smart(st, multi_y_fallback=True)
     time.sleep(AFTER_CONTINUE)
+    # Second tap covers 知道了→继续; stay on classic slot only (multi-Y can mis-tap next page).
     t2 = tap_bottom_cta()
     time.sleep(AFTER_CONTINUE * 0.6)
     emit(
         {
             "handled": True,
-            "action": "fixed_bottom",
+            "action": "bottom_cta",
             "taps": [t1, t2],
-            "mode": "fixed_bottom_double",
+            "mode": "feedback_smart_double",
         }
     )
     return 0
