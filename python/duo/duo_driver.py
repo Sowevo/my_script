@@ -3100,13 +3100,9 @@ def cmd_choice(args: argparse.Namespace) -> int:
             # gap-fill multi-blank: continue stays gray until all blanks filled —
             # do NOT force continue so the loop can apply the next choice/chips.
             time.sleep(0.35)
-            st_mid = get_state() if not QUIET else st
-            cont_on = getattr(st_mid, "continue_enabled", None) if st_mid else None
-            still_gap = (
-                getattr(st_mid, "challenge", None) == "gap_fill"
-                if st_mid is not None
-                else getattr(st, "challenge", None) == "gap_fill"
-            )
+            st_mid = get_state()
+            cont_on = getattr(st_mid, "continue_enabled", None)
+            still_gap = getattr(st_mid, "challenge", None) == "gap_fill"
             if cont_on is False and still_gap:
                 emit(
                     {
@@ -3119,21 +3115,51 @@ def cmd_choice(args: argparse.Namespace) -> int:
                     }
                 )
                 return 0
+
+            # Wrong story answers leave the same options visible and Continue
+            # disabled. Surface that state so the loop can exclude the option.
+            for _ in range(2):
+                if cont_on is not False:
+                    break
+                time.sleep(0.35)
+                st_mid = get_state()
+                cont_on = getattr(st_mid, "continue_enabled", None)
+            if (
+                cont_on is False
+                and getattr(st_mid, "mode", None) == "story"
+                and bool(st_mid.options)
+            ):
+                emit(
+                    {
+                        "tapped": tapped,
+                        "checked": False,
+                        "advanced": False,
+                        "mode": "story_choice_rejected",
+                        "continue_enabled": False,
+                        "state": None if QUIET else st_mid.to_public_dict(),
+                    }
+                )
+                return 0
+            if getattr(st_mid, "mode", None) != "story":
+                emit(
+                    {
+                        "tapped": tapped,
+                        "checked": False,
+                        "advanced": True,
+                        "mode": "story_choice_screen_changed",
+                        "state": None if QUIET else st_mid.to_public_dict(),
+                    }
+                )
+                return 0
+
             advance = _tap_story_continue(st_mid if st_mid is not None else st)
             time.sleep(AFTER_CONTINUE)
             # praise page may need a second 继续
-            if not QUIET:
-                st2 = get_state()
-                if (st2.feedback or {}).get("is_feedback") or (
-                    "你太棒了" in " ".join(st2.raw_texts)
-                ):
-                    advance2 = _tap_story_continue(st2)
-                    time.sleep(AFTER_CONTINUE * 0.6)
-                    advance = {"select_continue": advance, "praise_continue": advance2}
-            else:
-                # Quiet: one more blind continue covers praise banner
-                time.sleep(0.25)
-                advance2 = tap_bottom_cta()
+            st2 = get_state()
+            if (st2.feedback or {}).get("is_feedback") or (
+                "你太棒了" in " ".join(st2.raw_texts)
+            ):
+                advance2 = _tap_story_continue(st2)
                 time.sleep(AFTER_CONTINUE * 0.5)
                 advance = {"select_continue": advance, "praise_continue": advance2}
             st_final = get_state() if not QUIET else None

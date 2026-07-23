@@ -428,19 +428,24 @@ def judge_openai(status: dict) -> dict:
             "reason": "fill all blanks L→R",
         }
     elif story_quiz:
+        rejected = list(status.get("rejected_options") or [])
+        allowed = [x for x in (status.get("options") or []) if x not in rejected]
         slim["type"] = "story_quiz"
         slim["mode"] = "story"
         slim["continue_enabled"] = False
         slim["question"] = status.get("instruction")
-        slim["context"] = status.get("prompt")
+        slim["context"] = status.get("story_history") or status.get("prompt")
         slim["options"] = status.get("options")
+        slim["rejected_options"] = rejected or None
+        slim["allowed_options"] = allowed
         slim["raw_texts"] = (status.get("raw_texts") or [])[:20]
         slim["rule"] = (
             "MUST return exactly one choice. label MUST be one of options (exact string). "
+            "Never choose a rejected_options item; choose only from allowed_options. "
             "No empty actions. No chips. No check. No continue."
         )
         slim["example"] = {
-            "actions": [{"op": "choice", "label": (status.get("options") or ["…"])[0]}],
+            "actions": [{"op": "choice", "label": (allowed or ["…"])[0]}],
             "reason": "short",
         }
     elif image_pick:
@@ -485,6 +490,20 @@ def judge_openai(status: dict) -> dict:
         decision = {"actions": [], "reason": f"parse_fail: {e} | raw={content[:200]}"}
     api_calls = 1
 
+    if story_quiz:
+        rejected = set(status.get("rejected_options") or [])
+        valid_options = set(status.get("options") or []) - rejected
+        choice_labels = [
+            a.get("label")
+            for a in (decision.get("actions") or [])
+            if a.get("op") == "choice"
+        ]
+        if choice_labels and choice_labels[0] not in valid_options:
+            decision = {
+                "actions": [],
+                "reason": f"rejected_or_invalid_story_choice: {choice_labels[0]}",
+            }
+
     # 格式不对 / 空 actions：提示词重试一次（不兼容花式字段，只纠正格式）
     if not (decision.get("actions") or []):
         repair = {
@@ -503,6 +522,9 @@ def judge_openai(status: dict) -> dict:
             )
         elif story_quiz or (status.get("options") and "检查" in (status.get("buttons") or [])):
             opts = list(status.get("options") or [])
+            if story_quiz:
+                rejected = set(status.get("rejected_options") or [])
+                opts = [x for x in opts if x not in rejected]
             repair["fix"] = (
                 '输出：{"actions":[{"op":"choice","label":"<options之一>"}],"reason":"…"} '
                 f"label 必须是 {opts} 之一"
@@ -541,8 +563,9 @@ def judge_openai(status: dict) -> dict:
                 "error": "empty_actions_not_allowed",
                 "type": "story_quiz",
                 "question": status.get("instruction"),
-                "context": status.get("prompt"),
+                "context": status.get("story_history") or status.get("prompt"),
                 "options": opts,
+                "rejected_options": status.get("rejected_options") or [],
                 "fix": (
                     "Previous reply had no actions. Output ONLY: "
                     '{"actions":[{"op":"choice","label":"<one of options>"}],"reason":"..."} '

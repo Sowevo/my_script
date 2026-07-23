@@ -198,6 +198,8 @@ def _summarize_driver_result(op: str, result: dict) -> str:
         bits.append(f"点了={result.get('tapped')}")
         if result.get("checked"):
             bits.append("已点检查/继续")
+        elif result.get("advanced") is False:
+            bits.append("页面未推进")
     elif op in {"check", "continue", "handle-feedback"}:
         bits.append(str(result.get("mode") or result.get("action") or "完成"))
         if result.get("cta"):
@@ -402,6 +404,8 @@ def play(lessons: int, judge_name: str, max_steps: int) -> None:
     saw_session = False
     start_fails = 0
     story_history: list[str] = []
+    story_choice_key: tuple[str, str, tuple[str, ...]] | None = None
+    story_rejected: set[str] = set()
 
     while finished < lessons and step < max_steps:
         step += 1
@@ -438,8 +442,20 @@ def play(lessons: int, judge_name: str, max_steps: int) -> None:
                     story_history.append(part)
             # Runtime-only context for questions about earlier story events.
             st["story_history"] = story_history[-80:]
+            choice_key = (
+                str(st.get("instruction") or ""),
+                str(st.get("prompt") or ""),
+                tuple(st.get("options") or []),
+            )
+            if choice_key != story_choice_key:
+                story_choice_key = choice_key
+                story_rejected.clear()
+            if story_rejected:
+                st["rejected_options"] = sorted(story_rejected)
         elif screen in {"home", "end"}:
             story_history.clear()
+            story_choice_key = None
+            story_rejected.clear()
         log(f"【读屏摘要】{_summarize_status(st)}")
         # 词库收起：「轻点此处查看词库」→ 硬编码点开再读一次
         raw_pre = " ".join(st.get("raw_texts") or [])
@@ -794,6 +810,19 @@ def play(lessons: int, judge_name: str, max_steps: int) -> None:
                     log("【致命】ADB 断开，停止")
                     finished = lessons
                 break
+
+            if (
+                mode == "story"
+                and op == "choice"
+                and result.get("advanced") is False
+            ):
+                rejected = str(act.get("label") or "")
+                if rejected:
+                    story_rejected.add(rejected)
+                    log(
+                        f"【小故事】选项未推进，下一轮排除：{rejected}",
+                        data={"已排除": sorted(story_rejected)},
+                    )
 
             if act.get("op") == "start":
                 if result.get("chest_opened") or result.get("path_advanced"):
