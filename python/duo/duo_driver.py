@@ -1319,8 +1319,6 @@ def classify(ns: list[Node], activity: str) -> UiState:
             "完成对话",
             "选择配对",
             "选择对应的图片",
-            "新",
-            "单词",
         }:
             continue
         if prompt_text and lab == prompt_text:
