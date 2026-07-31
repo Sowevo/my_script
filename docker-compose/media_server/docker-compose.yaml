@@ -375,6 +375,8 @@ services:
     container_name: sub2api
     hostname: sub2api
     restart: always
+    security_opt:
+      - no-new-privileges:true
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
@@ -421,6 +423,8 @@ services:
     container_name: sub2api-postgres
     hostname: sub2api-postgres
     restart: always
+    security_opt:
+      - no-new-privileges:true
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
@@ -445,6 +449,8 @@ services:
     container_name: sub2api-redis
     hostname: sub2api-redis
     restart: always
+    security_opt:
+      - no-new-privileges:true
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
