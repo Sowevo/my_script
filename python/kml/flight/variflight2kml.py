@@ -1,8 +1,25 @@
 """
-从https://flightadsb.variflight.com获取的数据生成KML文件用于导入世界迷雾
+将飞常准（VariFlight）的航班飞行轨迹转换为 KML，供「世界迷雾」导入。
+
+数据来源：
+    飞常准，登录地址：https://flightadsb.variflight.com
+    登录后输入航班号查询，选择指定日期后点击按钮
+    即可下载 JSON 数据，该 JSON 文件就是本脚本的入参。
+
+运行示例（在项目根目录下，使用已有的 .venv 环境）：
+    .venv/bin/python "python/kml/flight/variflight2kml.py" "/Users/sowevo/Downloads/Variflight_CZ647_20260911.json"
+    .venv/bin/python "python/kml/flight/variflight2kml.py" "/你的路径/航迹.json" -o "/你的路径/输出目录"
+
+输出规则：
+    默认在输入 JSON 旁生成「航班号_YYYYMMDD.kml」，例如 CZ647_20260911.kml。
+    日期是首个轨迹点的北京时间日期，不是计划起飞日期；缺少时间时只用航班号。
+    -o / --output_path 可指定已存在的输出目录，同名 KML 会被覆盖。
+    转换时会补充中间轨迹点，并打印解析结果、轨迹点数和输出文件的完整路径。
+    完成后将生成的 KML 导入「世界迷雾」即可。
 """
 import argparse
 import os.path
+from datetime import datetime, timedelta, timezone
 
 from geopy.distance import geodesic
 import xml.etree.ElementTree as ET
@@ -75,18 +92,38 @@ def insert_intermediate_points(track_data, max_distance_km=1):
     return _new_track
 
 
-def main(input_json, output_path='.'):
+def main(input_json, output_path=None):
+    if output_path is None:
+        output_path = os.path.dirname(os.path.abspath(input_json))
+    print(f"正在读取：{os.path.abspath(input_json)}", flush=True)
     track = fetch_json(input_json)
+    print(f"读取并解析成功，共 {len(track)} 个轨迹点，正在补充中间点……", flush=True)
     new_track = insert_intermediate_points(track)
-    generate_kml(new_track, os.path.join(output_path, str(new_track[0]['fnum']) + '.kml'))
+    print(f"轨迹处理完成，共 {len(new_track)} 个轨迹点，正在生成 KML……", flush=True)
+    first_point = track[0]
+    file_name = str(first_point['fnum'])
+    start_time = None
+    if first_point.get('updatetime') is not None:
+        start_time = datetime.fromtimestamp(float(first_point['updatetime']), tz=timezone.utc)
+    elif first_point.get('UTC Time'):
+        start_time = datetime.strptime(first_point['UTC Time'], '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
+    if start_time is not None:
+        start_time = start_time.astimezone(timezone(timedelta(hours=8)))
+        file_name += start_time.strftime('_%Y%m%d')
+        print(f"轨迹开始时间（北京时间）：{start_time:%Y-%m-%d %H:%M:%S}", flush=True)
+    else:
+        print("未找到轨迹开始时间，文件名仅使用航班号。", flush=True)
+    output_file = os.path.abspath(os.path.join(output_path, file_name + '.kml'))
+    generate_kml(new_track, output_file)
+    print(f"KML 文件已输出到：{output_file}", flush=True)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='用于将从 variflight 获取的飞行数据文件转换成 KML 文件的脚本。')
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("input_json",
-                        help="来自 variflight 飞行数据文件路径,  请在https://flightadsb.variflight.com搜索航班号后获取",
+                        help="从飞常准获取并保存的本地航迹 .json 文件路径",
                         nargs='?', default=argparse.SUPPRESS)
-    parser.add_argument("-o", "--output_path", default=".", help="KML 文件的输出路径")
+    parser.add_argument("-o", "--output_path", default=None, help="KML 文件的输出目录，默认与输入 JSON 文件相同")
     args = vars(parser.parse_args())
 
     if 'input_json' not in args:
