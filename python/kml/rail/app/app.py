@@ -6,6 +6,7 @@ import math
 from nearby import NearbyIndex
 from geocoding import Geocoder
 from journey import JourneyExplorer
+from recommendation import recommend_way
 from urllib.error import HTTPError, URLError
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
@@ -139,54 +140,12 @@ def journey_response(legs, result):
         {'id': item['way_id'], 'coords': way_coords(item['way_id']),
          'meta': way_to_meta.get(item['way_id'], {}), 'type': item['type'], 'leg': index}
         for index, leg in enumerate(legs) for item in leg['path']]
-    active_coords = [item for item in result['total_path_coords'] if item['leg'] == len(legs) - 1]
-    # === 推荐逻辑 ===
-    def dist(p1, p2):
-        return math.hypot(p1[0]-p2[0], p1[1]-p2[1])
-    def point_line_dist(p, a, b):
-        # p到ab直线距离
-        if a == b:
-            return dist(p, a)
-        x0, y0 = p
-        x1, y1 = a
-        x2, y2 = b
-        num = abs((y2-y1)*x0 - (x2-x1)*y0 + x2*y1 - y2*x1)
-        den = math.hypot(y2-y1, x2-x1)
-        return num/den if den else 0
-    if len(active_coords) >= 2 and result['choice_coords']:
-        prev2 = active_coords[-2]
-        prev1 = active_coords[-1]
-        a = prev2['coords'][-1] if prev2['coords'] else None
-        b = prev1['coords'][-1] if prev1['coords'] else None
-        prev1_name = prev1['meta'].get('tags', {}).get('name')
-        # 1. 排除往回走
-        filtered = []
-        for c in result['choice_coords']:
-            if not c['coords']: continue
-            c_end = c['coords'][-1]
-            if a is None or b is None or dist(c_end, a) < dist(c_end, b):
-                continue
-            filtered.append(c)
-        # 2. name相同优先（都为空不算）
-        name_matched = []
-        if prev1_name:
-            for c in filtered:
-                cname = c['meta'].get('tags', {}).get('name')
-                if cname and cname == prev1_name:
-                    name_matched.append(c)
-        # 3. 终点更靠近直线
-        candidates = name_matched if name_matched else filtered
-        best_idx = -1
-        best_score = float('inf')
-        for idx, c in enumerate(result['choice_coords']):
-            if c not in candidates: continue
-            c_end = c['coords'][-1]
-            score = point_line_dist(c_end, a, b)
-            if score < best_score:
-                best_score = score
-                best_idx = idx
-        if best_idx >= 0:
-            result['choice_coords'][best_idx]['recommend'] = True
+    recommended = recommend_way(
+        legs[-1]['path'] if legs else [], result['choices'],
+        way_to_nodes, node_coords, way_to_meta)
+    for choice in result['choice_coords']:
+        if choice['id'] == recommended:
+            choice['recommend'] = True
     return jsonify(result)
 
 

@@ -5,7 +5,33 @@
   <title>铁路way递归提取与地图展示</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
   <style>
+    .leaflet-control-fit-all[hidden] { display: none; }
+    .leaflet-bar.no-journey .leaflet-control-zoom-out {
+      border-bottom: 0;
+      border-radius: 0 0 4px 4px;
+    }
+
+    .track-locate {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #526277;
+      font-size: 18px;
+      line-height: 1;
+      text-decoration: none;
+      vertical-align: middle;
+      cursor: pointer;
+    }
+    .track-locate:hover { color: #0d6efd; }
+    .track-locate:focus-visible { outline: 2px solid #0d6efd; outline-offset: 2px; }
+
     body { margin: 0; padding: 0; }
     .main-layout {
       display: flex;
@@ -33,7 +59,10 @@
       flex-direction: column;
     }
     #map { width: 100%; height: 100%; min-height: 600px; border-radius: 8px; }
-    .choice-way { cursor:pointer; text-decoration:underline; color:#d9534f; margin-right:8px; }
+    .choice-way { border:0; background:transparent; padding:0; font:inherit; text-align:left; cursor:pointer; text-decoration:underline; color:#d9534f; margin-right:8px; }
+    #ways-list li { display:flex; align-items:center; }
+    #ways-list .choice-way { min-width:0; overflow-wrap:anywhere; }
+    #ways-list .locate-choice { flex-shrink:0; }
     .choice-way:hover { color:#b52b27; }
     #total-path { background:#fff; border:1px solid #dce2ea; border-radius:8px; padding:14px; }
     #overpass-query { width:100%; font:12px/1.5 monospace; resize:vertical; }
@@ -82,35 +111,26 @@
       <form id="way-form" class="mb-3">
         <div class="input-group">
           <input type="text" id="way_id" class="form-control" placeholder="输入轨道 way ID" aria-label="轨道 way ID" inputmode="numeric" pattern="[0-9]+" maxlength="100" required>
-          <button type="submit" class="btn btn-primary">开始探索</button>
+          <button type="submit" class="btn btn-primary" title="按轨道 ID 开始探索" aria-label="按轨道 ID 开始探索"><i class="bi bi-search" aria-hidden="true"></i></button>
         </div>
         <div class="form-text">在地图上右键，选择查询半径，查看附近轨道及所属关系；也可输入轨道 ID 开始探索。</div>
       </form>
       <div id="query-status" class="small mb-2" role="status" aria-live="polite"></div>
       <div id="query-results" class="list-group mb-3" style="max-height:320px;overflow-y:auto;"></div>
       <div id="element-detail" class="mb-3" style="overflow-wrap:anywhere;"></div>
-      <div id="transfer-panel" class="border rounded p-2 mb-3" hidden>
-        <div class="fw-bold mb-2">选择换乘轨道</div>
-        <input id="transfer-label" class="form-control form-control-sm mb-2" placeholder="换乘站 / 备注（可选）" aria-label="换乘备注" maxlength="100">
-        <div class="small mb-2">在附近右键选择轨道，或在上方输入轨道 ID，作为下一段继续。</div>
-        <button id="cancel-transfer" class="btn btn-sm btn-outline-secondary" type="button">取消换乘</button>
-      </div>
       <div id="ways-list" hidden><b>可选相连轨道:</b><ul class="list-group mt-2"></ul></div>
       <div id="total-path" hidden>
         <div id="path-summary" class="fw-bold">尚未选择轨道</div>
         <div id="path-counts" class="small text-muted mb-2"></div>
         <div id="journey-legs" class="mb-2"></div>
         <button id="undo-way" class="btn btn-outline-secondary btn-sm w-100 mb-2" type="button">退回一条轨道</button>
-        <button id="add-transfer" class="btn btn-outline-primary btn-sm w-100 mb-2" type="button">添加换乘</button>
         <label for="export-scope" class="small">导出范围</label>
         <select id="export-scope" class="form-select form-select-sm mb-2" aria-label="导出范围"><option value="all">全部行程</option></select>
         <div class="d-grid gap-2">
           <button id="download-kml" type="button" class="btn btn-primary btn-sm">下载 KML</button>
           <button id="copy-query" type="button" class="btn btn-primary btn-sm" disabled>复制 Overpass 查询</button>
-          <a id="open-overpass" class="btn btn-outline-primary btn-sm disabled" aria-disabled="true" target="_blank" rel="noopener noreferrer">在 Overpass Turbo 中打开</a>
         </div>
         <div id="export-status" class="small mt-2" role="status" aria-live="polite"></div>
-        <div class="small text-muted mt-2">在 Overpass Turbo 中运行后，可导出 GeoJSON / KML。</div>
         <details id="query-preview" class="mt-2">
           <summary class="small">查看查询内容</summary>
           <textarea id="overpass-query" class="form-control mt-2" rows="7" readonly aria-label="Overpass 查询内容"></textarea>
@@ -123,6 +143,7 @@
   </div>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="{{ url_for('static', filename='journey_export.js') }}"></script>
+  <script src="{{ url_for('static', filename='choice_viewport.js') }}"></script>
   <script>
     const initialBounds = {{ map_bounds | tojson }};
     let map = L.map('map');
@@ -137,7 +158,6 @@
     let blueLayers = [];
     let redLayer = null;
     let lastData = null;
-    let transferMode = false;
 
     // 在线地名定位独立于本地轨道探索，只有提交表单才发送查询。
     let placeMarker = null;
@@ -146,7 +166,7 @@
         const box = L.DomUtil.create('div', 'place-search');
         box.innerHTML = '<form id="place-form"><div class="input-group input-group-sm">' +
           '<input id="place-query" class="form-control" aria-label="搜索地点" placeholder="城市、车站、机场或地址" maxlength="200" autocomplete="off" required>' +
-          '<button class="btn btn-primary" type="submit">搜索地点</button></div></form>' +
+          '<button class="btn btn-primary" type="submit" title="搜索地点" aria-label="搜索地点"><i class="bi bi-search" aria-hidden="true"></i></button></div></form>' +
           '<div id="place-history" hidden></div>' +
           '<div id="place-status" class="small mt-1" role="status" aria-live="polite"></div>' +
           '<div id="place-results" class="place-search-results list-group mt-1"></div>';
@@ -270,85 +290,94 @@
       });
       if (all.length) map.fitBounds(all);
     }
-    // Leaflet风格按钮（结构完全一致）
-    L.Control.FitAll = L.Control.extend({
-      onAdd: function(map) {
-        var container = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
-        var btn = L.DomUtil.create('a', '', container);
-        btn.innerHTML = '⛶';
-        btn.title = '缩放到所有轨迹';
-        btn.href = '#';
-        btn.style.fontSize = '18px';
-        btn.style.textAlign = 'center';
-        btn.style.lineHeight = '26px';
-        btn.style.width = '26px';
-        btn.style.height = '26px';
-        btn.onclick = function(e) {
-          e.preventDefault();
-          fitAllTracks();
-        };
-        return container;
-      },
-      onRemove: function(map) {}
+    // 将全览入口放进原生缩放按钮组，共用边框、分隔线和触屏尺寸。
+    const fitAllButton = L.DomUtil.create('a', 'leaflet-control-fit-all', map.zoomControl.getContainer());
+    fitAllButton.innerHTML = '<i class="bi bi-fullscreen" aria-hidden="true"></i>';
+    fitAllButton.hidden = true;
+    map.zoomControl.getContainer().classList.add('no-journey');
+    fitAllButton.href = '#';
+    fitAllButton.title = '查看全部行程';
+    fitAllButton.setAttribute('role', 'button');
+    fitAllButton.setAttribute('aria-label', '查看全部行程');
+    fitAllButton.style.fontSize = '18px';
+    L.DomEvent.on(fitAllButton, 'click', function(event) {
+      L.DomEvent.stop(event);
+      fitAllTracks();
     });
-    L.control.fitAll = function(opts) { return new L.Control.FitAll(opts); }
-    L.control.fitAll({ position: 'topleft' }).addTo(map);
+    L.DomEvent.on(fitAllButton, 'keydown', function(event) {
+      if (event.key === ' ') {
+        L.DomEvent.stop(event);
+        fitAllTracks();
+      }
+    });
 
     async function fetchWays(way_id, reset=false, options={}) {
       const params = new URLSearchParams();
       if (reset) params.set('reset', '1');
       if (options.transfer) params.set('transfer', '1');
-      if (options.label) params.set('transfer_label', options.label);
       const res = await fetch(`/ways/${way_id}?${params}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || '轨道加载失败，请重试。');
       return data;
     }
 
-    function renderMap(data, highlightId, fit=true, fitToCurrentWay=false) {
-      lastData = data;
-      // 清除旧图层
-      blueLayers.forEach(l => map.removeLayer(l));
-      blueLayers = [];
+    function highlightChoice(data, id) {
       if (redLayer) { map.removeLayer(redLayer); redLayer = null; }
-      // 按起始轨道的 OSM 颜色显示行程。
-      data.total_path_coords.forEach(x => {
-        if (x.coords && x.coords.length >= 2) {
-          let poly = L.polyline(x.coords, {color:journeyColour(data.legs[x.leg], x.leg)}).addTo(map);
-          blueLayers.push(poly);
+      const choice = data.choice_coords.find(item => item.id == id);
+      if (choice?.coords.length >= 2) {
+        redLayer = L.polyline(choice.coords, {color: 'red', weight: 5}).addTo(map);
+      }
+    }
+
+    function fitChoices(data) {
+      const current = data.total_path_coords.find(item =>
+        item.id === data.current_way && item.leg === data.legs.length - 1);
+      if (!current?.coords.length) return;
+      const bounds = L.latLngBounds(current.coords);
+      // 当前轨道完整保留；候选从连接处各延伸500至2000米参与缩放。
+      const budget = Math.max(500, Math.min(2000,
+        bounds.getSouthWest().distanceTo(bounds.getNorthEast()) / 2));
+      const points = choiceViewportPoints(current.coords, data.choice_coords, budget,
+        (a, b) => L.latLng(a).distanceTo(L.latLng(b)));
+      map.stop();
+      map.fitBounds(points, {padding: [40, 40], maxZoom: 18, animate: false});
+    }
+
+    function renderMap(data) {
+      lastData = data;
+      const hasJourney = data.total_path_coords.length > 0;
+      const submit = document.querySelector('#way-form button[type="submit"]');
+      submit.title = hasJourney ? '按轨道 ID 添加下一段' : '按轨道 ID 开始探索';
+      submit.setAttribute('aria-label', submit.title);
+      fitAllButton.hidden = !hasJourney;
+      map.zoomControl.getContainer().classList.toggle('no-journey', !hasJourney);
+      blueLayers.forEach(layer => map.removeLayer(layer));
+      blueLayers = [];
+      highlightChoice(data, null);
+      data.total_path_coords.forEach(item => {
+        if (item.coords?.length >= 2) {
+          blueLayers.push(L.polyline(item.coords,
+            {color: journeyColour(data.legs[item.leg], item.leg)}).addTo(map));
         }
       });
-      // 红色高亮
-      if (highlightId) {
-        let w = data.choice_coords.find(x => x.id == highlightId);
-        if (w && w.coords.length >= 2) {
-          redLayer = L.polyline(w.coords, {color:'red'}).addTo(map);
-          // 候选轨道可能在当前视野外，悬浮时完整显示，快速切换不积压动画。
-          map.stop();
-          map.fitBounds(redLayer.getBounds(), {padding:[30,30], maxZoom:18, animate:false});
+      // 候选完整绘制，仅默认缩放范围截取局部。
+      data.choice_coords.forEach(item => {
+        if (item.coords?.length >= 2) {
+          blueLayers.push(L.polyline(item.coords,
+            {color: '#64748b', weight: 4, opacity: 0.7, dashArray: '6 5'}).addTo(map));
         }
-      } else if (fitToCurrentWay || fit) {
-        // 自动缩放到当前way（包括初始渲染和取消悬浮）
-        let cur = data.total_path_coords.find(x => x.id == data.current_way && x.leg === data.legs.length - 1);
-        if (cur && cur.coords && cur.coords.length) {
-          // 计算当前way的中心点
-          let lats = cur.coords.map(c => c[0]);
-          let lngs = cur.coords.map(c => c[1]);
-          let center = [
-            lats.reduce((a,b)=>a+b,0)/lats.length,
-            lngs.reduce((a,b)=>a+b,0)/lngs.length
-          ];
-          map.panTo(center);
-        }
-      }
+      });
+      fitChoices(data);
     }
 
     function renderWays(data) {
       const list = document.getElementById('ways-list');
       list.hidden = !data.legs.length;
-      let html = `<b>第 ${data.legs.length} 段 · 当前way:</b> ${data.current_way}<br>`;
+      let html = `<b>第 ${data.legs.length} 段 · 当前way:</b> ${data.current_way}
+        <button type="button" class="track-locate" id="fit-choices"
+          title="显示当前轨道与相连候选" aria-label="显示当前轨道与相连候选"><i class="bi bi-crosshair" aria-hidden="true"></i></button><br>`;
       if (data.choices.length === 0) {
-        html += `<b>${data.stop_reason || '本段已停止推进，可添加换乘'}</b>`;
+        html += `<b>${data.stop_reason || '本段已停止推进，可搜索轨道开始下一段'}</b>`;
       } else {
         let sortedChoices = [...data.choice_coords];
         let idx = sortedChoices.findIndex(w => w.recommend);
@@ -358,9 +387,11 @@
         }
         html += '<b>可选相连轨道:</b><ul class="list-group mt-2">' + sortedChoices.map(w => {
           let name = w.meta && w.meta.tags && w.meta.tags.name ? `（${w.meta.tags.name}）` : '（未命名）';
-          let star = w.recommend ? '<span class="star">*</span>' : '';
+          let star = w.recommend ? '<span class="star" title="推荐接续轨道" aria-label="推荐接续轨道">⭐</span>' : '';
           let liClass = w.recommend ? 'list-group-item active-choice' : 'list-group-item';
-          return `<li class='${liClass}' style='margin-bottom:2px;list-style-type:disc;'><span class=\"choice-way\" data-wayid=\"${w.id}\">${w.id}${name}${star}</span></li>`;
+          return `<li class='${liClass}' style='margin-bottom:2px;list-style-type:disc;'><button type="button" class="choice-way" data-wayid="${w.id}">${w.id}${name}${star}</button>
+            <button type="button" class="track-locate locate-choice" data-wayid="${w.id}"
+              title="查看这条候选轨道全貌" aria-label="查看候选轨道 ${w.id} 全貌"><i class="bi bi-crosshair" aria-hidden="true"></i></button></li>`;
         }).join('') + '</ul>';
       }
       list.innerHTML = html;
@@ -368,17 +399,28 @@
       // 悬停高亮
       document.querySelectorAll('.choice-way').forEach(function(el){
         el.onmouseenter = function(){
-          renderMap(data, el.getAttribute('data-wayid'), false);
+          highlightChoice(data, el.getAttribute('data-wayid'));
         };
         el.onmouseleave = function(){
-          renderMap(data, undefined, true);
+          highlightChoice(data, null);
         };
+        el.onfocus = el.onmouseenter;
+        el.onblur = el.onmouseleave;
         el.onclick = function(){
           runTrackAction(() => selectWay(el.getAttribute('data-wayid')));
         }
       });
-      // 初始渲染
-      renderMap(data, undefined, false, true);
+      document.getElementById('fit-choices').onclick = () => fitChoices(data);
+      document.querySelectorAll('.locate-choice').forEach(button => {
+        button.onclick = () => {
+          const choice = data.choice_coords.find(item => item.id == button.dataset.wayid);
+          if (!choice?.coords.length) return;
+          highlightChoice(data, choice.id);
+          map.stop();
+          map.fitBounds(choice.coords, {padding: [40, 40], maxZoom: 18, animate: false});
+        };
+      });
+      renderMap(data);
     }
 
     function renderExport(data) {
@@ -397,12 +439,6 @@
         const info = document.createElement('div');
         info.className = 'text-muted';
         info.textContent = `${leg.path.length} 段轨道`;
-        if (index > 0) {
-          const transfer = document.createElement('div');
-          transfer.className = 'small text-muted mb-1';
-          transfer.textContent = `换乘：${leg.transfer_label || '手动选择轨道'}`;
-          list.appendChild(transfer);
-        }
         row.append(title, info);
         list.appendChild(row);
         scope.add(new Option(`第 ${index + 1} 段`, String(index)));
@@ -417,17 +453,12 @@
       const path = scope === 'all' ? data.total_path : data.legs[Number(scope)].path;
       const ids = [...new Set(path.map(item => item.way_id))];
       document.getElementById('total-path').hidden = ids.length === 0;
-      const manual = path.filter(item => item.type === 'manual').length;
-      document.getElementById('path-summary').textContent = `${scope === 'all' ? '全部行程' : `第 ${Number(scope) + 1} 段`} · ${ids.length} 段轨道`;
-      document.getElementById('path-counts').textContent = `手动选择 ${manual} 段 · 自动推进 ${path.length - manual} 段`;
+      const manual = data.total_path.filter(item => item.type === 'manual').length;
+      document.getElementById('path-summary').textContent = `全部行程 · ${data.total_path.length} 段轨道`;
+      document.getElementById('path-counts').textContent = `手动选择 ${manual} 段 · 自动推进 ${data.total_path.length - manual} 段`;
       const query = ids.length ? `[out:json][timeout:25];\n(\n${ids.map(id => `  way(${id});`).join('\n')}\n);\n(._;>;);\nout body;` : '';
       document.getElementById('overpass-query').value = query;
       document.getElementById('copy-query').disabled = !query;
-      const link = document.getElementById('open-overpass');
-      link.classList.toggle('disabled', !query);
-      link.setAttribute('aria-disabled', String(!query));
-      if (query) link.href = `https://overpass-turbo.eu/?Q=${encodeURIComponent(query)}`;
-      else link.removeAttribute('href');
       document.getElementById('export-status').textContent = '';
     }
 
@@ -438,7 +469,7 @@
       const url = URL.createObjectURL(new Blob([kml], {type:'application/vnd.google-earth.kml+xml'}));
       const link = document.createElement('a');
       link.href = url;
-      link.download = scope === 'all' ? 'journey.kml' : `journey-leg-${Number(scope) + 1}.kml`;
+      link.download = journeyFilename(lastData, scope);
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     };
@@ -464,13 +495,6 @@
         data = await fetchWays(data.choices[0]);
       }
       renderWays(data);
-      if (reset || options.transfer) {
-        const coords = data.total_path_coords.filter(item => item.leg === data.legs.length - 1).flatMap(item => item.coords);
-        if (coords.length) map.fitBounds(coords, {padding:[20,20], maxZoom:18});
-        transferMode = false;
-        document.getElementById('transfer-panel').hidden = true;
-        document.getElementById('transfer-label').value = '';
-      }
       return data;
     }
 
@@ -481,7 +505,7 @@
       const status = document.getElementById('query-status');
       status.classList.remove('text-danger');
       status.textContent = '加载中…';
-      document.querySelectorAll('#way-form input, #way-form button, #query-results button, #element-detail button, #element-detail select, #transfer-panel input, #transfer-panel button, #add-transfer, #undo-way').forEach(el => el.disabled = true);
+      document.querySelectorAll('#way-form input, #way-form button, #query-results button, #element-detail button, #element-detail select, #undo-way').forEach(el => el.disabled = true);
       try {
         await action();
         if (status.textContent === '加载中…') status.textContent = '';
@@ -490,7 +514,7 @@
         status.textContent = error.message || '请求失败，请重试。';
       } finally {
         trackActionPending = false;
-        document.querySelectorAll('#way-form input, #way-form button, #query-results button, #element-detail button, #element-detail select, #transfer-panel input, #transfer-panel button, #add-transfer, #undo-way').forEach(el => el.disabled = false);
+        document.querySelectorAll('#way-form input, #way-form button, #query-results button, #element-detail button, #element-detail select, #undo-way').forEach(el => el.disabled = false);
       }
     }
 
@@ -558,18 +582,24 @@
       const panel = document.getElementById('element-detail');
       panel.replaceChildren();
       const heading = document.createElement('h6');
-      heading.textContent = elementTitle(data);
+      heading.className = 'd-flex align-items-center gap-1';
+      const headingText = document.createElement('span');
+      headingText.style.minWidth = '0';
+      headingText.textContent = elementTitle(data);
+      heading.appendChild(headingText);
       panel.appendChild(heading);
       const zoom = document.createElement('button');
-      zoom.className = 'btn btn-sm btn-outline-secondary me-2 mb-2';
-      zoom.textContent = '缩放到此要素';
+      zoom.type = 'button';
+      zoom.className = 'track-locate flex-shrink-0';
+      zoom.innerHTML = '<i class="bi bi-crosshair" aria-hidden="true"></i>';
+      zoom.title = '缩放到此要素';
+      zoom.setAttribute('aria-label', '缩放到此要素');
       zoom.disabled = !data.geometry.length;
       zoom.onclick = () => { if (previewLayer && previewLayer.getBounds().isValid()) map.fitBounds(previewLayer.getBounds(), {padding:[25,25], maxZoom:18}); };
-      panel.appendChild(zoom);
+      heading.appendChild(zoom);
       if (kind === 'way') {
         const beginLeg = async transfer => {
-          await selectWay(id, !transfer, {transfer,
-            label:document.getElementById('transfer-label').value.trim()});
+          await selectWay(id, !transfer, {transfer});
           clearPreview();
           document.querySelectorAll('#query-results details, #element-detail details')
             .forEach(section => section.open = false);
@@ -577,15 +607,15 @@
           document.getElementById('query-status').textContent = `已开始第 ${lastData.legs.length} 段行程。`;
           panel.querySelectorAll('[data-next-leg], [data-start-leg]').forEach(button => button.remove());
         };
-        if (transferMode || !lastData?.legs?.length) {
+        if (!lastData?.legs?.length) {
           const start = document.createElement('button');
           start.dataset.startLeg = '';
           start.className = 'btn btn-sm btn-primary mb-2 me-2';
-          start.textContent = transferMode ? '换乘到此轨道' : '从此轨道开始探索';
-          start.onclick = () => runTrackAction(() => beginLeg(transferMode));
+          start.textContent = '从此轨道开始探索';
+          start.onclick = () => runTrackAction(() => beginLeg(false));
           panel.appendChild(start);
         }
-        if (!transferMode && lastData?.legs?.length && !data.connected_to_journey) {
+        if (lastData?.legs?.length) {
           const next = document.createElement('button');
           next.dataset.nextLeg = '';
           next.className = 'btn btn-sm btn-outline-primary mb-2';
@@ -724,9 +754,6 @@
       const response = await fetch('/journey/undo-way', {method:'POST'});
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || '退回失败，请重试。');
-      transferMode = false;
-      document.getElementById('transfer-panel').hidden = true;
-      document.getElementById('transfer-label').value = '';
       document.getElementById('element-detail').replaceChildren();
       clearPreview();
       document.getElementById('way_id').value = data.current_way || '';
@@ -734,29 +761,13 @@
       renderWays(data);
     });
 
-    document.getElementById('add-transfer').onclick = () => {
-      if (trackActionPending || !lastData?.legs?.length) return;
-      transferMode = true;
-      document.getElementById('transfer-panel').hidden = false;
-      document.getElementById('element-detail').replaceChildren();
-      clearPreview();
-      const current = lastData.total_path_coords.find(item => item.id === lastData.current_way && item.leg === lastData.legs.length - 1);
-      if (current?.coords.length) map.fitBounds(current.coords, {padding:[30,30], maxZoom:17});
-    };
-    document.getElementById('cancel-transfer').onclick = () => {
-      transferMode = false;
-      document.getElementById('transfer-label').value = '';
-      document.getElementById('transfer-panel').hidden = true;
-      document.getElementById('element-detail').replaceChildren();
-      clearPreview();
-    };
-
     document.getElementById('way-form').onsubmit = async function(e) {
       e.preventDefault();
       const id = document.getElementById('way_id').value.trim();
       await runTrackAction(async () => {
         if (!/^\d+$/.test(id)) throw new Error('请输入数字轨道 ID，或在地图上右键查询。');
-        await selectWay(id, !transferMode, {transfer:transferMode, label:document.getElementById('transfer-label').value.trim()});
+        const hasJourney = Boolean(lastData?.legs?.length);
+        await selectWay(id, !hasJourney, {transfer:hasJourney});
         clearPreview();
       });
     };

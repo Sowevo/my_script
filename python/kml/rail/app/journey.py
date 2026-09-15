@@ -22,7 +22,7 @@ class JourneyExplorer:
         current = leg['current_way']
         visited = {item['way_id'] for item in leg['path']}
         choices = sorted(self.connected(current) - visited)
-        return choices, '' if choices else '本段没有更多相连轨道，可添加换乘。'
+        return choices, '' if choices else '本段没有更多相连轨道，可搜索轨道开始下一段。'
 
     def advance(self, legs, wid, *, reset=False, transfer=False,
                 transfer_label='', max_steps=20):

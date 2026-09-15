@@ -54,3 +54,21 @@ function journeyKml(data, scope, colours) {
     '<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>轨道行程</name>' +
     placemarks.join('') + '</Document></kml>';
 }
+
+// 用线路名和导出范围命名，保留中文并清理文件名禁用字符。
+function journeyFilename(data, scope) {
+  const clean = value => Array.from(String(value || '未命名轨道')
+    .replace(/[<>:"/\\|?*\x00-\x1f]/g, ' ')
+    .replace(/\s+/g, ' ').trim() || '未命名轨道').slice(0, 16).join('');
+  let title;
+  if (scope === 'all') {
+    const names = [...new Set(data.legs.map(leg => leg.name || '未命名轨道'))];
+    title = names.slice(0, 3).map(clean).join('、');
+    if (names.length > 3) title += `等${names.length}条线路`;
+    title += '_全部行程';
+  } else {
+    const index = Number(scope);
+    title = `${clean(data.legs[index]?.name)}_第${index + 1}段`;
+  }
+  return `${title}.kml`;
+}
