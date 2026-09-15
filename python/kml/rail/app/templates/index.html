@@ -5,14 +5,13 @@
   <title>铁路way递归提取与地图展示</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <style>
     body { margin: 0; padding: 0; }
     .main-layout {
       display: flex;
       flex-direction: row;
       height: 100vh;
-      min-width: 900px;
+      min-width: 0;
     }
     .left-panel {
       width: 390px;
@@ -36,25 +35,8 @@
     #map { width: 100%; height: 100%; min-height: 600px; border-radius: 8px; }
     .choice-way { cursor:pointer; text-decoration:underline; color:#d9534f; margin-right:8px; }
     .choice-way:hover { color:#b52b27; }
-    .total-path-way {
-      display: inline-block;
-      margin-right: 6px;
-      padding: 1px 4px 1px 2px;
-      border-radius: 4px;
-      font-family: 'Consolas', 'Menlo', 'monospace';
-      font-size: 15px;
-      line-height: 2.1;
-      transition: background 0.2s;
-    }
-    .total-path-way.manual {
-      color: #1976d2;
-      font-weight: bold;
-      background: none;
-    }
-    .total-path-way.auto {
-      color: #888;
-      background: none;
-    }
+    #total-path { background:#fff; border:1px solid #dce2ea; border-radius:8px; padding:14px; }
+    #overpass-query { width:100%; font:12px/1.5 monospace; resize:vertical; }
     .section-title {
       font-size: 18px;
       font-weight: bold;
@@ -63,6 +45,9 @@
     }
     #ways-list { margin-bottom: 18px; }
     #way-form { margin-bottom: 18px; }
+    .place-search { background:#fff; padding:10px; border-radius:6px; width:320px; max-width:calc(100vw - 80px); box-shadow:0 1px 5px #0004; }
+    .place-search-results { max-height:240px; overflow-y:auto; overflow-wrap:anywhere; }
+    #query-results summary { display:list-item; list-style-position:inside; cursor:pointer; }
     .list-group-item.active-choice {
       background: #e3f2fd;
       color: #1976d2;
@@ -83,16 +68,9 @@
       font-weight: bold;
       margin-left: 2px;
     }
-    .copy-tip-toast {
-      position: fixed;
-      top: 24px;
-      right: 24px;
-      z-index: 2000;
-      min-width: 160px;
-    }
     @media (max-width: 900px) {
       .main-layout { flex-direction: column; }
-      .left-panel { width: 100%; max-width: none; border-right: none; border-bottom: 1px solid #e0e0e0; }
+      .left-panel { width: 100%; min-width: 0; max-width: none; flex-shrink: 0; padding: 18px; border-right: none; border-bottom: 1px solid #e0e0e0; }
       .right-panel { min-height: 400px; }
     }
   </style>
@@ -103,32 +81,186 @@
       <div class="section-title">轨道操作</div>
       <form id="way-form" class="mb-3">
         <div class="input-group">
-          <span class="input-group-text">way_id</span>
-          <input type="number" id="way_id" class="form-control" required>
-          <button type="submit" class="btn btn-primary">重新开始</button>
+          <input type="text" id="way_id" class="form-control" placeholder="输入轨道 way ID" aria-label="轨道 way ID" inputmode="numeric" pattern="[0-9]+" maxlength="100" required>
+          <button type="submit" class="btn btn-primary">开始探索</button>
         </div>
+        <div class="form-text">在地图上右键，选择查询半径，查看附近轨道及所属关系；也可输入轨道 ID 开始探索。</div>
       </form>
-      <div id="ways-list"><b>可选相连轨道:</b><ul class="list-group mt-2"></ul></div>
-      <div id="total-path"><b>全局累计链路:</b> </div>
+      <div id="query-status" class="small mb-2" role="status" aria-live="polite"></div>
+      <div id="query-results" class="list-group mb-3" style="max-height:320px;overflow-y:auto;"></div>
+      <div id="element-detail" class="mb-3" style="overflow-wrap:anywhere;"></div>
+      <div id="transfer-panel" class="border rounded p-2 mb-3" hidden>
+        <div class="fw-bold mb-2">选择换乘轨道</div>
+        <input id="transfer-label" class="form-control form-control-sm mb-2" placeholder="换乘站 / 备注（可选）" aria-label="换乘备注" maxlength="100">
+        <div class="small mb-2">在附近右键选择轨道，或在上方输入轨道 ID，作为下一段继续。</div>
+        <button id="cancel-transfer" class="btn btn-sm btn-outline-secondary" type="button">取消换乘</button>
+      </div>
+      <div id="ways-list" hidden><b>可选相连轨道:</b><ul class="list-group mt-2"></ul></div>
+      <div id="total-path" hidden>
+        <div id="path-summary" class="fw-bold">尚未选择轨道</div>
+        <div id="path-counts" class="small text-muted mb-2"></div>
+        <div id="journey-legs" class="mb-2"></div>
+        <button id="undo-way" class="btn btn-outline-secondary btn-sm w-100 mb-2" type="button">退回一条轨道</button>
+        <button id="add-transfer" class="btn btn-outline-primary btn-sm w-100 mb-2" type="button">添加换乘</button>
+        <label for="export-scope" class="small">导出范围</label>
+        <select id="export-scope" class="form-select form-select-sm mb-2" aria-label="导出范围"><option value="all">全部行程</option></select>
+        <div class="d-grid gap-2">
+          <button id="download-kml" type="button" class="btn btn-primary btn-sm">下载 KML</button>
+          <button id="copy-query" type="button" class="btn btn-primary btn-sm" disabled>复制 Overpass 查询</button>
+          <a id="open-overpass" class="btn btn-outline-primary btn-sm disabled" aria-disabled="true" target="_blank" rel="noopener noreferrer">在 Overpass Turbo 中打开</a>
+        </div>
+        <div id="export-status" class="small mt-2" role="status" aria-live="polite"></div>
+        <div class="small text-muted mt-2">在 Overpass Turbo 中运行后，可导出 GeoJSON / KML。</div>
+        <details id="query-preview" class="mt-2">
+          <summary class="small">查看查询内容</summary>
+          <textarea id="overpass-query" class="form-control mt-2" rows="7" readonly aria-label="Overpass 查询内容"></textarea>
+        </details>
+      </div>
     </div>
     <div class="right-panel">
       <div id="map"></div>
     </div>
   </div>
-  <!-- Toast for copy tip -->
-  <div class="toast align-items-center text-bg-success border-0 copy-tip-toast" id="copyToast" role="alert" aria-live="assertive" aria-atomic="true">
-    <div class="d-flex">
-      <div class="toast-body">已复制，可直接粘贴到overpass-turbo.eu！</div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-    </div>
-  </div>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="{{ url_for('static', filename='journey_export.js') }}"></script>
   <script>
-    let map = L.map('map').setView([35, 104], 5);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 18}).addTo(map);
+    const initialBounds = {{ map_bounds | tojson }};
+    let map = L.map('map');
+    if (initialBounds) {
+      map.fitBounds(initialBounds, {padding: [20, 20], maxZoom: 12});
+    } else {
+      map.setView([0, 0], 2);
+    }
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
     let blueLayers = [];
     let redLayer = null;
     let lastData = null;
+    let transferMode = false;
+
+    // 在线地名定位独立于本地轨道探索，只有提交表单才发送查询。
+    let placeMarker = null;
+    const PlaceSearch = L.Control.extend({
+      onAdd: function() {
+        const box = L.DomUtil.create('div', 'place-search');
+        box.innerHTML = '<form id="place-form"><div class="input-group input-group-sm">' +
+          '<input id="place-query" class="form-control" aria-label="搜索地点" placeholder="城市、车站、机场或地址" maxlength="200" autocomplete="off" required>' +
+          '<button class="btn btn-primary" type="submit">搜索地点</button></div></form>' +
+          '<div id="place-history" hidden></div>' +
+          '<div id="place-status" class="small mt-1" role="status" aria-live="polite"></div>' +
+          '<div id="place-results" class="place-search-results list-group mt-1"></div>';
+        L.DomEvent.disableClickPropagation(box);
+        L.DomEvent.disableScrollPropagation(box);
+        L.DomEvent.on(box, 'keydown', L.DomEvent.stopPropagation);
+        const historyKey = 'rail.placeSearchHistory.v1';
+        const historyPanel = box.querySelector('#place-history');
+        const searchInput = box.querySelector('input');
+        let history = [];
+        try {
+          const saved = JSON.parse(localStorage.getItem(historyKey) || '[]');
+          if (Array.isArray(saved)) history = [...new Set(saved.filter(value =>
+            typeof value === 'string' && value.trim() && value.length <= 200))].slice(0, 10);
+        } catch (_) {}
+        function persistHistory() {
+          try { localStorage.setItem(historyKey, JSON.stringify(history)); } catch (_) {}
+        }
+        function hideHistory() {
+          historyPanel.hidden = true;
+          box.querySelector('#place-results').style.display = '';
+        }
+        function showHistory() {
+          if (searchInput.disabled) return;
+          const query = searchInput.value.trim().toLocaleLowerCase();
+          const matches = history.filter(value => value.toLocaleLowerCase().includes(query));
+          historyPanel.replaceChildren();
+          if (!matches.length) { hideHistory(); return; }
+          const header = document.createElement('div');
+          header.className = 'd-flex justify-content-between align-items-center mt-2 mb-1';
+          const title = document.createElement('small');
+          title.className = 'text-muted';
+          title.textContent = '搜索历史';
+          const clear = document.createElement('button');
+          clear.type = 'button';
+          clear.className = 'btn btn-sm btn-link p-0';
+          clear.textContent = '清空';
+          clear.onclick = () => { history = []; persistHistory(); hideHistory(); };
+          header.append(title, clear);
+          const list = document.createElement('div');
+          list.className = 'place-search-results list-group';
+          matches.forEach(value => {
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.className = 'list-group-item list-group-item-action small';
+            item.textContent = value;
+            item.onclick = () => {
+              searchInput.value = value;
+              box.querySelector('form').requestSubmit();
+            };
+            list.appendChild(item);
+          });
+          historyPanel.append(header, list);
+          historyPanel.hidden = false;
+          box.querySelector('#place-results').style.display = 'none';
+        }
+        searchInput.addEventListener('focus', showHistory);
+        searchInput.addEventListener('click', showHistory);
+        searchInput.addEventListener('input', showHistory);
+        box.addEventListener('keydown', event => { if (event.key === 'Escape') hideHistory(); });
+        document.addEventListener('pointerdown', event => { if (!box.contains(event.target)) hideHistory(); });
+        box.querySelector('form').onsubmit = async event => {
+          event.preventDefault();
+          const input = box.querySelector('input');
+          const button = box.querySelector('button');
+          const status = box.querySelector('#place-status');
+          const results = box.querySelector('#place-results');
+          const query = input.value.trim();
+          if (!query || button.disabled) return;
+          hideHistory();
+          input.disabled = button.disabled = true;
+          results.replaceChildren();
+          status.classList.remove('text-danger');
+          status.textContent = '正在搜索地点…';
+          try {
+            const response = await fetch(`/geocode?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || '地点搜索失败。');
+            if (data.results.length) {
+              history = [query, ...history.filter(value => value.toLocaleLowerCase() !== query.toLocaleLowerCase())].slice(0, 10);
+              persistHistory();
+            }
+            status.textContent = data.results.length ? '' : '未找到地点，请补充城市或地区名称。';
+            data.results.forEach(place => {
+              const item = document.createElement('button');
+              item.type = 'button';
+              item.className = 'list-group-item list-group-item-action small';
+              item.textContent = place.name;
+              item.onclick = () => {
+                map.closePopup();
+                if (place.bounds) map.fitBounds(place.bounds, {padding:[30,30], maxZoom:17});
+                else map.setView([place.lat, place.lon], 16);
+                if (placeMarker) map.removeLayer(placeMarker);
+                const label = document.createElement('span');
+                label.textContent = place.name;
+                placeMarker = L.circleMarker([place.lat, place.lon], {
+                  radius:7, color:'#1976d2', fillColor:'#fff', fillOpacity:1
+                }).bindTooltip(label).addTo(map);
+                status.textContent = '';
+                results.replaceChildren();
+              };
+              results.appendChild(item);
+            });
+          } catch (error) {
+            status.classList.add('text-danger');
+            status.textContent = error.message || '地点搜索失败，请重试。';
+          } finally {
+            input.disabled = button.disabled = false;
+          }
+        };
+        return box;
+      }
+    });
+    new PlaceSearch({position:'topright'}).addTo(map);
 
     function fitAllTracks() {
       if (!lastData) return;
@@ -162,9 +294,15 @@
     L.control.fitAll = function(opts) { return new L.Control.FitAll(opts); }
     L.control.fitAll({ position: 'topleft' }).addTo(map);
 
-    async function fetchWays(way_id, reset=false) {
-      const res = await fetch(`/ways/${way_id}` + (reset ? '?reset=1' : ''));
-      return await res.json();
+    async function fetchWays(way_id, reset=false, options={}) {
+      const params = new URLSearchParams();
+      if (reset) params.set('reset', '1');
+      if (options.transfer) params.set('transfer', '1');
+      if (options.label) params.set('transfer_label', options.label);
+      const res = await fetch(`/ways/${way_id}?${params}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || '轨道加载失败，请重试。');
+      return data;
     }
 
     function renderMap(data, highlightId, fit=true, fitToCurrentWay=false) {
@@ -173,10 +311,10 @@
       blueLayers.forEach(l => map.removeLayer(l));
       blueLayers = [];
       if (redLayer) { map.removeLayer(redLayer); redLayer = null; }
-      // 蓝色链路：全局累计链路
+      // 按起始轨道的 OSM 颜色显示行程。
       data.total_path_coords.forEach(x => {
         if (x.coords && x.coords.length >= 2) {
-          let poly = L.polyline(x.coords, {color:'blue'}).addTo(map);
+          let poly = L.polyline(x.coords, {color:journeyColour(data.legs[x.leg], x.leg)}).addTo(map);
           blueLayers.push(poly);
         }
       });
@@ -185,11 +323,13 @@
         let w = data.choice_coords.find(x => x.id == highlightId);
         if (w && w.coords.length >= 2) {
           redLayer = L.polyline(w.coords, {color:'red'}).addTo(map);
-          // 悬浮时不自动缩放
+          // 候选轨道可能在当前视野外，悬浮时完整显示，快速切换不积压动画。
+          map.stop();
+          map.fitBounds(redLayer.getBounds(), {padding:[30,30], maxZoom:18, animate:false});
         }
       } else if (fitToCurrentWay || fit) {
         // 自动缩放到当前way（包括初始渲染和取消悬浮）
-        let cur = data.total_path_coords.find(x => x.id == data.current_way);
+        let cur = data.total_path_coords.find(x => x.id == data.current_way && x.leg === data.legs.length - 1);
         if (cur && cur.coords && cur.coords.length) {
           // 计算当前way的中心点
           let lats = cur.coords.map(c => c[0]);
@@ -205,9 +345,10 @@
 
     function renderWays(data) {
       const list = document.getElementById('ways-list');
-      let html = `<b>当前way:</b> ${data.current_way}<br>`;
+      list.hidden = !data.legs.length;
+      let html = `<b>第 ${data.legs.length} 段 · 当前way:</b> ${data.current_way}<br>`;
       if (data.choices.length === 0) {
-        html += '<b>没有更多可选轨道</b>';
+        html += `<b>${data.stop_reason || '本段已停止推进，可添加换乘'}</b>`;
       } else {
         let sortedChoices = [...data.choice_coords];
         let idx = sortedChoices.findIndex(w => w.recommend);
@@ -223,12 +364,7 @@
         }).join('') + '</ul>';
       }
       list.innerHTML = html;
-      // 区分显示全局累计链路
-      const pathHtml = data.total_path.map(x => {
-        const cls = x.type === 'manual' ? 'manual' : 'auto';
-        return `<span class='total-path-way ${cls}' title='${x.type === 'manual' ? '手动选择' : '自动推进'}'>way(${x.way_id});</span>`;
-      }).join('');
-      document.getElementById('total-path').innerHTML = `<b>全局累计链路:</b> ${pathHtml}`;
+      renderExport(data);
       // 悬停高亮
       document.querySelectorAll('.choice-way').forEach(function(el){
         el.onmouseenter = function(){
@@ -238,46 +374,395 @@
           renderMap(data, undefined, true);
         };
         el.onclick = function(){
-          selectWay(el.getAttribute('data-wayid'));
+          runTrackAction(() => selectWay(el.getAttribute('data-wayid')));
         }
       });
       // 初始渲染
       renderMap(data, undefined, false, true);
     }
 
-    async function selectWay(way_id, reset=false) {
-      let data = await fetchWays(way_id, reset);
+    function renderExport(data) {
+      const list = document.getElementById('journey-legs');
+      list.replaceChildren();
+      const scope = document.getElementById('export-scope');
+      const selected = scope.value;
+      scope.replaceChildren(new Option('全部行程', 'all'));
+      data.legs.forEach((leg, index) => {
+        const row = document.createElement('div');
+        row.className = 'border-start border-3 ps-2 mb-2 small';
+        row.style.setProperty('border-left-color', journeyColour(leg, index), 'important');
+        const title = document.createElement('div');
+        title.className = 'fw-bold';
+        title.textContent = `第 ${index + 1} 段 · ${leg.name}`;
+        const info = document.createElement('div');
+        info.className = 'text-muted';
+        info.textContent = `${leg.path.length} 段轨道`;
+        if (index > 0) {
+          const transfer = document.createElement('div');
+          transfer.className = 'small text-muted mb-1';
+          transfer.textContent = `换乘：${leg.transfer_label || '手动选择轨道'}`;
+          list.appendChild(transfer);
+        }
+        row.append(title, info);
+        list.appendChild(row);
+        scope.add(new Option(`第 ${index + 1} 段`, String(index)));
+      });
+      scope.value = [...scope.options].some(option => option.value === selected) ? selected : 'all';
+      scope.onchange = () => updateExportQuery(data);
+      updateExportQuery(data);
+    }
+
+    function updateExportQuery(data) {
+      const scope = document.getElementById('export-scope').value;
+      const path = scope === 'all' ? data.total_path : data.legs[Number(scope)].path;
+      const ids = [...new Set(path.map(item => item.way_id))];
+      document.getElementById('total-path').hidden = ids.length === 0;
+      const manual = path.filter(item => item.type === 'manual').length;
+      document.getElementById('path-summary').textContent = `${scope === 'all' ? '全部行程' : `第 ${Number(scope) + 1} 段`} · ${ids.length} 段轨道`;
+      document.getElementById('path-counts').textContent = `手动选择 ${manual} 段 · 自动推进 ${path.length - manual} 段`;
+      const query = ids.length ? `[out:json][timeout:25];\n(\n${ids.map(id => `  way(${id});`).join('\n')}\n);\n(._;>;);\nout body;` : '';
+      document.getElementById('overpass-query').value = query;
+      document.getElementById('copy-query').disabled = !query;
+      const link = document.getElementById('open-overpass');
+      link.classList.toggle('disabled', !query);
+      link.setAttribute('aria-disabled', String(!query));
+      if (query) link.href = `https://overpass-turbo.eu/?Q=${encodeURIComponent(query)}`;
+      else link.removeAttribute('href');
+      document.getElementById('export-status').textContent = '';
+    }
+
+    document.getElementById('download-kml').onclick = () => {
+      if (!lastData?.legs?.length) return;
+      const scope = document.getElementById('export-scope').value;
+      const kml = journeyKml(lastData, scope, lastData.legs.map(journeyColour));
+      const url = URL.createObjectURL(new Blob([kml], {type:'application/vnd.google-earth.kml+xml'}));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = scope === 'all' ? 'journey.kml' : `journey-leg-${Number(scope) + 1}.kml`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+
+    document.getElementById('copy-query').onclick = async () => {
+      const query = document.getElementById('overpass-query');
+      if (!query.value) return;
+      const status = document.getElementById('export-status');
+      try {
+        await navigator.clipboard.writeText(query.value);
+        status.textContent = '已复制 Overpass 查询。';
+      } catch (_) {
+        document.getElementById('query-preview').open = true;
+        query.focus();
+        query.select();
+        status.textContent = '无法自动复制，已选中查询内容，请按 Ctrl+C / ⌘C 复制。';
+      }
+    };
+
+    async function selectWay(way_id, reset=false, options={}) {
+      let data = await fetchWays(way_id, reset, options);
       while (data.choices.length === 1) {
         data = await fetchWays(data.choices[0]);
       }
       renderWays(data);
+      if (reset || options.transfer) {
+        const coords = data.total_path_coords.filter(item => item.leg === data.legs.length - 1).flatMap(item => item.coords);
+        if (coords.length) map.fitBounds(coords, {padding:[20,20], maxZoom:18});
+        transferMode = false;
+        document.getElementById('transfer-panel').hidden = true;
+        document.getElementById('transfer-label').value = '';
+      }
+      return data;
     }
+
+    let trackActionPending = false;
+    async function runTrackAction(action) {
+      if (trackActionPending) return;
+      trackActionPending = true;
+      const status = document.getElementById('query-status');
+      status.classList.remove('text-danger');
+      status.textContent = '加载中…';
+      document.querySelectorAll('#way-form input, #way-form button, #query-results button, #element-detail button, #element-detail select, #transfer-panel input, #transfer-panel button, #add-transfer, #undo-way').forEach(el => el.disabled = true);
+      try {
+        await action();
+        if (status.textContent === '加载中…') status.textContent = '';
+      } catch (error) {
+        status.classList.add('text-danger');
+        status.textContent = error.message || '请求失败，请重试。';
+      } finally {
+        trackActionPending = false;
+        document.querySelectorAll('#way-form input, #way-form button, #query-results button, #element-detail button, #element-detail select, #transfer-panel input, #transfer-panel button, #add-transfer, #undo-way').forEach(el => el.disabled = false);
+      }
+    }
+
+    const typeNames = {rail: '铁路', subway: '地铁', light_rail: '轻轨', monorail: '单轨铁路'};
+    let queryMarker = null;
+    let queryCircle = null;
+    let previewLayer = null;
+
+    function clearPreview() {
+      if (previewLayer) map.removeLayer(previewLayer);
+      previewLayer = null;
+    }
+
+    function elementTitle(item) {
+      return `${item.type === 'relation' ? '关系' : '轨道'}：${item.display_name || item.name}（${item.id}）`;
+    }
+
+    function relationDirection(item) {
+      if (item.relation_type !== 'route') return '';
+      if (item.roundtrip) {
+        return item.from && item.from === item.to ? `环线 · 起终点：${item.from}` : '环线';
+      }
+      return item.from || item.to
+        ? `${item.from || '起点未标注'} → ${item.to || '终点未标注'}`
+        : '未标注起终点';
+    }
+
+    function elementButton(item) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'list-group-item list-group-item-action';
+      const title = document.createElement('div');
+      title.textContent = elementTitle(item);
+      const detail = document.createElement('small');
+      detail.className = 'text-muted';
+      const relationTypes = {route:'运行线路', route_master:'线路总关系', network:'交通网络'};
+      detail.textContent = [typeNames[item.railway] || item.railway,
+        relationTypes[item.relation_type] || item.relation_type, item.route, item.ref].filter(Boolean).join(' · ');
+      button.append(title, detail);
+      const directionText = relationDirection(item);
+      if (directionText) {
+        const direction = document.createElement('div');
+        direction.className = 'small fw-bold';
+        direction.textContent = directionText;
+        button.appendChild(direction);
+      }
+      const roles = (item.roles || []).filter(Boolean);
+      if (roles.length) {
+        const role = document.createElement('div');
+        role.className = 'small text-muted';
+        role.textContent = `成员角色：${roles.join(' / ')}`;
+        button.appendChild(role);
+      }
+      button.onclick = () => runTrackAction(() => showElement(item.type, item.id));
+      return button;
+    }
+
+    async function showElement(kind, id) {
+      const response = await fetch(`/elements/${kind}/${id}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '要素加载失败。');
+      clearPreview();
+      previewLayer = L.featureGroup(data.geometry.map(coords =>
+        L.polyline(coords, {color:'#f08c00', weight:6, opacity:0.85}))).addTo(map);
+      const panel = document.getElementById('element-detail');
+      panel.replaceChildren();
+      const heading = document.createElement('h6');
+      heading.textContent = elementTitle(data);
+      panel.appendChild(heading);
+      const zoom = document.createElement('button');
+      zoom.className = 'btn btn-sm btn-outline-secondary me-2 mb-2';
+      zoom.textContent = '缩放到此要素';
+      zoom.disabled = !data.geometry.length;
+      zoom.onclick = () => { if (previewLayer && previewLayer.getBounds().isValid()) map.fitBounds(previewLayer.getBounds(), {padding:[25,25], maxZoom:18}); };
+      panel.appendChild(zoom);
+      if (kind === 'way') {
+        const beginLeg = async transfer => {
+          await selectWay(id, !transfer, {transfer,
+            label:document.getElementById('transfer-label').value.trim()});
+          clearPreview();
+          document.querySelectorAll('#query-results details, #element-detail details')
+            .forEach(section => section.open = false);
+          document.getElementById('way_id').value = id;
+          document.getElementById('query-status').textContent = `已开始第 ${lastData.legs.length} 段行程。`;
+          panel.querySelectorAll('[data-next-leg], [data-start-leg]').forEach(button => button.remove());
+        };
+        if (transferMode || !lastData?.legs?.length) {
+          const start = document.createElement('button');
+          start.dataset.startLeg = '';
+          start.className = 'btn btn-sm btn-primary mb-2 me-2';
+          start.textContent = transferMode ? '换乘到此轨道' : '从此轨道开始探索';
+          start.onclick = () => runTrackAction(() => beginLeg(transferMode));
+          panel.appendChild(start);
+        }
+        if (!transferMode && lastData?.legs?.length && !data.connected_to_journey) {
+          const next = document.createElement('button');
+          next.dataset.nextLeg = '';
+          next.className = 'btn btn-sm btn-outline-primary mb-2';
+          next.textContent = '作为下一段继续';
+          next.onclick = () => runTrackAction(() => beginLeg(true));
+          panel.appendChild(next);
+        }
+      }
+      const directionText = relationDirection(data);
+      if (directionText) {
+        const direction = document.createElement('p');
+        direction.className = 'fw-bold my-2';
+        direction.textContent = directionText;
+        panel.appendChild(direction);
+      }
+      const membershipSection = document.createElement('details');
+      membershipSection.open = true;
+      const membershipTitle = document.createElement('summary');
+      membershipTitle.className = 'fw-bold my-2';
+      membershipTitle.textContent = '直接所属关系';
+      const memberships = document.createElement('div');
+      memberships.className = 'list-group mb-2';
+      data.memberships.forEach(item => memberships.appendChild(elementButton(item)));
+      if (!data.memberships.length) {
+        memberships.textContent = '当前索引中没有直接所属关系。';
+        memberships.className = 'small text-muted mb-2';
+      }
+      membershipSection.append(membershipTitle, memberships);
+      panel.appendChild(membershipSection);
+      const tags = document.createElement('details');
+      const caption = document.createElement('summary');
+      caption.textContent = '原始标签';
+      const table = document.createElement('table');
+      table.className = 'table table-sm small';
+      Object.entries(data.tags).forEach(([key, value]) => {
+        const row = table.insertRow();
+        row.insertCell().textContent = key;
+        row.insertCell().textContent = value;
+      });
+      tags.append(caption, table);
+      panel.appendChild(tags);
+      if (kind === 'relation') {
+        const note = document.createElement('p');
+        note.className = 'small text-muted';
+        note.textContent = `共 ${data.members.length} 个直接成员，按 OSM 原始顺序列出；高亮本地收录的 ${data.ways.length} 段轨道（含子关系）。车站、站台等未收录成员只展示信息。`;
+        const members = document.createElement('div');
+        members.className = 'list-group';
+        members.style.maxHeight = '260px';
+        members.style.overflowY = 'auto';
+        data.members.forEach((member, index) => {
+          const item = document.createElement(member.available ? 'button' : 'div');
+          item.className = 'list-group-item small';
+          const memberType = {w:'轨道', r:'关系', n:'节点'}[member.type] || member.type;
+          item.textContent = `${index + 1}. ${memberType} ${member.ref} · ${member.role || '无角色'}${member.available ? '' : '（未收录）'}`;
+          if (member.available) item.onclick = () => runTrackAction(() => showElement(member.type === 'w' ? 'way' : 'relation', member.ref));
+          members.appendChild(item);
+        });
+        panel.append(note, members);
+      }
+      document.getElementById('query-status').textContent = `已高亮${elementTitle(data)}。`;
+    }
+
+    async function queryNearby(latlng, radius) {
+      clearPreview();
+      document.getElementById('element-detail').replaceChildren();
+      const container = document.getElementById('query-results');
+      container.replaceChildren();
+      if (queryMarker) map.removeLayer(queryMarker);
+      if (queryCircle) map.removeLayer(queryCircle);
+      queryMarker = L.circleMarker(latlng, {radius:5, color:'#333', fillOpacity:1}).addTo(map);
+      queryCircle = L.circle(latlng, {radius, color:'#666', weight:1, fillOpacity:0.06}).addTo(map);
+      const response = await fetch(`/nearby?lat=${latlng.lat}&lon=${latlng.lng}&radius=${radius}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '附近要素查询失败。');
+      document.getElementById('query-status').textContent =
+        `附近 ${radius} 米：${data.total} 段轨道、${data.relations.length} 个所属关系。` +
+        (data.total > data.ways.length ? `仅显示最近 ${data.ways.length} 段，请减小查询半径或调整查询位置。` : '') +
+        (!data.total ? '此处未找到已收录轨道，请靠近轨道右键查询。' : '') +
+        (!data.relations_available ? '当前为旧索引，重新生成索引后可查看关系。' : '');
+      [['附近轨道（按距离）', data.ways], ['所属关系', data.relations]].forEach(([title, items]) => {
+        if (!items.length) return;
+        const group = document.createElement('details');
+        group.open = true;
+        const heading = document.createElement('summary');
+        heading.className = 'list-group-item bg-light fw-bold';
+        heading.textContent = title;
+        group.appendChild(heading);
+        items.forEach(item => group.appendChild(elementButton(item)));
+        container.appendChild(group);
+      });
+    }
+
+    map.on('contextmenu', event => {
+      L.DomEvent.preventDefault(event.originalEvent);
+      if (trackActionPending) return;
+      const point = event.latlng.wrap();
+      const menu = document.createElement('div');
+      menu.setAttribute('role', 'menu');
+      menu.setAttribute('aria-label', '查找附近');
+      menu.tabIndex = -1;
+      const title = document.createElement('div');
+      title.className = 'small text-muted mb-2';
+      title.textContent = '查找附近';
+      menu.appendChild(title);
+      const buttons = [100, 250, 500].map(radius => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.setAttribute('role', 'menuitem');
+        button.className = 'btn btn-sm btn-light d-block w-100 text-start mb-1';
+        button.textContent = `${radius}米`;
+        button.onclick = () => {
+          map.closePopup();
+          runTrackAction(() => queryNearby(point, radius));
+        };
+        menu.appendChild(button);
+        return button;
+      });
+      // 支持键盘选择；点击地图其他位置或按 Escape 关闭菜单。
+      menu.onkeydown = e => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const index = buttons.indexOf(document.activeElement);
+          const direction = e.key === 'ArrowDown' ? 1 : -1;
+          const next = index < 0 ? (direction === 1 ? 0 : buttons.length - 1)
+            : (index + direction + buttons.length) % buttons.length;
+          buttons[next].focus();
+        }
+      };
+      L.DomEvent.disableClickPropagation(menu);
+      L.popup({className:'nearby-menu', minWidth:90, maxWidth:120, closeButton:false})
+        .setLatLng(event.latlng).setContent(menu).openOn(map);
+      menu.focus({preventScroll:true});
+    });
+
+    document.getElementById('undo-way').onclick = () => runTrackAction(async () => {
+      const response = await fetch('/journey/undo-way', {method:'POST'});
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '退回失败，请重试。');
+      transferMode = false;
+      document.getElementById('transfer-panel').hidden = true;
+      document.getElementById('transfer-label').value = '';
+      document.getElementById('element-detail').replaceChildren();
+      clearPreview();
+      document.getElementById('way_id').value = data.current_way || '';
+      // 直接显示退回后的状态，不调用会自动推进的 selectWay。
+      renderWays(data);
+    });
+
+    document.getElementById('add-transfer').onclick = () => {
+      if (trackActionPending || !lastData?.legs?.length) return;
+      transferMode = true;
+      document.getElementById('transfer-panel').hidden = false;
+      document.getElementById('element-detail').replaceChildren();
+      clearPreview();
+      const current = lastData.total_path_coords.find(item => item.id === lastData.current_way && item.leg === lastData.legs.length - 1);
+      if (current?.coords.length) map.fitBounds(current.coords, {padding:[30,30], maxZoom:17});
+    };
+    document.getElementById('cancel-transfer').onclick = () => {
+      transferMode = false;
+      document.getElementById('transfer-label').value = '';
+      document.getElementById('transfer-panel').hidden = true;
+      document.getElementById('element-detail').replaceChildren();
+      clearPreview();
+    };
 
     document.getElementById('way-form').onsubmit = async function(e) {
       e.preventDefault();
-      const way_id = document.getElementById('way_id').value;
-      document.getElementById('total-path').innerHTML = '';
-      await selectWay(way_id, true);
+      const id = document.getElementById('way_id').value.trim();
+      await runTrackAction(async () => {
+        if (!/^\d+$/.test(id)) throw new Error('请输入数字轨道 ID，或在地图上右键查询。');
+        await selectWay(id, !transferMode, {transfer:transferMode, label:document.getElementById('transfer-label').value.trim()});
+        clearPreview();
+      });
     };
+
+
   </script>
-  <script>
-    window.onload = function() {
-      // 初始化空结构
-      document.getElementById('ways-list').innerHTML = '<b>可选相连轨道:</b><ul class="list-group mt-2"></ul>';
-      document.getElementById('total-path').innerHTML = '<b>全局累计链路:</b> ';
-      document.getElementById('total-path').onclick = function() {
-        // 复制全局累计链路内容
-        const text = Array.from(document.querySelectorAll('.total-path-way')).map(e => e.textContent).join('');
-        const finalText = '(\n' + text + '\n);(._;>;);out;';
-        navigator.clipboard.writeText(finalText).then(function() {
-          var toast = new bootstrap.Toast(document.getElementById('copyToast'));
-          toast.show();
-          setTimeout(function(){
-            window.open('https://overpass-turbo.eu/#', '_blank');
-          }, 500);
-        });
-      };
-    };
-  </script>
+
 </body>
-</html> 
+</html>

@@ -3,8 +3,12 @@ import pickle
 import folium
 import os
 import math
+from nearby import NearbyIndex
+from geocoding import Geocoder
+from journey import JourneyExplorer
+from urllib.error import HTTPError, URLError
 
-DATA_DIR = 'data'
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 NODE_TO_WAYS_PATH = os.path.join(DATA_DIR, 'node_to_ways.pkl')
 WAY_TO_NODES_PATH = os.path.join(DATA_DIR, 'way_to_nodes.pkl')
 NODE_COORDS_PATH = os.path.join(DATA_DIR, 'node_coords.pkl')
@@ -20,8 +24,28 @@ with open(NODE_COORDS_PATH, 'rb') as f:
 with open(WAY_TO_META_PATH, 'rb') as f:
     way_to_meta = pickle.load(f)
 
+# 索引只保留轨道节点，使用其实际覆盖范围初始化地图。
+map_bounds = None
+if node_coords:
+    map_bounds = [
+        [min(p[0] for p in node_coords.values()), min(p[1] for p in node_coords.values())],
+        [max(p[0] for p in node_coords.values()), max(p[1] for p in node_coords.values())],
+    ]
+
 app = Flask(__name__)
 app.secret_key = 'a_very_secret_key_123456'  # 用于session
+
+
+relations_path = os.path.join(DATA_DIR, 'relations.pkl')
+relations_available = os.path.isfile(relations_path)
+relations = {}
+if relations_available:
+    with open(relations_path, 'rb') as f:
+        relations = pickle.load(f)
+nearby_index = NearbyIndex(way_to_nodes, node_coords, way_to_meta, relations)
+geocoder = Geocoder()
+journey_explorer = JourneyExplorer(way_to_nodes, node_to_ways, way_to_meta)
+
 
 # 递归查找轨道
 MAX_DEPTH = 1000
@@ -80,52 +104,42 @@ def find_next_choices(start_way_id, max_depth=20, total_path=None):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', map_bounds=map_bounds)
 
-@app.route('/ways/<int:way_id>')
-def get_ways(way_id):
-    if request.args.get('reset') == '1':
-        session['total_path'] = []
-    if 'total_path' not in session or not isinstance(session['total_path'], list):
-        session['total_path'] = []
-    else:
-        session['total_path'] = [x for x in session['total_path'] if isinstance(x, dict) and 'way_id' in x]
-    total_path = session['total_path']
-    int_path = [x['way_id'] for x in total_path]
-    result = find_next_choices(way_id, total_path=int_path)
-    visited_path = result['visited_path']
-    new_path = []
-    if not total_path:
-        new_path.append({'way_id': visited_path[0], 'type': 'manual'})
-        start = 1
-    else:
-        start = 0
-    for i in range(start, len(visited_path)):
-        if i == len(visited_path)-1 and result['choices']:
-            new_path.append({'way_id': visited_path[i], 'type': 'manual'})
-        else:
-            new_path.append({'way_id': visited_path[i], 'type': 'auto'})
-    for item in new_path:
-        if not any(x['way_id']==item['way_id'] for x in total_path):
-            total_path.append(item)
-    session['total_path'] = total_path
-    result['total_path'] = total_path
-    # 新增：返回轨道坐标数据
+def load_legs():
+    if isinstance(session.get('legs'), list):
+        return session['legs']
+    # 兼容此前浏览器保存的单段轨道链路。
+    old_path = [item for item in session.get('total_path', [])
+                if isinstance(item, dict) and item.get('way_id') in way_to_nodes]
+    if not old_path:
+        return []
+    first = old_path[0]['way_id']
+    return [{'name': way_to_meta.get(first, {}).get('name') or '未命名轨道',
+             'start_way': first, 'current_way': old_path[-1]['way_id'],
+             'path': old_path, 'relation_id': None, 'transfer_label': ''}]
+
+
+def journey_response(legs, result):
     def way_coords(wid):
-        nodes = way_to_nodes.get(wid, [])
-        return [node_coords[n] for n in nodes if n in node_coords]
-    result['path_coords'] = [
-        {'id': wid, 'coords': way_coords(wid), 'meta': way_to_meta.get(wid, {})}
-        for wid in result['path']
-    ]
+        return [node_coords[n] for n in way_to_nodes.get(wid, []) if n in node_coords]
+
+    result['legs'] = [dict(leg, colour_candidates=[
+        way_to_meta.get(leg['start_way'], {}).get('tags', {}).get('colour')])
+        for leg in legs]
+    result['total_path'] = [item for leg in legs for item in leg['path']]
+    result['active_path'] = legs[-1]['path'] if legs else []
     result['choice_coords'] = [
         {'id': wid, 'coords': way_coords(wid), 'meta': way_to_meta.get(wid, {})}
-        for wid in result['choices']
-    ]
+        for wid in result['choices']]
+    result['path_coords'] = [
+        {'id': wid, 'coords': way_coords(wid), 'meta': way_to_meta.get(wid, {})}
+        for wid in result['path']]
     result['total_path_coords'] = [
-        {'id': x['way_id'], 'coords': way_coords(x['way_id']), 'meta': way_to_meta.get(x['way_id'], {}), 'type': x['type']}
-        for x in total_path
-    ]
+        {'id': item['way_id'], 'coords': way_coords(item['way_id']),
+         'meta': way_to_meta.get(item['way_id'], {}), 'type': item['type'], 'leg': index}
+        for index, leg in enumerate(legs) for item in leg['path']]
+    active_coords = [item for item in result['total_path_coords'] if item['leg'] == len(legs) - 1]
     # === 推荐逻辑 ===
     def dist(p1, p2):
         return math.hypot(p1[0]-p2[0], p1[1]-p2[1])
@@ -139,9 +153,9 @@ def get_ways(way_id):
         num = abs((y2-y1)*x0 - (x2-x1)*y0 + x2*y1 - y2*x1)
         den = math.hypot(y2-y1, x2-x1)
         return num/den if den else 0
-    if len(result['total_path_coords']) >= 2 and result['choice_coords']:
-        prev2 = result['total_path_coords'][-2]
-        prev1 = result['total_path_coords'][-1]
+    if len(active_coords) >= 2 and result['choice_coords']:
+        prev2 = active_coords[-2]
+        prev1 = active_coords[-1]
         a = prev2['coords'][-1] if prev2['coords'] else None
         b = prev1['coords'][-1] if prev1['coords'] else None
         prev1_name = prev1['meta'].get('tags', {}).get('name')
@@ -150,7 +164,7 @@ def get_ways(way_id):
         for c in result['choice_coords']:
             if not c['coords']: continue
             c_end = c['coords'][-1]
-            if dist(c_end, a) < dist(c_end, b):
+            if a is None or b is None or dist(c_end, a) < dist(c_end, b):
                 continue
             filtered.append(c)
         # 2. name相同优先（都为空不算）
@@ -175,9 +189,99 @@ def get_ways(way_id):
             result['choice_coords'][best_idx]['recommend'] = True
     return jsonify(result)
 
+
+@app.route('/ways/<int:way_id>')
+def get_ways(way_id):
+    if way_id not in way_to_nodes:
+        return jsonify(error='当前地图中没有这个轨道ID。'), 404
+    try:
+        label = request.args.get('transfer_label', '').strip()
+        if len(label) > 100:
+            raise ValueError('换乘备注不能超过100个字符。')
+        legs, result = journey_explorer.advance(
+            load_legs(), way_id, reset=request.args.get('reset') == '1',
+            transfer=request.args.get('transfer') == '1',
+            transfer_label=label)
+    except ValueError as error:
+        return jsonify(error=str(error)), 400
+    session['legs'] = legs
+    session.pop('total_path', None)
+    return journey_response(legs, result)
+
+
+@app.post('/journey/undo-way')
+def undo_way():
+    legs, result = journey_explorer.undo_way(load_legs())
+    session['legs'] = legs
+    session.pop('total_path', None)
+    return journey_response(legs, result)
+
+
+@app.route('/journey')
+def get_journey():
+    legs = load_legs()
+    choices, reason = journey_explorer.choices(legs[-1]) if legs else ([], '')
+    return journey_response(legs, {'current_way': legs[-1]['current_way'] if legs else None,
+                                  'choices': choices, 'path': [], 'visited_path': [],
+                                  'stop_reason': reason})
+
+
+@app.route('/nearby')
+def nearby_elements():
+    try:
+        lat = float(request.args['lat'])
+        lon = float(request.args['lon'])
+        radius = float(request.args.get('radius', 250))
+        if not (math.isfinite(lat) and math.isfinite(lon) and math.isfinite(radius)
+                and -90 <= lat <= 90 and -180 <= lon <= 180 and 10 <= radius <= 500):
+            raise ValueError
+    except (KeyError, ValueError, TypeError):
+        return jsonify(error='请提供有效经纬度及10至500米的查询半径。'), 400
+    result = nearby_index.query(lat, lon, radius)
+    result['relations_available'] = relations_available
+    return jsonify(result)
+
+
+@app.route('/geocode')
+def geocode():
+    query = request.args.get('q', '').strip()
+    if not query or len(query) > 200:
+        return jsonify(error='请输入1至200个字符的地点名称或地址。'), 400
+    try:
+        return jsonify(results=geocoder.search(query))
+    except HTTPError as error:
+        app.logger.warning('地名服务返回HTTP %s', error.code)
+        if error.code in (403, 429):
+            return jsonify(error='在线地名服务暂时限制请求，请稍后重试。'), 503
+        return jsonify(error='在线地名服务暂时不可用，请稍后重试。'), 502
+    except (URLError, OSError) as error:
+        app.logger.warning('地名服务请求失败：%r', error)
+        reason = getattr(error, 'reason', error)
+        if isinstance(reason, TimeoutError):
+            return jsonify(error='在线地名服务响应超时，重试后仍未成功，请稍后再试。'), 504
+        return jsonify(error='暂时无法连接在线地名服务，重试后仍未成功，请稍后再试。'), 502
+    except (ValueError, KeyError, TypeError) as error:
+        app.logger.warning('地名服务响应格式异常：%r', error)
+        return jsonify(error='在线地名服务返回了异常数据，请稍后重试。'), 502
+
+
+@app.route('/elements/<kind>/<int:element_id>')
+def element_detail(kind, element_id):
+    source = way_to_meta if kind == 'way' else relations if kind == 'relation' else {}
+    if element_id not in source:
+        return jsonify(error='当前索引中没有这个要素。'), 404
+    detail = nearby_index.detail(kind, element_id)
+    if kind == 'way':
+        selected = {item['way_id'] for leg in load_legs() for item in leg['path']}
+        touching = journey_explorer.connected(element_id) | {element_id}
+        detail['connected_to_journey'] = bool(selected & touching)
+    return jsonify(detail)
+
+
 @app.route('/map/<int:way_id>')
 def get_map(way_id):
-    session_path = session.get('total_path', [])
+    legs = load_legs()
+    session_path = legs[-1]['path'] if legs else []
     int_path = [x['way_id'] for x in session_path if isinstance(x, dict) and 'way_id' in x]
     result = find_next_choices(way_id, total_path=int_path)
     highlight = request.args.get('highlight', type=int)
@@ -190,7 +294,7 @@ def get_map(way_id):
         nodes = way_to_nodes.get(highlight, [])
         coords = [node_coords[n] for n in nodes if n in node_coords]
         all_coords.extend(coords)
-    center = [35, 104]
+    center = [(map_bounds[0][i] + map_bounds[1][i]) / 2 for i in range(2)] if map_bounds else [0, 0]
     if all_coords:
         center = all_coords[0]
     m = folium.Map(location=center, zoom_start=8)
@@ -212,4 +316,4 @@ def get_map(way_id):
     return m._repr_html_()
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True, port=5050)
