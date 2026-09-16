@@ -69,52 +69,23 @@ class StationTests(unittest.TestCase):
             self.assertAlmostEqual(data['features'][('w',9)]['coords'][0], 35.0015)
             self.assertTrue((Path(directory) / 'stations.pkl').is_file())
 
-    def test_unnamed_platform_outline_is_kept_without_becoming_station_name(self):
+    def test_station_points_exclude_buildings_platforms_and_bus(self):
         from station_index import build_station_index
         from station_map import StationMap
-        xml = '''<osm version="0.6">
-          <node id="1" lat="35" lon="139"/>
-          <node id="2" lat="35.001" lon="139"/>
-          <node id="3" lat="35" lon="139.001"/>
-          <way id="9"><nd ref="1"/><nd ref="2"/><nd ref="3"/><nd ref="1"/>
-            <tag k="railway" v="platform"/><tag k="ref" v="1"/></way>
-          <way id="10"><nd ref="1"/><nd ref="2"/><tag k="railway" v="platform"/></way>
-        </osm>'''
+        xml = '<osm version="0.6">\n          <node id="1" lat="35" lon="139"><tag k="railway" v="station"/><tag k="name" v="本站"/></node>\n          <node id="2" lat="35" lon="139"><tag k="public_transport" v="station"/><tag k="bus" v="yes"/><tag k="name" v="公交"/></node>\n          <node id="3" lat="35" lon="139"><tag k="railway" v="platform"/><tag k="name" v="站台"/></node>\n          <way id="4"><nd ref="1"/><nd ref="3"/><tag k="building" v="train_station"/><tag k="name" v="站房"/></way>\n        </osm>'
         with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / 'platform.osm'
+            path = Path(directory) / 'stations.osm'
             path.write_text(xml)
             data = build_station_index(path, directory, {}, {})
-            self.assertEqual(data['features'][('w',9)]['name'], '')
-            self.assertNotIn(('w',10), data['features'])
-            station = StationMap(data['features']).query(34.99,138.99,35.01,139.01)['stations'][0]
-            self.assertEqual(station['name'], '1 号站台')
-            self.assertEqual(len(station['polygons'][0]), 4)
-            self.assertEqual(StationIndex(data, {}).query((35,139), []), [])
-            data['features'][('w',9)]['ref'] = ''
-            self.assertEqual(StationMap(data['features']).stations['way/9']['name'], '未命名站台')
+            self.assertNotIn(('n',2), data['features'])
+            self.assertNotIn(('w',4), data['features'])
+            self.assertEqual(set(StationMap(data['features']).stations), {'node/1'})
 
     def test_later_stop_does_not_override_endpoint_station(self):
         self.index.ways[101] = [3, 8]
         result = self.index.query((35, 139), [100, 101])
         self.assertEqual(result[0]['name'], '线路站')
         self.assertEqual(next(s for s in result if s['name'] == '附近站')['source'], '附近车站')
-
-    def test_building_contains_stop_but_does_not_rename_outside_stop(self):
-        from station_index import assign_building_names
-        features = {
-            ('w', 128195825): {'name':'浜松町駅', 'rail':True, 'coords':(1,1),
-                'building_polygon':[(0,0),(0,2),(2,2),(2,0),(0,0)]},
-            ('w', 210374585): {'name':'單軌電車濱松町', 'rail':True, 'coords':(1,4),
-                'building_polygon':[(0,3),(0,5),(2,5),(2,3),(0,3)]},
-            ('n',1): {'name':'', 'rail':True, 'coords':(1,1)},
-            ('n',2): {'name':'モノレール浜松町', 'rail':True, 'coords':(1,4), 'stop_area':9251545},
-            ('n',3): {'name':'其他站', 'rail':True, 'coords':(3,3)},
-        }
-        assign_building_names(features)
-        self.assertEqual(features[('n',1)]['name'], '浜松町駅')
-        self.assertEqual(features[('n',2)]['name'], 'モノレール浜松町')
-        self.assertEqual(features[('n',3)]['name'], '其他站')
-        self.assertEqual(features[('n',1)]['station_building'], 128195825)
 
     def test_same_name_different_stop_areas_are_not_deduplicated(self):
         self.features[('n',1)].update(name='同名站', stop_area=20)

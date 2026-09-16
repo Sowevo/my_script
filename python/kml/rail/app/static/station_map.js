@@ -1,32 +1,37 @@
 // 车站独立图层：仅查询可视范围，缩小时移除，不影响行程或地图视口。
-function stationTooltip(station, info) {
+function stationTooltip(station) {
   const label = document.createElement('div');
   const title = document.createElement('strong');
   title.textContent = station.name;
   label.appendChild(title);
-  const lines = info?.lines || [];
+  const lines = station.lines || [];
   if (!lines.length) return label;
-  const detail = document.createElement('div');
-  const shown = lines.slice(0, 3);
-  const operators = [...new Set(shown.map(line => line.operator).filter(Boolean))];
-  const operator = operators.length === 1 && shown.every(line => line.operator === operators[0])
-    ? operators[0] : '';
-  const names = shown.map(line => {
-    const prefix = !operator && line.operator && !line.name.includes(line.operator)
-      ? `${line.operator} · ` : '';
-    return prefix + line.name;
+  lines.slice(0, 3).forEach(line => {
+    const row = document.createElement('div');
+    const prefix = line.operator && !line.name.includes(line.operator) ? `${line.operator} · ` : '';
+    row.textContent = prefix + line.name;
+    label.appendChild(row);
   });
-  const prefix = operator && !shown.every(line => line.name.includes(operator)) ? `${operator} · ` : '';
-  detail.textContent = (info.scope === 'station' ? '本站线路：' : '') + prefix + names.join('、')
-    + (lines.length > 3 ? `，另有 ${lines.length - 3} 条线路` : '');
-  label.appendChild(detail);
+  if (lines.length > 3) {
+    const more = document.createElement('div');
+    more.textContent = `另有 ${lines.length - 3} 条线路`;
+    label.appendChild(more);
+  }
   return label;
+}
+
+function stationIcon() {
+  const glyph = document.createElement('i');
+  glyph.className = 'bi bi-train-front-fill';
+  glyph.setAttribute('aria-hidden', 'true');
+  return L.divIcon({className:'station-map-icon', html:glyph,
+    iconSize:[22,22], iconAnchor:[11,11], tooltipAnchor:[10,0]});
 }
 
 function initStationMap(map) {
   map.createPane('stations');
   map.getPane('stations').style.zIndex = 450;
-  const outlines = new Map();
+  const markers = new Map();
   let request = null;
   let timer = null;
   let revision = 0;
@@ -41,12 +46,31 @@ function initStationMap(map) {
   });
   const status = new Status({position:'bottomleft'}).addTo(map);
   const message = text => { status.box.textContent = text; status.box.hidden = !text; };
-  const clearOutlines = () => {
-    outlines.forEach(layer => layer.remove());
-    outlines.clear();
+  const clearMarkers = () => {
+    markers.forEach(layer => layer.remove());
+    markers.clear();
   };
+  function renderStations(stations) {
+    markers.forEach((layer, id) => {
+      if (!stations.has(id)) {
+        layer.remove();
+        markers.delete(id);
+      }
+    });
+    stations.forEach((station, id) => {
+      const point = [station.lat, station.lon + 360 * Math.round((map.getCenter().lng - station.lon) / 360)];
+      let layer = markers.get(id);
+      if (!layer) {
+        layer = L.marker(point, {pane:'stations', icon:stationIcon(), alt:station.name, riseOnHover:true}).addTo(map);
+        layer.getElement().setAttribute('aria-label', station.name);
+        layer.bindTooltip(stationTooltip(station),
+          {permanent:false, direction:'auto', className:'station-map-detail'});
+        markers.set(id, layer);
+      } else layer.setLatLng(point);
+    });
+  }
   async function update(token) {
-    if (map.getZoom() < 14) return;
+    if (map.getZoom() < 16) return;
     const bounds = map.getBounds().pad(0.15);
     const south = Math.max(-90, bounds.getSouth()), north = Math.min(90, bounds.getNorth());
     let west = bounds.getWest(), east = bounds.getEast();
@@ -60,52 +84,36 @@ function initStationMap(map) {
         const params = new URLSearchParams({bbox:[south,left,north,right].join(','), zoom:map.getZoom()});
         const response = await fetch(`/stations/map?${params}`, {signal:controller.signal});
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || '车站加载失败');
+        if (!response.ok) {
+          const error = new Error(data.error || '车站加载失败');
+          error.hasServerMessage = Boolean(data.error);
+          throw error;
+        }
         return data;
       }));
       if (controller.signal.aborted || token !== revision) return;
-      // 每个站台独立绑定提示，避免把同站所有线路误标到某一站台。
-      const stations = new Map(results.flatMap(result => result.stations).flatMap(station =>
-        station.polygons.map((polygon, index) => [`${station.id}/${index}`,
-          {...station, polygons:[polygon], info:station.polygon_labels?.[index]}])));
-      outlines.forEach((layer, id) => {
-        if (!stations.has(id)) {
-          layer.remove();
-          outlines.delete(id);
-        }
-      });
-      stations.forEach((station, id) => {
-        const polygons = station.polygons.map(polygon => [polygon.map(([lat, lon]) =>
-          [lat, lon + 360 * Math.round((map.getCenter().lng - lon) / 360)])]);
-        let layer = outlines.get(id);
-        if (!layer) {
-          layer = L.polygon(polygons, {pane:'stations', color:'#7c3aed', weight:2,
-            fillColor:'#7c3aed', fillOpacity:0.04}).addTo(map);
-          outlines.set(id, layer);
-          layer.on('mouseover', () => layer.setStyle({weight:3, fillOpacity:0.15}));
-          layer.on('mouseout', () => layer.setStyle({weight:2, fillOpacity:0.04}));
-        } else layer.setLatLngs(polygons);
-        layer.bindTooltip(stationTooltip(station, station.info),
-          {permanent:false, sticky:true, direction:'top', className:'station-map-label'});
-      });
+      renderStations(new Map(results.flatMap(result => result.stations).map(station => [station.id, station])));
       message(results.some(result => result.truncated) ? '车站较多，请放大地图查看完整结果。' : '');
     } catch (error) {
-      if (!controller.signal.aborted && token === revision) message(`${error.message}，移动地图后重试。`);
+      if (!controller.signal.aborted && token === revision) {
+        // 服务端提示直接显示，缺少索引等问题不能通过移动地图解决。
+        message(error.hasServerMessage ? error.message : '车站加载失败，请移动地图后重试。');
+      }
     }
   }
   function schedule() {
     revision++;
     request?.abort();
     clearTimeout(timer);
-    if (map.getZoom() < 14) {
-      clearOutlines();
-      message('放大地图可查看车站轮廓');
+    if (map.getZoom() < 16) {
+      clearMarkers();
+      message('放大地图可查看车站');
       return;
     }
     // 等待拖动/缩放结束，快速连续操作时取消旧请求，防止过期结果覆盖新视野。
     const token = revision;
     timer = setTimeout(() => update(token), 250);
   }
-  map.on('moveend zoomend', schedule);
+  map.on('moveend zoomend resize', schedule);
   schedule();
 }

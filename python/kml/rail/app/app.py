@@ -204,7 +204,7 @@ def visible_stations():
             raise ValueError
     except (KeyError, TypeError, ValueError):
         return jsonify(error='无效的地图范围。'), 400
-    if zoom < 14:
+    if zoom < 16:
         return jsonify(stations=[], truncated=False)
     if station_map is None:
         return jsonify(error='请先生成本地站点索引。'), 503

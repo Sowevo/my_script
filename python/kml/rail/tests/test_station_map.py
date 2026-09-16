@@ -27,81 +27,22 @@ class StationLinesTests(unittest.TestCase):
                          'members':[{'type':'n','ref':1,'role':'stop'}]} for i in (1,2)}
         self.assertEqual(len(StationLines(features,relations).get([('n',1)])),2)
 
-    def test_platform_direct_lines_and_station_fallback(self):
-        polygon = [(35,139),(35,139.001),(35.001,139),(35,139)]
-        features = {('w',i): {'name':'本站','coords':(35,139),'stop_area':10,
-                             'station_polygon':polygon,'area_kind':'站台范围'} for i in (1,2)}
-        relations = {1: {'tags': {'type':'route','route':'train','name':'线路'},
-                         'members':[{'type':'w','ref':1,'role':'platform'}]}}
-        station = StationMap(features,relations).stations['relation/10']
-        self.assertEqual([label['scope'] for label in station['polygon_labels']], ['platform','station'])
-        self.assertEqual(station['polygon_labels'][1]['lines'], [{'name':'线路','operator':''}])
-
 class StationMapTests(unittest.TestCase):
-    def setUp(self):
-        self.features = {
-            ('n',1): {'name':'单轨站','coords':(35,139),'stop_area':10,'station_node':True,'station_building':20},
-            ('n',2): {'name':'单轨站','coords':(35.001,139),'stop_area':10,'stop_position':True,'station_building':20},
-            ('n',3): {'name':'JR站','coords':(35.002,139),'stop_area':11,'stop_position':True,'station_building':21},
-            ('w',20): {'name':'单轨建筑','coords':(35,139),'building_polygon':[(35,139),(35,139.001),(35.001,139.001),(35,139)]},
-            ('w',21): {'name':'JR建筑','coords':(35.002,139),'building_polygon':[(35.002,139),(35.002,139.001),(35.003,139),(35.002,139)]},
-            ('n',4): {'name':'独立站','coords':(36,140),'station_node':True},
-            ('n',5): {'name':'无关联停车点','coords':(35,139),'stop_position':True},
+    def test_only_stations_and_dedup_with_lines(self):
+        features = {
+            ('n',1): {'name':'本站','coords':(35,139),'rail':True,'station_node':True,'stop_area':10},
+            ('w',2): {'name':'本站','coords':(35.1,139),'rail':True,'station_node':True,'stop_area':10},
+            ('n',3): {'name':'本站','coords':(35,139),'rail':True,'stop_position':True,'stop_area':10},
+            ('n',4): {'name':'公交','coords':(35,139),'rail':True,'station_node':True,'bus_only':True},
+            ('n',5): {'name':'本站','coords':(35.01,139),'rail':True,'station_node':True,'stop_area':11},
+            ('w',6): {'name':'独立站','coords':(35.02,139),'rail':True,'station_node':True},
         }
-        self.catalog = StationMap(self.features)
-
-    def test_stop_area_unique_and_distinct_stations_retained(self):
-        self.assertEqual(set(self.catalog.stations), {'relation/10','relation/11','node/4'})
-        station = self.catalog.stations['relation/10']
-        self.assertEqual(station['lat'],35)
-        self.assertTrue(station['has_building'])
-        self.assertEqual(len(station['polygons']),1)
-
-    def test_viewport_filter_limit_and_small_response(self):
-        result=self.catalog.query(34.99,138.99,35.01,139.01)
-        self.assertEqual(len(result['stations']),2)
-        self.assertFalse(result['truncated'])
-        self.assertTrue(result['stations'][0]['polygons'])
-        self.assertTrue(self.catalog.query(34.99,138.99,35.01,139.01,limit=1)['truncated'])
-        self.assertEqual(self.catalog.query(0,0,1,1)['stations'],[])
-
-    def test_unrelated_station_building_and_node_do_not_duplicate(self):
-        self.features[('n',4)]['station_building']=30
-        self.features[('w',30)]={'name':'独立站建筑','coords':(36,140),'building_polygon':[(36,140),(36,140.001),(36.001,140),(36,140)]}
-        result=StationMap(self.features)
-        self.assertIn('way/30',result.stations)
-        self.assertNotIn('node/4',result.stations)
-        self.assertEqual(result.stations['way/30']['name'],'独立站')
-
-    def test_unassociated_building_does_not_override_stop_area(self):
-        self.features[('w',30)]={'name':'单轨站','coords':(35.0005,139),'building_polygon':[(35,139),(35,139.001),(35.001,139),(35,139)]}
-        catalog=StationMap(self.features)
-        self.assertIn('way/30', catalog.stations)
-        self.assertEqual(len(catalog.stations['relation/10']['polygons']), 1)
-
-    def test_outline_in_view_even_when_station_coordinate_is_outside(self):
-        result=self.catalog.query(35.0007,139.0007,35.0009,139.0009)
-        self.assertEqual([s['id'] for s in result['stations']], ['relation/10'])
-        self.assertEqual(self.catalog.query(35.99,139.99,36.01,140.01)['stations'], [])
-
-    def test_stop_area_platform_has_priority_over_building(self):
-        self.features[('w',50)]={'name':'独立站台', 'coords':(36,140), 'stop_area':12,
-            'station_polygon':[(36,140),(36,140.001),(36.001,140),(36,140)], 'area_kind':'站台范围'}
-        self.features[('w',51)]={'name':'单轨站台', 'coords':(35,139), 'stop_area':10,
-            'station_polygon':[(35,139),(35,139.001),(35.001,139),(35,139)], 'area_kind':'站台范围'}
-        catalog=StationMap(self.features)
-        fallback=catalog.query(35.99,139.99,36.01,140.01)['stations'][0]
-        self.assertEqual(fallback['outline_kind'],'站台范围')
-        self.assertTrue(fallback['polygons'])
-        self.assertFalse(catalog.stations['relation/12']['has_building'])
-        self.assertEqual(catalog.stations['relation/10']['outline_kind'],'站台范围')
-        self.assertEqual(len(catalog.stations['relation/10']['polygons']),1)
-
-    def test_station_area_has_priority_over_platform(self):
-        self.features[('w',50)]={'name':'单轨站', 'coords':(35,139), 'stop_area':10,
-            'station_polygon':[(35,139),(35,139.001),(35.001,139),(35,139)], 'area_kind':'站台范围'}
-        self.features[('w',51)]={'name':'单轨站', 'coords':(35,139), 'stop_area':10,
-            'station_polygon':[(35,139),(35,139.002),(35.002,139),(35,139)], 'area_kind':'车站范围'}
-        station=StationMap(self.features).stations['relation/10']
-        self.assertEqual(station['outline_kind'],'车站范围')
-        self.assertEqual(station['polygons'],[self.features[('w',51)]['station_polygon']])
+        relations = {1: {'tags':{'type':'route','route':'train','name':'线路'},
+                        'members':[{'type':'n','ref':3,'role':'stop'}]}}
+        catalog = StationMap(features,relations)
+        self.assertEqual(set(catalog.stations), {'relation/10','relation/11','way/6'})
+        self.assertEqual(catalog.stations['relation/10']['lat'],35)
+        self.assertEqual(catalog.stations['relation/10']['lines'],[{'name':'线路','operator':''}])
+        self.assertTrue(catalog.query(34,138,36,140,limit=1)['truncated'])
+        self.assertEqual(catalog.query(0,0,1,1)['stations'],[])
+        self.assertEqual(len(catalog.query(34.999,138.999,35.001,139.001)['stations']),1)
