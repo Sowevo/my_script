@@ -8,6 +8,7 @@ from pathlib import Path
 from http.client import HTTPException
 from urllib.parse import urlsplit
 from pbf_download import download_pbf
+from station_index import build_station_index
 
 DATA_DIR = Path(__file__).resolve().parent / 'data'
 RAILWAY_TYPES = ('rail', 'subway', 'light_rail', 'monorail')
@@ -126,26 +127,38 @@ def build_and_save_index(pbf_path):
         pickle.dump(way_handler.way_to_meta, f)
     with open(Path(DATA_DIR) / 'relations.pkl', 'wb') as f:
         pickle.dump(relations, f)
+    build_station_index(pbf_path, DATA_DIR, way_handler.way_to_nodes, relation_handler.relations)
     print(f'索引已保存，耗时 {time.monotonic() - started:.1f} 秒')
 
 
-def prepare_index(source):
+def prepare_index(source, stations_only=False):
     if urlsplit(source).scheme.lower() in ('http', 'https'):
         pbf_path = download_pbf(source)
-        build_and_save_index(str(pbf_path))
+        if not stations_only:
+            build_and_save_index(str(pbf_path))
     else:
         pbf_path = Path(source).expanduser()
         if not pbf_path.is_file():
             raise FileNotFoundError(f'本地文件不存在：{pbf_path}；也可以直接传入 HTTP/HTTPS 下载链接')
-        build_and_save_index(str(pbf_path))
+        if not stations_only:
+            build_and_save_index(str(pbf_path))
+
+    if stations_only:
+        with open(WAY_TO_NODES_PATH, 'rb') as source_file:
+            ways = pickle.load(source_file)
+        handler = RailRelationHandler()
+        with osmium.io.Reader(str(pbf_path), osmium.osm.RELATION) as reader:
+            osmium.apply(reader, handler)
+        build_station_index(str(pbf_path), DATA_DIR, ways, handler.relations)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='从本地OSM PBF文件或下载链接生成轨道索引')
     parser.add_argument('source', help='必填：本地PBF路径或HTTP/HTTPS下载链接')
+    parser.add_argument('--stations-only', action='store_true', help='仅补建站点索引，保留现有轨道索引')
     args = parser.parse_args()
     try:
-        prepare_index(args.source)
+        prepare_index(args.source, stations_only=args.stations_only)
     except (OSError, ValueError, RuntimeError, HTTPException) as error:
         parser.exit(1, f'生成索引失败：{error}\n')
     except KeyboardInterrupt:

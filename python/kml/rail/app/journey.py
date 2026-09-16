@@ -59,6 +59,18 @@ class JourneyExplorer:
         return updated, {'current_way': leg['current_way'], 'choices': choices,
                          'path': travelled, 'visited_path': travelled, 'stop_reason': stop_reason}
 
+    def forward_way(self, legs, wid=None):
+        if not legs:
+            raise ValueError('请先选择起始轨道。')
+        choices, _ = self.choices(legs[-1])
+        if wid is None:
+            if len(choices) != 1:
+                raise ValueError('仅有一条可选相连轨道时才能前进一条。')
+            wid = choices[0]
+        elif wid not in choices:
+            raise ValueError('请选择当前可选的相连轨道。')
+        return self.advance(legs, wid, max_steps=1)
+
     def undo_way(self, legs):
         updated = deepcopy(legs)
         if updated:

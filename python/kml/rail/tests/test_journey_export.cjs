@@ -23,3 +23,28 @@ assert.ok(!kml.includes('141,37,0 142,38,0'));
 assert.equal((journeyKml(data, '1', ['#003685','#1976d2']).match(/<Placemark>/g)||[]).length, 1);
 assert.deepEqual(data.total_path_coords[1].coords, [[37,141],[36,140]]);
 console.log('KML 分段、端点拼接、缺口、颜色、XML 转义、单段导出检查通过');
+
+assert.deepEqual(journeyEndpoints(data, 'all'), [[35,139],[39,143]]);
+assert.deepEqual(journeyEndpoints(data, '1'), [[38,142],[39,143]]);
+assert.equal(journeyEndpoints({legs:[],total_path_coords:[]}, 'all'), null);
+assert.equal(stationFilename(' 羽田空港 ', '高田馬場'), '羽田空港 → 高田馬場.kml');
+assert.ok(!stationFilename('A/B', 'C:D').includes('/'));
+assert.ok(journeyKml(data, 'all', ['#003685','#1976d2'], 'A & B → C').includes('<name>A &amp; B → C</name>'));
+console.log('导出端点、站名文件名和文档名检查通过');
+
+const transferData = {...data, legs:[{path:[{way_id:10},{way_id:11}]},{path:[{way_id:20}]}]};
+assert.deepEqual(stationEndpoints(transferData, 'all'), [
+  {point:[35,139],way_ids:[10,11]}, {point:[37,141],way_ids:[11,10]},
+  {point:[38,142],way_ids:[20]}, {point:[39,143],way_ids:[20]},
+]);
+assert.equal(stationEndpoints(transferData, '1').length, 2);
+assert.equal(stationFilename('A', 'B', 'C'), 'A → B → C.kml');
+console.log('多段端点、单段范围与途经站命名检查通过');
+const grouped = groupedStationNames([
+  {name:'A',group:'start'}, {name:'B1',group:'t1'}, {name:'B2',group:'t1'},
+  {name:'C',group:'t2'}, {name:'D',group:'end'},
+]);
+assert.deepEqual(grouped, ['A', 'B1（B2）', 'C', 'D']);
+assert.equal(stationFilename(...grouped), 'A → B1（B2） → C → D.kml');
+assert.deepEqual(groupedStationNames([{name:'A',group:'start'},{name:'B',group:'t1'},{name:'C',group:'end'}]), ['A','B','C']);
+console.log('换乘双站名括号格式及删除、合并后分组检查通过');

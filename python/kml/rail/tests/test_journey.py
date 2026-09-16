@@ -80,5 +80,48 @@ class JourneyTests(unittest.TestCase):
             self.explorer.advance([], 8, transfer=True)
 
 
+class ForwardTests(unittest.TestCase):
+    def setUp(self):
+        ways = {1:[1,2], 2:[2,3], 3:[3,4], 4:[4,5], 5:[4,6]}
+        nodes = defaultdict(set)
+        for wid, ids in ways.items():
+            for nid in ids:
+                nodes[nid].add(wid)
+        self.explorer = JourneyExplorer(ways, nodes, {})
+
+    def test_forward_adds_only_one_even_with_more_unique_tracks(self):
+        legs, _ = self.explorer.advance([], 1, max_steps=1)
+        updated, result = self.explorer.forward_way(legs)
+        self.assertEqual([x['way_id'] for x in updated[0]['path']], [1,2])
+        self.assertEqual(result['choices'], [3])
+        self.assertEqual(len(legs[0]['path']), 1)
+        restored, _ = self.explorer.undo_way(updated)
+        self.assertEqual(restored, legs)
+
+    def test_explicit_branch_adds_exactly_one_and_rejects_invalid_choice(self):
+        legs, _ = self.explorer.advance([], 1)
+        self.assertEqual(legs[0]['current_way'], 3)
+        updated, result = self.explorer.forward_way(legs, 4)
+        self.assertEqual(result['path'], [4])
+        self.assertEqual(result['current_way'], 4)
+        self.assertEqual(len(updated[0]['path']), len(legs[0]['path']) + 1)
+        self.assertEqual(legs[0]['current_way'], 3)
+        with self.assertRaises(ValueError):
+            self.explorer.forward_way(legs, 1)
+        with self.assertRaises(ValueError):
+            self.explorer.forward_way(legs, 999)
+
+    def test_empty_branch_and_dead_end_are_rejected(self):
+        with self.assertRaises(ValueError):
+            self.explorer.forward_way([])
+        legs, _ = self.explorer.advance([], 1)
+        self.assertEqual(legs[0]['current_way'], 3)
+        with self.assertRaises(ValueError):
+            self.explorer.forward_way(legs)
+        final = [{'current_way':5, 'path':[{'way_id':wid} for wid in (1,2,3,4,5)]}]
+        with self.assertRaises(ValueError):
+            self.explorer.forward_way(final)
+
+
 if __name__ == '__main__':
     unittest.main()

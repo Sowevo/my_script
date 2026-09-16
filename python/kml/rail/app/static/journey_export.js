@@ -34,7 +34,7 @@ function journeyLines(items) {
   return lines;
 }
 
-function journeyKml(data, scope, colours) {
+function journeyKml(data, scope, colours, title = '轨道行程') {
   const escapeXml = value => String(value).replace(/[<>&"']/g, c => ({
     '<':'&lt;', '>':'&gt;', '&':'&amp;', '"':'&quot;', "'":'&apos;'
   })[c]);
@@ -51,24 +51,40 @@ function journeyKml(data, scope, colours) {
       `<MultiGeometry>${geometry}</MultiGeometry></Placemark>`];
   });
   return '<?xml version="1.0" encoding="UTF-8"?>' +
-    '<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>轨道行程</name>' +
+    `<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>${escapeXml(title)}</name>` +
     placemarks.join('') + '</Document></kml>';
 }
 
-// 用线路名和导出范围命名，保留中文并清理文件名禁用字符。
-function journeyFilename(data, scope) {
-  const clean = value => Array.from(String(value || '未命名轨道')
-    .replace(/[<>:"/\\|?*\x00-\x1f]/g, ' ')
-    .replace(/\s+/g, ' ').trim() || '未命名轨道').slice(0, 16).join('');
-  let title;
-  if (scope === 'all') {
-    const names = [...new Set(data.legs.map(leg => leg.name || '未命名轨道'))];
-    title = names.slice(0, 3).map(clean).join('、');
-    if (names.length > 3) title += `等${names.length}条线路`;
-    title += '_全部行程';
-  } else {
-    const index = Number(scope);
-    title = `${clean(data.legs[index]?.name)}_第${index + 1}段`;
+function journeyEndpoints(data, scope) {
+  const indices = data.legs.map((_, index) => index).filter(index => scope === 'all' || index === Number(scope));
+  const lines = indices.flatMap(index => journeyLines(data.total_path_coords.filter(item => item.leg === index)));
+  return lines.length ? [lines[0][0], lines.at(-1).at(-1)] : null;
+}
+
+// 保留换乘分组，删除一侧站名后仍能正确命名，不依赖输入框数量配对。
+function groupedStationNames(entries) {
+  const groups = [];
+  for (const entry of entries) {
+    const previous = groups.at(-1);
+    if (previous && previous.group === entry.group) previous.names.push(entry.name);
+    else groups.push({group:entry.group, names:[entry.name]});
   }
-  return `${title}.kml`;
+  return groups.map(({names}) => names.length > 1 ? `${names[0]}（${names.slice(1).join('、')}）` : names[0]);
+}
+
+function stationFilename(...names) {
+  const clean = value => Array.from(value.trim().replace(/[<>:"/\\|?*\x00-\x1f]/g, ' ')
+    .replace(/\s+/g, ' ').trim()).slice(0, 60).join('') || '未命名站';
+  return `${names.map(clean).join(' → ')}.kml`;
+}
+
+// 每段独立取两端；末端查询时将轨道顺序反转，以匹配端点所属线路。
+function stationEndpoints(data, scope) {
+  return data.legs.flatMap((leg, index) => {
+    if (scope !== 'all' && Number(scope) !== index) return [];
+    const points = journeyEndpoints(data, String(index));
+    if (!points) return [];
+    const ids = leg.path.map(item => item.way_id);
+    return [{point:points[0], way_ids:ids}, {point:points[1], way_ids:[...ids].reverse()}];
+  });
 }

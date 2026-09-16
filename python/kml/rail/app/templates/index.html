@@ -63,7 +63,7 @@
     .choice-way { border:0; background:transparent; padding:0; font:inherit; text-align:left; cursor:pointer; text-decoration:none; color:#334155; margin-right:8px; }
     #ways-list li { display:flex; align-items:center; }
     #ways-list .choice-way { min-width:0; overflow-wrap:anywhere; }
-    #ways-list .locate-choice { flex-shrink:0; }
+    #ways-list .choice-actions { display:flex; align-items:center; gap:4px; margin-left:auto; flex-shrink:0; }
     .choice-way:hover, .choice-way:focus-visible { color:#0d6efd; text-decoration:underline; }
     #total-path { background:#fff; border:1px solid #dce2ea; border-radius:8px; padding:14px; }
     #overpass-query { width:100%; font:12px/1.5 monospace; resize:vertical; }
@@ -89,8 +89,8 @@
     #export-panel > summary { color:#334155; font-weight:600; }
     #export-panel > .export-content { padding-top:12px; }
     @media (hover:hover) and (pointer:fine) {
-      #ways-list .locate-choice { opacity:.4; }
-      #ways-list li:hover .locate-choice, #ways-list li:focus-within .locate-choice { opacity:1; }
+      #ways-list .choice-actions { opacity:.4; }
+      #ways-list li:hover .choice-actions, #ways-list li:focus-within .choice-actions { opacity:1; }
     }
     .list-group-item.active-choice {
       background: #e3f2fd;
@@ -136,9 +136,9 @@
       <div id="element-detail" class="mb-3" style="overflow-wrap:anywhere;"></div>
       <div id="total-path" hidden>
         <div id="path-summary" class="fw-bold">尚未选择轨道</div>
-        <div id="path-counts" class="small text-muted mb-2"></div>
         <div id="journey-legs" class="mb-2"></div>
-        <button id="undo-way" class="btn btn-outline-secondary btn-sm w-100 mb-2" type="button"><i class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></i>退回一条轨道</button>
+        <button id="undo-way" class="btn btn-outline-secondary btn-sm w-100 mb-2" type="button"><i class="bi bi-chevron-double-left me-1" aria-hidden="true"></i>退回一条轨道</button>
+        <button id="clear-journey" class="btn btn-outline-danger btn-sm w-100 mb-2" type="button"><i class="bi bi-trash me-1" aria-hidden="true"></i>清空全部</button>
         <details id="export-panel">
           <summary><i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>导出行程</summary>
           <div class="export-content">
@@ -161,6 +161,19 @@
       <div id="map"></div>
     </div>
   </div>
+  <dialog id="kml-dialog" class="border rounded p-3" style="width:360px;max-width:90vw;">
+    <form id="kml-form">
+      <div class="fw-bold mb-2">导出 KML</div>
+      <div id="kml-stations"></div>
+      <div class="small text-muted mb-2">按本地轨道关联车站命名。可修改站名；换乘站重复时，可删除多余的一项。</div>
+      <div id="kml-station-status" class="small mb-2" role="status"></div>
+      <div class="d-flex gap-2">
+        <button id="kml-swap" type="button" class="btn btn-outline-secondary btn-sm">反转站名顺序</button>
+        <button id="kml-cancel" type="button" class="btn btn-outline-secondary btn-sm">取消</button>
+        <button type="submit" class="btn btn-primary btn-sm">下载</button>
+      </div>
+    </form>
+  </dialog>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="{{ url_for('static', filename='journey_export.js') }}"></script>
   <script src="{{ url_for('static', filename='choice_viewport.js') }}"></script>
@@ -370,7 +383,7 @@
       map.fitBounds(points, {padding: [40, 40], maxZoom: 18, animate: false});
     }
 
-    function renderMap(data) {
+    function renderMap(data, preserveViewport = false) {
       lastData = data;
       const hasJourney = data.total_path_coords.length > 0;
       const submit = document.querySelector('#way-form button[type="submit"]');
@@ -394,10 +407,10 @@
             {color: '#64748b', weight: 4, opacity: 0.7, dashArray: '6 5'}).addTo(map));
         }
       });
-      fitChoices(data);
+      if (!preserveViewport) fitChoices(data);
     }
 
-    function renderWays(data) {
+    function renderWays(data, preserveViewport = false) {
       const list = document.getElementById('ways-list');
       list.hidden = !data.legs.length;
       let html = `<b>第 ${data.legs.length} 段 · 当前way:</b> ${data.current_way}
@@ -417,8 +430,11 @@
           let star = w.recommend ? '<span class="star" title="推荐接续轨道" aria-label="推荐接续轨道">⭐</span>' : '';
           let liClass = w.recommend ? 'list-group-item active-choice' : 'list-group-item';
           return `<li class='${liClass}' style='margin-bottom:2px;list-style-type:disc;'><button type="button" class="choice-way" data-wayid="${w.id}">${w.id}${name}${star}</button>
+            <span class="choice-actions">
+            <button type="button" class="track-locate advance-choice" data-wayid="${w.id}"
+              title="只前进这一条轨道" aria-label="只前进轨道 ${w.id}"><i class="bi bi-chevron-double-right" aria-hidden="true"></i></button>
             <button type="button" class="track-locate locate-choice" data-wayid="${w.id}"
-              title="查看这条候选轨道全貌" aria-label="查看候选轨道 ${w.id} 全貌"><i class="bi bi-crosshair" aria-hidden="true"></i></button></li>`;
+              title="查看这条候选轨道全貌" aria-label="查看候选轨道 ${w.id} 全貌"><i class="bi bi-crosshair" aria-hidden="true"></i></button></span></li>`;
         }).join('') + '</ul>';
       }
       list.innerHTML = html;
@@ -438,6 +454,9 @@
         }
       });
       document.getElementById('fit-choices').onclick = () => fitChoices(data);
+      document.querySelectorAll('.advance-choice').forEach(button => {
+        button.onclick = () => stepJourney('forward', Number(button.dataset.wayid));
+      });
       document.querySelectorAll('.locate-choice').forEach(button => {
         button.onclick = () => {
           const choice = data.choice_coords.find(item => item.id == button.dataset.wayid);
@@ -447,7 +466,23 @@
           map.fitBounds(choice.coords, {padding: [40, 40], maxZoom: 18, animate: false});
         };
       });
-      renderMap(data);
+      renderMap(data, preserveViewport);
+      updateUndoButton();
+    }
+
+    function updateUndoButton() {
+      document.getElementById('undo-way').disabled = trackActionPending || !lastData?.legs?.length;
+    }
+
+    function journeyDistance(data, legIndex) {
+      let metres = 0;
+      for (const item of data.total_path_coords) {
+        if (legIndex !== undefined && item.leg !== legIndex) continue;
+        for (let i = 1; i < item.coords.length; i++) {
+          metres += L.latLng(item.coords[i - 1]).distanceTo(L.latLng(item.coords[i]));
+        }
+      }
+      return `${(metres / 1000).toFixed(2)} 公里`;
     }
 
     function renderExport(data) {
@@ -465,7 +500,7 @@
         title.textContent = `第 ${index + 1} 段 · ${leg.name}`;
         const info = document.createElement('div');
         info.className = 'text-muted';
-        info.textContent = `${leg.path.length} 段轨道`;
+        info.textContent = `轨道长度约 ${journeyDistance(data, index)}`;
         row.append(title, info);
         list.appendChild(row);
         scope.add(new Option(`第 ${index + 1} 段`, String(index)));
@@ -480,25 +515,120 @@
       const path = scope === 'all' ? data.total_path : data.legs[Number(scope)].path;
       const ids = [...new Set(path.map(item => item.way_id))];
       document.getElementById('total-path').hidden = ids.length === 0;
-      const manual = data.total_path.filter(item => item.type === 'manual').length;
-      document.getElementById('path-summary').textContent = `全部行程 · ${data.total_path.length} 段轨道`;
-      document.getElementById('path-counts').textContent = `手动选择 ${manual} 段 · 自动推进 ${data.total_path.length - manual} 段`;
+      document.getElementById('path-summary').textContent = `全部行程 · 约 ${journeyDistance(data)}`;
       const query = ids.length ? `[out:json][timeout:25];\n(\n${ids.map(id => `  way(${id});`).join('\n')}\n);\n(._;>;);\nout body;` : '';
       document.getElementById('overpass-query').value = query;
       document.getElementById('copy-query').disabled = !query;
       document.getElementById('export-status').textContent = '';
     }
 
-    document.getElementById('download-kml').onclick = () => {
+    const kmlDialog = document.getElementById('kml-dialog');
+    const kmlStations = document.getElementById('kml-stations');
+    let kmlDraft = null;
+    let stationRequest = null;
+    kmlDialog.onclose = () => { stationRequest?.abort(); kmlDraft = null; };
+    document.getElementById('kml-cancel').onclick = () => kmlDialog.close();
+    document.getElementById('kml-swap').onclick = () => {
+      const rows = [...kmlStations.children].reverse();
+      rows.forEach((row, index) => {
+        row.querySelector('input').dataset.edited = 'yes';
+        row.querySelector('label').textContent = index === 0 ? '起点站' : index === rows.length - 1 ? '终点站' : '换乘站';
+        kmlStations.appendChild(row);
+      });
+    };
+    document.getElementById('download-kml').onclick = async () => {
       if (!lastData?.legs?.length) return;
       const scope = document.getElementById('export-scope').value;
-      const kml = journeyKml(lastData, scope, lastData.legs.map(journeyColour));
+      kmlDraft = {data:structuredClone(lastData), scope};
+      const endpoints = stationEndpoints(kmlDraft.data, scope);
+      kmlStations.replaceChildren();
+      const rows = endpoints.map((endpoint, index) => {
+        const row = document.createElement('div');
+        row.className = 'mb-2';
+        const label = document.createElement('label');
+        label.className = 'small';
+        label.textContent = index === 0 ? '起点站' : index === endpoints.length - 1 ? '终点站'
+          : `换乘 ${Math.ceil(index / 2)} · ${index % 2 ? '到达站' : '出发站'}`;
+        const input = document.createElement('input');
+        input.id = `station-name-${index}`;
+        input.dataset.stationGroup = index === 0 ? 'start' : index === endpoints.length - 1 ? 'end' : `transfer-${Math.ceil(index / 2)}`;
+        label.htmlFor = input.id;
+        input.className = 'form-control';
+        input.maxLength = 60;
+        input.required = true;
+        input.oninput = () => { input.dataset.edited = 'yes'; };
+        const list = document.createElement('datalist');
+        list.id = `station-options-${index}`;
+        input.setAttribute('list', list.id);
+        const hint = document.createElement('div');
+        hint.className = 'small text-muted';
+        row.append(label, input, list, hint);
+        if (index > 0 && index < endpoints.length - 1) {
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className = 'btn btn-link btn-sm p-0';
+          remove.textContent = '删除此项';
+          remove.onclick = () => row.remove();
+          row.appendChild(remove);
+        }
+        kmlStations.appendChild(row);
+        return {row, input, list, hint, label};
+      });
+      const status = document.getElementById('kml-station-status');
+      status.textContent = '正在读取本地关联车站…';
+      kmlDialog.showModal();
+      stationRequest?.abort();
+      const controller = new AbortController();
+      stationRequest = controller;
+      try {
+        if (!endpoints.length) throw new Error('没有可查询的轨迹端点。');
+        const response = await fetch('/stations/nearby', {method:'POST',
+          headers:{'Content-Type':'application/json'}, body:JSON.stringify({endpoints}), signal:controller.signal});
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || '车站查询失败，请手动填写站名。');
+        if (controller.signal.aborted || !kmlDialog.open) return;
+        rows.forEach(({input, list, hint}, index) => {
+          const candidates = data.stations[index];
+          candidates.forEach(station => list.appendChild(new Option(`${station.name} · ${station.source} · ${station.distance} 米`, station.name)));
+          if (!input.dataset.edited) {
+            input.value = candidates[0]?.name || '';
+            hint.textContent = candidates[0] ? `${candidates[0].source} · ${candidates[0].distance} 米` : '未找到站名，请手动填写';
+          }
+        });
+        // 只有同一个 stop_area 的同名站点才合并，不使用换乘站组。
+        for (let i = 1; i < rows.length - 1; i += 2) {
+          const a = data.stations[i][0], b = data.stations[i + 1][0];
+          if (a?.stop_area && a.stop_area === b?.stop_area && a.name === b.name && rows[i].row.isConnected && rows[i + 1].row.isConnected
+              && !rows[i].input.dataset.edited && !rows[i + 1].input.dataset.edited) {
+            rows[i].input.value = a.name;
+            rows[i].label.textContent = `换乘 ${Math.ceil(i / 2)}`;
+            rows[i].hint.textContent = '同一车站，已合并';
+            rows[i + 1].row.remove();
+          }
+        }
+        status.textContent = '请确认站名和顺序；附近车站仅为关联数据缺失时的建议。';
+      } catch (error) {
+        if (!controller.signal.aborted && kmlDialog.open) status.textContent = error.message || '查询失败，请手动填写站名。';
+      }
+    };
+    document.getElementById('kml-form').onsubmit = event => {
+      event.preventDefault();
+      if (!kmlDraft) return;
+      const entries = [...kmlStations.querySelectorAll('input')].map(input => ({name:input.value.trim(), group:input.dataset.stationGroup}));
+      if (entries.length < 2 || entries.some(entry => !entry.name)) {
+        document.getElementById('kml-station-status').textContent = '请填写站名。';
+        return;
+      }
+      const names = groupedStationNames(entries);
+      const {data, scope} = kmlDraft;
+      const kml = journeyKml(data, scope, data.legs.map(journeyColour), names.join(' → '));
       const url = URL.createObjectURL(new Blob([kml], {type:'application/vnd.google-earth.kml+xml'}));
       const link = document.createElement('a');
       link.href = url;
-      link.download = journeyFilename(lastData, scope);
+      link.download = stationFilename(...names);
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
+      kmlDialog.close();
     };
 
     document.getElementById('copy-query').onclick = async () => {
@@ -521,6 +651,9 @@
       while (data.choices.length === 1) {
         data = await fetchWays(data.choices[0]);
       }
+      clearNearbyQuery();
+      clearPreview();
+      document.getElementById('element-detail').replaceChildren();
       renderWays(data);
       return data;
     }
@@ -532,7 +665,7 @@
       const status = document.getElementById('query-status');
       status.classList.remove('text-danger');
       status.textContent = '加载中…';
-      document.querySelectorAll('#way-form input, #way-form button, #query-results button, #element-detail button, #element-detail select, #undo-way').forEach(el => el.disabled = true);
+      document.querySelectorAll('#way-form input, #way-form button, #ways-list button, #query-results button, #element-detail button, #element-detail select, #undo-way, #clear-journey').forEach(el => el.disabled = true);
       try {
         await action();
         if (status.textContent === '加载中…') status.textContent = '';
@@ -541,7 +674,8 @@
         status.textContent = error.message || '请求失败，请重试。';
       } finally {
         trackActionPending = false;
-        document.querySelectorAll('#way-form input, #way-form button, #query-results button, #element-detail button, #element-detail select, #undo-way').forEach(el => el.disabled = false);
+        document.querySelectorAll('#way-form input, #way-form button, #ways-list button, #query-results button, #element-detail button, #element-detail select, #undo-way, #clear-journey').forEach(el => el.disabled = false);
+        updateUndoButton();
       }
     }
 
@@ -549,6 +683,14 @@
     let queryMarker = null;
     let queryCircle = null;
     let previewLayer = null;
+
+    function clearNearbyQuery() {
+      if (queryMarker) map.removeLayer(queryMarker);
+      if (queryCircle) map.removeLayer(queryCircle);
+      queryMarker = queryCircle = null;
+      map.closePopup();
+      document.getElementById('query-results').replaceChildren();
+    }
 
     function clearPreview() {
       if (previewLayer) map.removeLayer(previewLayer);
@@ -627,12 +769,8 @@
       if (kind === 'way') {
         const beginLeg = async transfer => {
           await selectWay(id, !transfer, {transfer});
-          clearPreview();
-          document.querySelectorAll('#query-results details, #element-detail details')
-            .forEach(section => section.open = false);
           document.getElementById('way_id').value = id;
           document.getElementById('query-status').textContent = `已开始第 ${lastData.legs.length} 段行程。`;
-          panel.querySelectorAll('[data-next-leg], [data-start-leg]').forEach(button => button.remove());
         };
         if (!lastData?.legs?.length) {
           const start = document.createElement('button');
@@ -777,16 +915,30 @@
       menu.focus({preventScroll:true});
     });
 
-    document.getElementById('undo-way').onclick = () => runTrackAction(async () => {
-      const response = await fetch('/journey/undo-way', {method:'POST'});
+    document.getElementById('clear-journey').onclick = () => runTrackAction(async () => {
+      const response = await fetch('/journey/clear', {method:'POST'});
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || '退回失败，请重试。');
+      if (!response.ok) throw new Error(data.error || '清空失败，请重试。');
+      clearPreview();
+      clearNearbyQuery();
+      document.getElementById('element-detail').replaceChildren();
+      document.getElementById('way_id').value = '';
+      renderWays(data, true);
+    });
+
+    const stepJourney = (action, wayId) => runTrackAction(async () => {
+      const response = await fetch(`/journey/${action}-way`, {method:'POST',
+        headers:{'Content-Type':'application/json'}, body:JSON.stringify(wayId === undefined ? {} : {way_id:wayId})});
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '轨道更新失败，请重试。');
+      clearNearbyQuery();
       document.getElementById('element-detail').replaceChildren();
       clearPreview();
       document.getElementById('way_id').value = data.current_way || '';
-      // 直接显示退回后的状态，不调用会自动推进的 selectWay。
-      renderWays(data);
+      // 单步进退只更新轨迹，保留用户正在查看的地图范围。
+      renderWays(data, true);
     });
+    document.getElementById('undo-way').onclick = () => stepJourney('undo');
 
     document.getElementById('way-form').onsubmit = async function(e) {
       e.preventDefault();

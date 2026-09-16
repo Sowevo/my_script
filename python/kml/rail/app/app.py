@@ -5,6 +5,7 @@ import os
 import math
 from nearby import NearbyIndex
 from geocoding import Geocoder
+from stations import StationIndex
 from journey import JourneyExplorer
 from recommendation import recommend_way
 from urllib.error import HTTPError, URLError
@@ -46,6 +47,13 @@ if relations_available:
 nearby_index = NearbyIndex(way_to_nodes, node_coords, way_to_meta, relations)
 geocoder = Geocoder()
 journey_explorer = JourneyExplorer(way_to_nodes, node_to_ways, way_to_meta)
+
+
+station_index = None
+station_path = os.path.join(DATA_DIR, 'stations.pkl')
+if os.path.isfile(station_path):
+    with open(station_path, 'rb') as station_file:
+        station_index = StationIndex(pickle.load(station_file), way_to_nodes)
 
 
 # 递归查找轨道
@@ -161,6 +169,57 @@ def get_ways(way_id):
             load_legs(), way_id, reset=request.args.get('reset') == '1',
             transfer=request.args.get('transfer') == '1',
             transfer_label=label)
+    except ValueError as error:
+        return jsonify(error=str(error)), 400
+    session['legs'] = legs
+    session.pop('total_path', None)
+    return journey_response(legs, result)
+
+
+@app.post('/stations/nearby')
+def endpoint_stations():
+    body = request.get_json(silent=True)
+    try:
+        endpoints = body['endpoints']
+        if not isinstance(endpoints, list) or not 2 <= len(endpoints) <= 100:
+            raise ValueError
+        validated = []
+        for endpoint in endpoints:
+            point = tuple(map(float, endpoint['point']))
+            ids = endpoint['way_ids']
+            if (len(point) != 2 or not all(map(math.isfinite, point))
+                    or not -90 <= point[0] <= 90 or not -180 <= point[1] <= 180
+                    or not isinstance(ids, list) or not ids or len(ids) > 100000
+                    or any(not isinstance(wid, int) or wid not in way_to_nodes for wid in ids)):
+                raise ValueError
+            validated.append((point, ids))
+    except (KeyError, TypeError, ValueError):
+        return jsonify(error='请提供有效的轨迹端点及已选轨道。'), 400
+    if station_index is None:
+        return jsonify(error='尚未生成本地站点索引，请重新解析 PBF 或手动填写站名。'), 503
+    return jsonify(stations=[station_index.query(point, ids) for point, ids in validated])
+
+
+@app.post('/journey/clear')
+def clear_journey():
+    session.pop('legs', None)
+    session.pop('total_path', None)
+    return journey_response([], {'current_way': None, 'choices': [], 'path': [],
+                                 'visited_path': [], 'stop_reason': ''})
+
+
+@app.post('/journey/forward-way')
+def forward_way():
+    try:
+        payload = request.get_json(silent=True)
+        if payload is None:
+            payload = {}
+        if not isinstance(payload, dict):
+            raise ValueError('请提供有效的轨道 ID。')
+        wid = payload.get('way_id')
+        if wid is not None and (not isinstance(wid, int) or isinstance(wid, bool)):
+            raise ValueError('请提供有效的轨道 ID。')
+        legs, result = journey_explorer.forward_way(load_legs(), wid)
     except ValueError as error:
         return jsonify(error=str(error)), 400
     session['legs'] = legs
