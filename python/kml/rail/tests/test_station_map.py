@@ -3,7 +3,39 @@ from pathlib import Path
 import sys
 import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'app'))
-from station_map import StationMap
+from station_map import StationMap, StationLines
+
+
+class StationLinesTests(unittest.TestCase):
+    def test_master_merges_directions_and_ignores_infrastructure(self):
+        features = {('n', 1): {'station_node': True}}
+        member = {'type': 'n', 'ref': 1, 'role': 'stop'}
+        relations = {
+            1: {'tags': {'type':'route', 'route':'train', 'name':'线路（上り）', 'ref':'JY', 'operator':'JR'}, 'members':[member]},
+            2: {'tags': {'type':'route', 'route':'train', 'name':'线路（下り）', 'ref':'JY', 'operator':'JR'}, 'members':[member]},
+            3: {'tags': {'type':'route_master', 'route_master':'train', 'name':'山手線', 'ref':'JY', 'operator':'JR'},
+                'members':[{'type':'r','ref':1}, {'type':'r','ref':2}]},
+            4: {'tags': {'type':'route', 'route':'railway', 'name':'底层铁路线'}, 'members':[member]},
+        }
+        lines = StationLines(features, relations)
+        self.assertEqual(lines.get([('n',1)]), [{'name':'山手線','operator':'JR'}])
+        self.assertEqual(lines.get([('n',2)]), [])
+
+    def test_same_ref_different_operators_are_distinct(self):
+        features = {('n',1): {'station_node':True}}
+        relations = {i: {'tags': {'type':'route','route':'train','name':f'线路{i}','ref':'1','operator':str(i)},
+                         'members':[{'type':'n','ref':1,'role':'stop'}]} for i in (1,2)}
+        self.assertEqual(len(StationLines(features,relations).get([('n',1)])),2)
+
+    def test_platform_direct_lines_and_station_fallback(self):
+        polygon = [(35,139),(35,139.001),(35.001,139),(35,139)]
+        features = {('w',i): {'name':'本站','coords':(35,139),'stop_area':10,
+                             'station_polygon':polygon,'area_kind':'站台范围'} for i in (1,2)}
+        relations = {1: {'tags': {'type':'route','route':'train','name':'线路'},
+                         'members':[{'type':'w','ref':1,'role':'platform'}]}}
+        station = StationMap(features,relations).stations['relation/10']
+        self.assertEqual([label['scope'] for label in station['polygon_labels']], ['platform','station'])
+        self.assertEqual(station['polygon_labels'][1]['lines'], [{'name':'线路','operator':''}])
 
 class StationMapTests(unittest.TestCase):
     def setUp(self):

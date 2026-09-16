@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const listeners = {}, active = new Set(), requests = [];
 let zoom = 13;
-const element = () => ({setAttribute(){},appendChild(){},textContent:'',hidden:false});
+const element = () => ({children:[],setAttribute(){},appendChild(child){this.children.push(child);},textContent:'',hidden:false});
 const map = {
   createPane(){},getPane:()=>({style:{}}),getZoom:()=>zoom,getCenter:()=>({lng:139}),
   getBounds:()=>({pad(){return this;},getSouth:()=>35,getNorth:()=>35.01,getWest:()=>139,getEast:()=>139.01}),
@@ -20,6 +20,12 @@ const context={L,document:{createElement:element},setTimeout,clearTimeout,AbortC
   fetch:(url,options)=>new Promise(resolve=>requests.push({url,options,resolve}))};
 vm.createContext(context);
 vm.runInContext(fs.readFileSync(__dirname+'/../app/static/station_map.js','utf8'),context);
+const tooltip = context.stationTooltip({name:'浜松町'}, {scope:'station',lines:
+  ['山手線','京浜東北線','第三线','第四线'].map(name=>({name,operator:'JR'}))});
+assert.equal(tooltip.children[0].textContent,'浜松町');
+assert.equal(tooltip.children[1].textContent,'本站线路：JR · 山手線、京浜東北線、第三线，另有 1 条线路');
+assert.equal(context.stationTooltip({name:'未知站'}, {}).children.length,1);
+assert.equal(context.stationTooltip({name:'单轨'}, {scope:'platform',lines:[{name:'東京モノレール羽田空港線',operator:'東京モノレール'}]}).children[1].textContent,'東京モノレール羽田空港線');
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const station=id=>({id,name:id,polygons:[[[35,139],[35,139.001],[35.001,139],[35,139]]]});
 (async()=>{

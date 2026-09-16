@@ -95,7 +95,8 @@ class Features(osmium.SimpleHandler):
 
     def way(self, way):
         tags = dict(way.tags)
-        self.features[("w", way.id)] = {"name": name(tags), "rail": is_rail(tags)}
+        self.features[("w", way.id)] = {"name": name(tags), "rail": is_rail(tags),
+                                       "ref": tags.get('ref', '')}
         self.way_nodes[way.id] = [node.ref for node in way.nodes]
         if tags.get('building') == 'train_station':
             self.buildings.add(way.id)
@@ -169,7 +170,7 @@ def build_station_index(pbf_path, data_dir, rail_ways, relations):
     assign_stop_areas(handler.features, relations)
     assign_building_names(handler.features)
     features = {key: value for key, value in handler.features.items()
-                if value["rail"] and value["name"] and "coords" in value}
+                if value["rail"] and (value["name"] or value.get('station_polygon')) and "coords" in value}
     data = {"features": features, "routes": routes}
     path = Path(data_dir) / "stations.pkl"
     path.parent.mkdir(parents=True, exist_ok=True)

@@ -56,7 +56,7 @@ station_path = os.path.join(DATA_DIR, 'stations.pkl')
 if os.path.isfile(station_path):
     with open(station_path, 'rb') as station_file:
         station_index = StationIndex(pickle.load(station_file), way_to_nodes)
-        station_map = StationMap(station_index.features)
+        station_map = StationMap(station_index.features, relations)
 
 
 # 递归查找轨道

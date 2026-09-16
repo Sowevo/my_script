@@ -69,6 +69,30 @@ class StationTests(unittest.TestCase):
             self.assertAlmostEqual(data['features'][('w',9)]['coords'][0], 35.0015)
             self.assertTrue((Path(directory) / 'stations.pkl').is_file())
 
+    def test_unnamed_platform_outline_is_kept_without_becoming_station_name(self):
+        from station_index import build_station_index
+        from station_map import StationMap
+        xml = '''<osm version="0.6">
+          <node id="1" lat="35" lon="139"/>
+          <node id="2" lat="35.001" lon="139"/>
+          <node id="3" lat="35" lon="139.001"/>
+          <way id="9"><nd ref="1"/><nd ref="2"/><nd ref="3"/><nd ref="1"/>
+            <tag k="railway" v="platform"/><tag k="ref" v="1"/></way>
+          <way id="10"><nd ref="1"/><nd ref="2"/><tag k="railway" v="platform"/></way>
+        </osm>'''
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'platform.osm'
+            path.write_text(xml)
+            data = build_station_index(path, directory, {}, {})
+            self.assertEqual(data['features'][('w',9)]['name'], '')
+            self.assertNotIn(('w',10), data['features'])
+            station = StationMap(data['features']).query(34.99,138.99,35.01,139.01)['stations'][0]
+            self.assertEqual(station['name'], '1 号站台')
+            self.assertEqual(len(station['polygons'][0]), 4)
+            self.assertEqual(StationIndex(data, {}).query((35,139), []), [])
+            data['features'][('w',9)]['ref'] = ''
+            self.assertEqual(StationMap(data['features']).stations['way/9']['name'], '未命名站台')
+
     def test_later_stop_does_not_override_endpoint_station(self):
         self.index.ways[101] = [3, 8]
         result = self.index.query((35, 139), [100, 101])
