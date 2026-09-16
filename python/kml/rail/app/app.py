@@ -6,6 +6,7 @@ import math
 from nearby import NearbyIndex
 from geocoding import Geocoder
 from stations import StationIndex
+from station_map import StationMap
 from journey import JourneyExplorer
 from recommendation import recommend_way
 from urllib.error import HTTPError, URLError
@@ -50,10 +51,12 @@ journey_explorer = JourneyExplorer(way_to_nodes, node_to_ways, way_to_meta)
 
 
 station_index = None
+station_map = None
 station_path = os.path.join(DATA_DIR, 'stations.pkl')
 if os.path.isfile(station_path):
     with open(station_path, 'rb') as station_file:
         station_index = StationIndex(pickle.load(station_file), way_to_nodes)
+        station_map = StationMap(station_index.features)
 
 
 # 递归查找轨道
@@ -174,6 +177,24 @@ def get_ways(way_id):
     session['legs'] = legs
     session.pop('total_path', None)
     return journey_response(legs, result)
+
+
+@app.get('/stations/map')
+def visible_stations():
+    try:
+        south, west, north, east = map(float, request.args['bbox'].split(','))
+        zoom = float(request.args['zoom'])
+        if (not all(map(math.isfinite, (south, west, north, east, zoom)))
+                or not -90 <= south <= north <= 90 or not -180 <= west <= east <= 180
+                or north - south > 5 or east - west > 5):
+            raise ValueError
+    except (KeyError, TypeError, ValueError):
+        return jsonify(error='无效的地图范围。'), 400
+    if zoom < 14:
+        return jsonify(stations=[], truncated=False)
+    if station_map is None:
+        return jsonify(error='请先生成本地站点索引。'), 503
+    return jsonify(station_map.query(south, west, north, east))
 
 
 @app.post('/stations/nearby')

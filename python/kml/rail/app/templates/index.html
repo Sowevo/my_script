@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>铁路way递归提取与地图展示</title>
+  <title>铁路行程编辑器</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
@@ -60,6 +60,8 @@
       flex-direction: column;
     }
     #map { width: 100%; height: 100%; min-height: 600px; border-radius: 8px; }
+    .station-map-status { background:#fffe; border-radius:4px; padding:5px 8px; font-size:12px; }
+    .station-map-label { font-size:11px; padding:2px 5px; border-color:#ddd6fe; }
     .choice-way { border:0; background:transparent; padding:0; font:inherit; text-align:left; cursor:pointer; text-decoration:none; color:#334155; margin-right:8px; }
     #ways-list li { display:flex; align-items:center; }
     #ways-list .choice-way { min-width:0; overflow-wrap:anywhere; }
@@ -177,6 +179,7 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="{{ url_for('static', filename='journey_export.js') }}"></script>
   <script src="{{ url_for('static', filename='choice_viewport.js') }}"></script>
+  <script src="{{ url_for('static', filename='station_map.js') }}"></script>
   <script>
     const initialBounds = {{ map_bounds | tojson }};
     let map = L.map('map');
@@ -197,6 +200,7 @@
     }).addTo(map);
     let blueLayers = [];
     let redLayer = null;
+    let undoPreviewLayer = null;
     let lastData = null;
 
     // 在线地名定位独立于本地轨道探索，只有提交表单才发送查询。
@@ -369,6 +373,24 @@
       }
     }
 
+    function updateUndoPreview() {
+      if (undoPreviewLayer) {
+        map.removeLayer(undoPreviewLayer);
+        undoPreviewLayer = null;
+      }
+      const button = document.getElementById('undo-way');
+      if (!button.matches(':hover') && !button.matches(':focus-visible')) return;
+      const legIndex = (lastData?.legs?.length || 0) - 1;
+      const lastWay = lastData?.legs[legIndex]?.path.at(-1)?.way_id;
+      const target = lastData?.total_path_coords.find(item =>
+        item.leg === legIndex && item.id === lastWay);
+      if (target?.coords?.length >= 2) {
+        // 独立覆盖层只预览将被撤回的轨道，不修改线路颜色或地图视口。
+        undoPreviewLayer = L.polyline(target.coords,
+          {color: 'red', weight: 6, interactive: false}).addTo(map);
+      }
+    }
+
     function fitChoices(data) {
       const current = data.total_path_coords.find(item =>
         item.id === data.current_way && item.leg === data.legs.length - 1);
@@ -407,6 +429,7 @@
             {color: '#64748b', weight: 4, opacity: 0.7, dashArray: '6 5'}).addTo(map));
         }
       });
+      updateUndoPreview();
       if (!preserveViewport) fitChoices(data);
     }
 
@@ -938,7 +961,10 @@
       // 单步进退只更新轨迹，保留用户正在查看的地图范围。
       renderWays(data, true);
     });
-    document.getElementById('undo-way').onclick = () => stepJourney('undo');
+    const undoButton = document.getElementById('undo-way');
+    undoButton.onclick = () => stepJourney('undo');
+    ['mouseenter', 'mouseleave', 'focus', 'blur'].forEach(event =>
+      undoButton.addEventListener(event, updateUndoPreview));
 
     document.getElementById('way-form').onsubmit = async function(e) {
       e.preventDefault();
@@ -952,6 +978,7 @@
     };
 
 
+    initStationMap(map);
   </script>
 
 </body>

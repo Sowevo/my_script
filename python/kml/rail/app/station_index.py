@@ -83,12 +83,15 @@ class Features(osmium.SimpleHandler):
         self.features = {}
         self.way_nodes = {}
         self.buildings = set()
+        self.station_areas = {}
 
     def node(self, node):
         if node.location.valid():
             tags = dict(node.tags)
             self.features[("n", node.id)] = {"name": name(tags), "rail": is_rail(tags),
-                                            "coords": (node.location.lat, node.location.lon)}
+                                            "coords": (node.location.lat, node.location.lon),
+                                            'station_node': tags.get('railway') in {'station', 'halt', 'tram_stop'} or tags.get('public_transport') == 'station',
+                                            'stop_position': tags.get('public_transport') == 'stop_position' or tags.get('railway') == 'stop'}
 
     def way(self, way):
         tags = dict(way.tags)
@@ -96,6 +99,10 @@ class Features(osmium.SimpleHandler):
         self.way_nodes[way.id] = [node.ref for node in way.nodes]
         if tags.get('building') == 'train_station':
             self.buildings.add(way.id)
+        elif tags.get('railway') in {'station', 'halt'} or tags.get('public_transport') == 'station':
+            self.station_areas[way.id] = '车站范围'
+        elif tags.get('railway') == 'platform' or tags.get('public_transport') == 'platform':
+            self.station_areas[way.id] = '站台范围'
 
 
 class Coordinates(osmium.SimpleHandler):
@@ -146,6 +153,9 @@ def build_station_index(pbf_path, data_dir, rail_ways, relations):
             handler.features[("w", wid)]["coords"] = tuple(sum(p[i] for p in points) / len(points) for i in (0, 1))
             if wid in handler.buildings and len(points) == len(nodes) and len(points) >= 4 and nodes[0] == nodes[-1]:
                 handler.features[("w", wid)]['building_polygon'] = points
+            if wid in handler.station_areas and len(points) == len(nodes) and len(points) >= 4 and nodes[0] == nodes[-1]:
+                handler.features[("w", wid)]['station_polygon'] = points
+                handler.features[("w", wid)]['area_kind'] = handler.station_areas[wid]
     for route in routes.values():
         for key in route["stops"]:
             if key in handler.features:
