@@ -122,6 +122,36 @@ class ForwardTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.explorer.forward_way(final)
 
+    def test_loop_closure_stops_even_with_an_unused_exit(self):
+        ways={1:[1,2],2:[2,3],3:[3,1],4:[1,4]}
+        nodes=defaultdict(set)
+        for wid,ids in ways.items():
+            for node in ids:nodes[node].add(wid)
+        explorer=JourneyExplorer(ways,nodes,{})
+        for directed in (False,True):
+            item={'way_id':1,'type':'manual'}
+            if directed:item['span']=[0,1]
+            legs=[{'name':'环线','start_way':1,'current_way':1,'directed':directed,'path':[item]}]
+            self.assertFalse(explorer.loop_closed(legs[0]))
+            result,info=explorer.advance(legs,2)
+            self.assertEqual([i['way_id'] for i in result[0]['path']],[1,2,3])
+            self.assertEqual(info['choices'],[])
+            self.assertIn('接回',info['stop_reason'])
+            restored,_=explorer.undo_way(result)
+            self.assertFalse(explorer.loop_closed(restored[0]))
+            self.assertIn(3,explorer.choices(restored[0])[0])
+
+    def test_closure_uses_only_travelled_part_of_start_way(self):
+        ways={1:[1,2,3],2:[3,4],3:[4,1],4:[1,5]}
+        nodes=defaultdict(set)
+        for wid,ids in ways.items():
+            for node in ids:nodes[node].add(wid)
+        explorer=JourneyExplorer(ways,nodes,{})
+        leg={'current_way':3,'directed':True,'path':[
+            {'way_id':1,'span':[1.5,2]}, {'way_id':2,'span':[0,1]}, {'way_id':3,'span':[0,1]}]}
+        self.assertFalse(explorer.loop_closed(leg))
+        self.assertEqual(explorer.choices(leg)[0],[4])
+
 
 if __name__ == '__main__':
     unittest.main()

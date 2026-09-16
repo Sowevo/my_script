@@ -8,6 +8,7 @@ from geocoding import Geocoder
 from stations import StationIndex
 from station_map import StationMap
 from journey import JourneyExplorer
+from journey_cut import JourneyCut, revision
 from recommendation import recommend_way
 from urllib.error import HTTPError, URLError
 
@@ -57,6 +58,8 @@ if os.path.isfile(station_path):
     with open(station_path, 'rb') as station_file:
         station_index = StationIndex(pickle.load(station_file), way_to_nodes)
         station_map = StationMap(station_index.features, relations)
+
+journey_cut = JourneyCut(way_to_nodes, node_coords, station_index.features if station_index else {})
 
 
 # 递归查找轨道
@@ -136,11 +139,15 @@ def journey_response(legs, result):
     def way_coords(wid):
         return [node_coords[n] for n in way_to_nodes.get(wid, []) if n in node_coords]
 
+    public_legs = [dict(leg, path=[{k: v for k, v in item.items() if k not in {'cut_restore', 'trim_restore'}}
+                                 for item in leg['path']]) for leg in legs]
     result['legs'] = [dict(leg, colour_candidates=[
         way_to_meta.get(leg['start_way'], {}).get('tags', {}).get('colour')])
-        for leg in legs]
-    result['total_path'] = [item for leg in legs for item in leg['path']]
-    result['active_path'] = legs[-1]['path'] if legs else []
+        for leg in public_legs]
+    result['total_path'] = [item for leg in public_legs for item in leg['path']]
+    result['active_path'] = public_legs[-1]['path'] if legs else []
+    result['undo'] = journey_cut.undo_preview(legs)
+    result['revision'] = revision(legs)
     result['choice_coords'] = [
         {'id': wid, 'coords': way_coords(wid), 'meta': way_to_meta.get(wid, {})}
         for wid in result['choices']]
@@ -148,9 +155,16 @@ def journey_response(legs, result):
         {'id': wid, 'coords': way_coords(wid), 'meta': way_to_meta.get(wid, {})}
         for wid in result['path']]
     result['total_path_coords'] = [
-        {'id': item['way_id'], 'coords': way_coords(item['way_id']),
+        {'id': item['way_id'], 'coords': journey_cut.item_coords(item),
          'meta': way_to_meta.get(item['way_id'], {}), 'type': item['type'], 'leg': index}
         for index, leg in enumerate(legs) for item in leg['path']]
+    if legs and 'span' in legs[-1]['path'][-1]:
+        item = legs[-1]['path'][-1]
+        for choice in result['choice_coords']:
+            if choice['id'] == item['way_id']:
+                start, end = item['span']
+                terminal = len(way_to_nodes[item['way_id']]) - 1 if end > start else 0
+                choice['coords'] = journey_cut.item_coords(dict(item, span=[end, terminal]))
     recommended = recommend_way(
         legs[-1]['path'] if legs else [], result['choices'],
         way_to_nodes, node_coords, way_to_meta)
@@ -254,6 +268,90 @@ def undo_way():
     session['legs'] = legs
     session.pop('total_path', None)
     return journey_response(legs, result)
+
+
+@app.post('/journey/cut-preview')
+@app.post('/journey/cut')
+def cut_journey():
+    try:
+        payload = request.get_json(silent=True)
+        if not isinstance(payload, dict):
+            raise ValueError('请提供有效的地图位置。')
+        point = payload.get('point')
+        if (not isinstance(point, list) or len(point) != 2
+                or any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) for v in point)
+                or not -90 <= point[0] <= 90 or not -180 <= point[1] <= 180):
+            raise ValueError('请提供有效的地图位置。')
+        legs = load_legs()
+        if request.path == '/journey/cut' and payload.get('revision') != revision(legs):
+            return jsonify(error='行程已变化，请重新选择截断位置。'), 409
+        if payload.get('side', 'end') != 'end':
+            raise ValueError('起点请通过选轨道、选起点、选方向开始新段。')
+        preview = journey_cut.preview(legs, point)
+        if request.path.endswith('cut-preview'):
+            return jsonify(preview)
+        legs = journey_cut.apply(legs, preview['candidates'][0])
+        choices, reason = journey_explorer.choices(legs[-1])
+    except ValueError as error:
+        return jsonify(error=str(error)), 400
+    session['legs'] = legs
+    session.pop('total_path', None)
+    return journey_response(legs, {'current_way': legs[-1]['current_way'], 'choices': choices,
+                                  'path': [], 'visited_path': [], 'stop_reason': reason})
+
+
+@app.post('/journey/start-preview')
+@app.post('/journey/start')
+def start_journey():
+    try:
+        payload = request.get_json(silent=True)
+        if not isinstance(payload, dict):
+            raise ValueError('请选择起始轨道和起点。')
+        wid, point = payload.get('way_id'), payload.get('point')
+        if isinstance(wid, bool) or not isinstance(wid, int):
+            raise ValueError('请选择有效的起始轨道。')
+        if point is not None and (not isinstance(point, list) or len(point) != 2
+                or any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) for v in point)
+                or not -90 <= point[0] <= 90 or not -180 <= point[1] <= 180):
+            raise ValueError('请选择有效的地图位置。')
+        legs = load_legs()
+        preview = journey_cut.start_preview(wid, point)
+        preview['revision'] = revision(legs)
+        if request.path.endswith('start-preview'):
+            return jsonify(preview)
+        if payload.get('revision') != revision(legs):
+            return jsonify(error='行程已变化，请重新选择起点。'), 409
+        direction = payload.get('direction')
+        if isinstance(direction, bool) or not isinstance(direction, int):
+            raise ValueError('请点击想走的一侧。')
+        selected = next((d for d in preview['directions'] if d['id'] == direction), None)
+        if selected is None:
+            raise ValueError('请选择有效的行进方向。')
+        reset = payload.get('reset', False)
+        replace_current = payload.get('replace_current', False)
+        if not isinstance(reset, bool) or not isinstance(replace_current, bool):
+            raise ValueError('无效的起步状态。')
+        if replace_current and (reset or not legs or legs[-1]['current_way'] != wid):
+            raise ValueError('当前轨道已变化，请重新选择起点。')
+        if reset:
+            legs = []
+        tags = way_to_meta.get(wid, {}).get('tags', {})
+        leg = {'name': tags.get('name') or '未命名轨道', 'start_way': wid, 'current_way': wid,
+               'directed': True, 'transfer_label': '',
+               'path': [{'way_id': wid, 'type': 'manual', 'span': selected['span']}]}
+        if replace_current:
+            leg['transfer_label'] = legs[-1].get('transfer_label', '')
+            leg['path'][-1]['trim_restore'] = {'leg': legs[-1], 'side': 'restart'}
+            legs = [*legs[:-1], leg]
+        else:
+            legs = [*legs, leg]
+        choices, reason = journey_explorer.choices(leg)
+    except ValueError as error:
+        return jsonify(error=str(error)), 400
+    session['legs'] = legs
+    session.pop('total_path', None)
+    return journey_response(legs, {'current_way': wid, 'choices': choices, 'path': [],
+                                  'visited_path': [], 'stop_reason': reason})
 
 
 @app.route('/journey')

@@ -48,3 +48,13 @@ assert.deepEqual(grouped, ['A', 'B1（B2）', 'C', 'D']);
 assert.equal(stationFilename(...grouped), 'A → B1（B2） → C → D.kml');
 assert.deepEqual(groupedStationNames([{name:'A',group:'start'},{name:'B',group:'t1'},{name:'C',group:'end'}]), ['A','B','C']);
 console.log('换乘双站名括号格式及删除、合并后分组检查通过');
+
+const cutData = {legs:[{name:'截断线路',path:[{way_id:1,span:[0,0.5]}]}],
+  total_path_coords:[{leg:0,id:1,coords:[[35,139],[35,139.0005]]}]};
+assert.deepEqual(stationEndpoints(cutData,'all')[1].point,[35,139.0005]);
+const cutKml=journeyKml(cutData,'all',['#1976d2']);
+assert.ok(cutKml.includes('139,35,0 139.0005,35,0'));
+assert.ok(!cutKml.includes('139.001,35,0'));
+cutData.total_path_coords.push({leg:0,id:1,coords:[[35,139.0005],[35,139.001]]});
+assert.deepEqual(journeyLines(cutData.total_path_coords),[[[35,139],[35,139.0005],[35,139.001]]]);
+console.log('截断坐标、导出终点及同 way 剩余部分拼接检查通过');
