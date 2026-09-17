@@ -1,7 +1,8 @@
 """查询本地轨道几何及所属OSM关系，不依赖在线服务。"""
 
 import math
-from journey import PASSENGER_ROUTES
+
+PASSENGER_ROUTES = {'train', 'subway', 'light_rail', 'monorail', 'tram'}
 
 
 class NearbyIndex:

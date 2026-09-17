@@ -34,7 +34,7 @@ console.log('导出端点、站名文件名和文档名检查通过');
 
 const transferData = {...data, legs:[{path:[{way_id:10},{way_id:11}]},{path:[{way_id:20}]}]};
 assert.deepEqual(stationEndpoints(transferData, 'all'), [
-  {point:[35,139],way_ids:[10,11]}, {point:[37,141],way_ids:[11,10]},
+  {point:[35,139],way_ids:[10]}, {point:[37,141],way_ids:[11]},
   {point:[38,142],way_ids:[20]}, {point:[39,143],way_ids:[20]},
 ]);
 assert.equal(stationEndpoints(transferData, '1').length, 2);

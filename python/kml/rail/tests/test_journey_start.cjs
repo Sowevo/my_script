@@ -21,7 +21,11 @@ vm.createContext(context);vm.runInContext(fs.readFileSync(__dirname+'/../app/sta
 vm.runInContext(fs.readFileSync(__dirname+'/../app/static/track_styles.js','utf8'),context);
 vm.runInContext(fs.readFileSync(__dirname+'/../app/static/preview_arrows.js','utf8'),context);
 const controller=context.initJourneyStart(map,{panel,list,previewArrows,restoreList(){list.hidden=true;},busy:()=>false,hasJourney:()=>false,
-  clearReference(){},runAction:fn=>fn(),onChanged:data=>{changed=data;}});
+  api:{
+    read:async url=>(await context.fetch(url)).json(),
+    startPreview:async body=>(await context.fetch('/journey/start-preview',{body:JSON.stringify(body)})).json(),
+    start:async body=>(await context.fetch('/journey/start',{body:JSON.stringify(body)})).json()
+  },clearReference(){},runAction:fn=>fn(),onChanged:data=>{changed=data;}});
 (async()=>{
   await controller.select(1,{lat:35,lng:139.5});
   assert.equal(JSON.stringify(arrowLines),'[[[35,139],[35,140]]]');

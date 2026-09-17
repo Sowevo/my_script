@@ -40,10 +40,10 @@ function initJourneyStart(map, options) {
   }
   async function preview(current, point) {
     const coordinates = point ? [point.lat, point.lng] : null;
-    const response = await fetch('/journey/start-preview', {method:'POST',
-      headers:{'Content-Type':'application/json'}, body:JSON.stringify({way_id:current.wid,point:coordinates})});
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || '起点预览失败');
+    const data = await options.api.startPreview({
+      way_id:current.wid, point:coordinates, source:current.replaceCurrent ? 'current_way' : 'selected_way',
+      replace_current:current.replaceCurrent, reset:current.reset
+    });
     if (draft !== current) return;
     current.directions = data.directions;
     clearHighlight();
@@ -63,12 +63,9 @@ function initJourneyStart(map, options) {
       const begin = () => {
         if (draft !== current || options.busy()) return;
         return options.runAction(async () => {
-          const response = await fetch('/journey/start', {method:'POST',
-            headers:{'Content-Type':'application/json'}, body:JSON.stringify({way_id:current.wid,
-              point:coordinates, direction:direction.id, revision:data.revision, reset:current.reset,
-              replace_current:current.replaceCurrent})});
-          const result = await response.json();
-          if (!response.ok) throw new Error(result.error || '开始行程失败');
+          const result = await options.api.start({way_id:current.wid,
+            point:coordinates, direction:direction.id, revision:data.revision, reset:current.reset,
+            replace_current:current.replaceCurrent});
           cancel();
           options.onChanged(result);
         });
@@ -98,9 +95,7 @@ function initJourneyStart(map, options) {
   }
   async function select(wid, point, {replaceCurrent = false} = {}) {
     cancel();
-    const response = await fetch(`/elements/way/${wid}`);
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || '轨道加载失败');
+    const data = await options.api.read(`/elements/way/${wid}`);
     if (!data.geometry?.length) throw new Error('这条轨道没有可用坐标。');
     options.clearReference();
     draft = {wid:Number(wid),name:data.tags?.name || '未命名',tags:data.tags || {},geometry:data.geometry,

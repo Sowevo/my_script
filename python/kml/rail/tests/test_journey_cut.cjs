@@ -8,6 +8,10 @@ vm.createContext(context);
 vm.runInContext(fs.readFileSync(__dirname+'/../app/static/journey_cut.js','utf8'),context);
 // 不提供任何地图/弹窗 API，确保结束操作不会弹窗或移动视口。
 const control=context.initJourneyCut({},{
+  api:{
+    async cut(body){calls.push({url:'/journey/cut',body});if(!ok)throw new Error('尚未确定行进方向');return {legs:[{}],revision};},
+    async cutPreview(body){calls.push({url:'/journey/cut-preview',body});if(!ok)throw new Error('尚未确定行进方向');return {revision};}
+  },
   getData:()=>({revision:'current'}),runAction:fn=>fn(),
   onChanged:data=>{changed=data;},status:text=>{message=text;}
 });

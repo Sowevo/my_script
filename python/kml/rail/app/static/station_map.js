@@ -28,7 +28,7 @@ function stationIcon() {
     iconSize:[22,22], iconAnchor:[11,11], tooltipAnchor:[10,0]});
 }
 
-function initStationMap(map) {
+function initStationMap(map, options = {}) {
   map.createPane('stations');
   map.getPane('stations').style.zIndex = 450;
   const markers = new Map();
@@ -82,6 +82,7 @@ function initStationMap(map) {
     try {
       const results = await Promise.all(ranges.map(async ([left, right]) => {
         const params = new URLSearchParams({bbox:[south,left,north,right].join(','), zoom:map.getZoom()});
+        if (options.read) return options.read(`/stations/map?${params}`, {signal:controller.signal});
         const response = await fetch(`/stations/map?${params}`, {signal:controller.signal});
         const data = await response.json();
         if (!response.ok) {
@@ -116,4 +117,5 @@ function initStationMap(map) {
   }
   map.on('moveend zoomend resize', schedule);
   schedule();
+  return {refresh() { clearMarkers(); schedule(); }};
 }

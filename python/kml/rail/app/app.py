@@ -1,18 +1,17 @@
-from flask import Flask, request, jsonify, render_template, session
+from flask import Flask, request, jsonify, render_template
 import pickle
-import folium
 import os
 import math
+import hashlib
+import json
 from nearby import NearbyIndex
 from geocoding import Geocoder
 from stations import StationIndex
 from station_map import StationMap
-from journey import JourneyExplorer
-from journey_cut import JourneyCut, revision
-from recommendation import recommend_way
 from urllib.error import HTTPError, URLError
+from diagnostics import configure_logging, record_diagnostic
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+DATA_DIR = os.environ.get('RAIL_DATA_DIR', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data'))
 NODE_TO_WAYS_PATH = os.path.join(DATA_DIR, 'node_to_ways.pkl')
 WAY_TO_NODES_PATH = os.path.join(DATA_DIR, 'way_to_nodes.pkl')
 NODE_COORDS_PATH = os.path.join(DATA_DIR, 'node_coords.pkl')
@@ -37,7 +36,7 @@ if node_coords:
     ]
 
 app = Flask(__name__)
-app.secret_key = 'a_very_secret_key_123456'  # 用于session
+log_path = configure_logging(app, os.path.join(DATA_DIR, 'logs'))
 
 
 relations_path = os.path.join(DATA_DIR, 'relations.pkl')
@@ -48,7 +47,6 @@ if relations_available:
         relations = pickle.load(f)
 nearby_index = NearbyIndex(way_to_nodes, node_coords, way_to_meta, relations)
 geocoder = Geocoder()
-journey_explorer = JourneyExplorer(way_to_nodes, node_to_ways, way_to_meta)
 
 
 station_index = None
@@ -59,140 +57,73 @@ if os.path.isfile(station_path):
         station_index = StationIndex(pickle.load(station_file), way_to_nodes)
         station_map = StationMap(station_index.features, relations)
 
-journey_cut = JourneyCut(way_to_nodes, node_coords, station_index.features if station_index else {})
+app.logger.info('startup', extra={'event_data': {
+    'event': 'startup', 'data_dir': DATA_DIR, 'log_path': str(log_path),
+    'way_count': len(way_to_nodes), 'node_count': len(node_coords),
+    'relation_count': len(relations), 'map_bounds': map_bounds,
+    'index_files': {name: {'bytes': os.path.getsize(os.path.join(DATA_DIR, name)),
+                           'modified': os.path.getmtime(os.path.join(DATA_DIR, name))}
+                    for name in os.listdir(DATA_DIR) if name.endswith('.pkl')}
+}})
 
 
-# 递归查找轨道
-MAX_DEPTH = 1000
+# 绑定已加载索引的版本；重建任一索引都会使旧页面的计算请求失效。
+index_signature = [(name, os.stat(os.path.join(DATA_DIR, name)).st_size,
+                    os.stat(os.path.join(DATA_DIR, name)).st_mtime_ns)
+                   for name in sorted(os.listdir(DATA_DIR)) if name.endswith('.pkl')]
+DATASET_VERSION = hashlib.sha256(json.dumps(index_signature).encode()).hexdigest()
 
-def find_connected_ways(start_way_id, max_depth=MAX_DEPTH):
-    visited_ways = set()
-    result = []
-    def dfs(way_id, depth):
-        if depth > max_depth or way_id in visited_ways:
-            return
-        visited_ways.add(way_id)
-        result.append(way_id)
-        nodes = way_to_nodes.get(way_id, [])
-        for n in nodes:
-            for next_way in node_to_ways.get(n, set()):
-                if next_way != way_id:
-                    dfs(next_way, depth+1)
-    dfs(start_way_id, 1)
-    return result
 
-def find_next_choices(start_way_id, max_depth=20, total_path=None):
-    """
-    从start_way_id出发，沿唯一轨道自动前进，直到出现多个可选way或无新way。
-    返回：当前way_id、可选的相连way列表（不含当前way）、经过的way链路、visited_path
-    """
-    if total_path is None:
-        total_path = []  # int列表
-    visited_ways = set()
-    path = []
-    current_way = start_way_id
-    for _ in range(max_depth):
-        visited_ways.add(current_way)
-        path.append(current_way)
-        nodes = way_to_nodes.get(current_way, [])
-        neighbor_ways = set()
-        for n in nodes:
-            neighbor_ways.update(node_to_ways.get(n, set()))
-        neighbor_ways.discard(current_way)  # 排除当前way
-        neighbor_ways -= visited_ways
-        neighbor_ways -= set(total_path)  # 排除全局累计链路中出现过的way，避免往回走
-        if len(neighbor_ways) == 1:
-            current_way = list(neighbor_ways)[0]
-        else:
-            return {
-                'current_way': current_way,
-                'choices': list(neighbor_ways),
-                'path': path,
-                'visited_path': path
-            }
-    return {
-        'current_way': current_way,
-        'choices': list(neighbor_ways),
-        'path': path,
-        'visited_path': path
-    }
+@app.before_request
+def check_dataset():
+    indexed = request.path.startswith(('/track-data', '/elements/', '/nearby', '/stations/'))
+    if not indexed:
+        return
+    payload = request.get_json(silent=True) if request.is_json else None
+    supplied = payload.get('dataset_version') if isinstance(payload, dict) else request.args.get('dataset_version')
+    if supplied != DATASET_VERSION:
+        return jsonify(error='数据源已切换或页面版本过旧，请先导出已有轨迹，再清空行程或刷新页面。',
+                       code='dataset_changed', dataset_version=DATASET_VERSION), 409
+
+
+@app.get('/dataset')
+def dataset():
+    return jsonify(dataset_version=DATASET_VERSION, map_bounds=map_bounds)
+
 
 @app.route('/')
 def index():
-    return render_template('index.html', map_bounds=map_bounds)
+    return render_template('index.html', map_bounds=map_bounds, dataset_version=DATASET_VERSION)
 
-def load_legs():
-    if isinstance(session.get('legs'), list):
-        return session['legs']
-    # 兼容此前浏览器保存的单段轨道链路。
-    old_path = [item for item in session.get('total_path', [])
-                if isinstance(item, dict) and item.get('way_id') in way_to_nodes]
-    if not old_path:
-        return []
-    first = old_path[0]['way_id']
-    return [{'name': way_to_meta.get(first, {}).get('name') or '未命名轨道',
-             'start_way': first, 'current_way': old_path[-1]['way_id'],
-             'path': old_path, 'relation_id': None, 'transfer_label': ''}]
-
-
-def journey_response(legs, result):
-    def way_coords(wid):
-        return [node_coords[n] for n in way_to_nodes.get(wid, []) if n in node_coords]
-
-    public_legs = [dict(leg, path=[{k: v for k, v in item.items() if k not in {'cut_restore', 'trim_restore'}}
-                                 for item in leg['path']]) for leg in legs]
-    result['legs'] = [dict(leg, colour_candidates=[
-        way_to_meta.get(leg['start_way'], {}).get('tags', {}).get('colour')])
-        for leg in public_legs]
-    result['total_path'] = [item for leg in public_legs for item in leg['path']]
-    result['active_path'] = public_legs[-1]['path'] if legs else []
-    result['undo'] = journey_cut.undo_preview(legs)
-    result['revision'] = revision(legs)
-    result['choice_coords'] = [
-        {'id': wid, 'coords': way_coords(wid), 'meta': way_to_meta.get(wid, {})}
-        for wid in result['choices']]
-    result['path_coords'] = [
-        {'id': wid, 'coords': way_coords(wid), 'meta': way_to_meta.get(wid, {})}
-        for wid in result['path']]
-    result['total_path_coords'] = [
-        {'id': item['way_id'], 'coords': journey_cut.item_coords(item),
-         'reversed': 'span' in item and item['span'][1] < item['span'][0],
-         'meta': way_to_meta.get(item['way_id'], {}), 'type': item['type'], 'leg': index}
-        for index, leg in enumerate(legs) for item in leg['path']]
-    if legs and 'span' in legs[-1]['path'][-1]:
-        item = legs[-1]['path'][-1]
-        for choice in result['choice_coords']:
-            if choice['id'] == item['way_id']:
-                start, end = item['span']
-                terminal = len(way_to_nodes[item['way_id']]) - 1 if end > start else 0
-                choice['coords'] = journey_cut.item_coords(dict(item, span=[end, terminal]))
-                choice['reversed'] = end > terminal
-    recommended = recommend_way(
-        legs[-1]['path'] if legs else [], result['choices'],
-        way_to_nodes, node_coords, way_to_meta)
-    for choice in result['choice_coords']:
-        if choice['id'] == recommended:
-            choice['recommend'] = True
-    return jsonify(result)
+@app.post('/track-data')
+def track_data():
+    payload = request.get_json(silent=True)
+    ids = payload.get('way_ids') if isinstance(payload, dict) else None
+    if (not isinstance(ids, list) or not 1 <= len(ids) <= 1000 or
+            any(isinstance(wid, bool) or not isinstance(wid, int) for wid in ids)):
+        return jsonify(error='请提供 1 至 1000 个轨道 ID。'), 400
+    missing = [wid for wid in ids if wid not in way_to_nodes]
+    if missing:
+        return jsonify(error='当前索引中没有指定轨道。', missing=missing), 404
+    nodes = {node for wid in ids for node in way_to_nodes[wid]}
+    return jsonify(
+        dataset_version=DATASET_VERSION,
+        ways={wid: {'nodes': way_to_nodes[wid], 'meta': way_to_meta.get(wid, {})} for wid in ids},
+        coords={node: node_coords[node] for node in nodes if node in node_coords},
+        node_ways={node: sorted(node_to_ways.get(node, ())) for node in nodes},
+        stops=[node for node in nodes if station_index and
+               station_index.features.get(('n', node), {}).get('stop_position')])
 
 
-@app.route('/ways/<int:way_id>')
-def get_ways(way_id):
-    if way_id not in way_to_nodes:
-        return jsonify(error='当前地图中没有这个轨道ID。'), 404
-    try:
-        label = request.args.get('transfer_label', '').strip()
-        if len(label) > 100:
-            raise ValueError('换乘备注不能超过100个字符。')
-        legs, result = journey_explorer.advance(
-            load_legs(), way_id, reset=request.args.get('reset') == '1',
-            transfer=request.args.get('transfer') == '1',
-            transfer_label=label)
-    except ValueError as error:
-        return jsonify(error=str(error)), 400
-    session['legs'] = legs
-    session.pop('total_path', None)
-    return journey_response(legs, result)
+@app.post('/diagnostics')
+def client_diagnostics():
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict) or len(request.data) > 64000:
+        return jsonify(error='无效的诊断记录。'), 400
+    allowed = ('page_id', 'operation', 'dataset_version', 'revision', 'parameters',
+               'before', 'after', 'result', 'error', 'details')
+    record_diagnostic('client_operation', **{k: payload[k] for k in allowed if k in payload})
+    return jsonify(ok=True)
 
 
 @app.get('/stations/map')
@@ -226,7 +157,7 @@ def endpoint_stations():
             ids = endpoint['way_ids']
             if (len(point) != 2 or not all(map(math.isfinite, point))
                     or not -90 <= point[0] <= 90 or not -180 <= point[1] <= 180
-                    or not isinstance(ids, list) or not ids or len(ids) > 100000
+                    or not isinstance(ids, list) or not ids or len(ids) != 1
                     or any(not isinstance(wid, int) or wid not in way_to_nodes for wid in ids)):
                 raise ValueError
             validated.append((point, ids))
@@ -235,133 +166,6 @@ def endpoint_stations():
     if station_index is None:
         return jsonify(error='尚未生成本地站点索引，请重新解析 PBF 或手动填写站名。'), 503
     return jsonify(stations=[station_index.query(point, ids) for point, ids in validated])
-
-
-@app.post('/journey/clear')
-def clear_journey():
-    session.pop('legs', None)
-    session.pop('total_path', None)
-    return journey_response([], {'current_way': None, 'choices': [], 'path': [],
-                                 'visited_path': [], 'stop_reason': ''})
-
-
-@app.post('/journey/forward-way')
-def forward_way():
-    try:
-        payload = request.get_json(silent=True)
-        if payload is None:
-            payload = {}
-        if not isinstance(payload, dict):
-            raise ValueError('请提供有效的轨道 ID。')
-        wid = payload.get('way_id')
-        if wid is not None and (not isinstance(wid, int) or isinstance(wid, bool)):
-            raise ValueError('请提供有效的轨道 ID。')
-        legs, result = journey_explorer.forward_way(load_legs(), wid)
-    except ValueError as error:
-        return jsonify(error=str(error)), 400
-    session['legs'] = legs
-    session.pop('total_path', None)
-    return journey_response(legs, result)
-
-
-@app.post('/journey/undo-way')
-def undo_way():
-    legs, result = journey_explorer.undo_way(load_legs())
-    session['legs'] = legs
-    session.pop('total_path', None)
-    return journey_response(legs, result)
-
-
-@app.post('/journey/cut-preview')
-@app.post('/journey/cut')
-def cut_journey():
-    try:
-        payload = request.get_json(silent=True)
-        if not isinstance(payload, dict):
-            raise ValueError('请提供有效的地图位置。')
-        point = payload.get('point')
-        if (not isinstance(point, list) or len(point) != 2
-                or any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) for v in point)
-                or not -90 <= point[0] <= 90 or not -180 <= point[1] <= 180):
-            raise ValueError('请提供有效的地图位置。')
-        legs = load_legs()
-        if request.path == '/journey/cut' and payload.get('revision') != revision(legs):
-            return jsonify(error='行程已变化，请重新选择截断位置。'), 409
-        if payload.get('side', 'end') != 'end':
-            raise ValueError('起点请通过选轨道、选起点、选方向开始新段。')
-        preview = journey_cut.preview(legs, point)
-        if request.path.endswith('cut-preview'):
-            return jsonify(preview)
-        legs = journey_cut.apply(legs, preview['candidates'][0])
-        choices, reason = journey_explorer.choices(legs[-1])
-    except ValueError as error:
-        return jsonify(error=str(error)), 400
-    session['legs'] = legs
-    session.pop('total_path', None)
-    return journey_response(legs, {'current_way': legs[-1]['current_way'], 'choices': choices,
-                                  'path': [], 'visited_path': [], 'stop_reason': reason})
-
-
-@app.post('/journey/start-preview')
-@app.post('/journey/start')
-def start_journey():
-    try:
-        payload = request.get_json(silent=True)
-        if not isinstance(payload, dict):
-            raise ValueError('请选择起始轨道和起点。')
-        wid, point = payload.get('way_id'), payload.get('point')
-        if isinstance(wid, bool) or not isinstance(wid, int):
-            raise ValueError('请选择有效的起始轨道。')
-        if point is not None and (not isinstance(point, list) or len(point) != 2
-                or any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) for v in point)
-                or not -90 <= point[0] <= 90 or not -180 <= point[1] <= 180):
-            raise ValueError('请选择有效的地图位置。')
-        legs = load_legs()
-        preview = journey_cut.start_preview(wid, point)
-        preview['revision'] = revision(legs)
-        if request.path.endswith('start-preview'):
-            return jsonify(preview)
-        if payload.get('revision') != revision(legs):
-            return jsonify(error='行程已变化，请重新选择起点。'), 409
-        direction = payload.get('direction')
-        if isinstance(direction, bool) or not isinstance(direction, int):
-            raise ValueError('请点击想走的一侧。')
-        selected = next((d for d in preview['directions'] if d['id'] == direction), None)
-        if selected is None:
-            raise ValueError('请选择有效的行进方向。')
-        reset = payload.get('reset', False)
-        replace_current = payload.get('replace_current', False)
-        if not isinstance(reset, bool) or not isinstance(replace_current, bool):
-            raise ValueError('无效的起步状态。')
-        if replace_current and (reset or not legs or legs[-1]['current_way'] != wid):
-            raise ValueError('当前轨道已变化，请重新选择起点。')
-        if reset:
-            legs = []
-        tags = way_to_meta.get(wid, {}).get('tags', {})
-        leg = {'name': tags.get('name') or '未命名轨道', 'start_way': wid, 'current_way': wid,
-               'directed': True, 'transfer_label': '',
-               'path': [{'way_id': wid, 'type': 'manual', 'span': selected['span']}]}
-        if replace_current:
-            leg['transfer_label'] = legs[-1].get('transfer_label', '')
-            legs = [*legs[:-1], leg]
-        else:
-            legs = [*legs, leg]
-        choices, reason = journey_explorer.choices(leg)
-    except ValueError as error:
-        return jsonify(error=str(error)), 400
-    session['legs'] = legs
-    session.pop('total_path', None)
-    return journey_response(legs, {'current_way': wid, 'choices': choices, 'path': [],
-                                  'visited_path': [], 'stop_reason': reason})
-
-
-@app.route('/journey')
-def get_journey():
-    legs = load_legs()
-    choices, reason = journey_explorer.choices(legs[-1]) if legs else ([], '')
-    return journey_response(legs, {'current_way': legs[-1]['current_way'] if legs else None,
-                                  'choices': choices, 'path': [], 'visited_path': [],
-                                  'stop_reason': reason})
 
 
 @app.route('/nearby')
@@ -409,49 +213,8 @@ def element_detail(kind, element_id):
     if element_id not in source:
         return jsonify(error='当前索引中没有这个要素。'), 404
     detail = nearby_index.detail(kind, element_id)
-    if kind == 'way':
-        selected = {item['way_id'] for leg in load_legs() for item in leg['path']}
-        touching = journey_explorer.connected(element_id) | {element_id}
-        detail['connected_to_journey'] = bool(selected & touching)
     return jsonify(detail)
 
-
-@app.route('/map/<int:way_id>')
-def get_map(way_id):
-    legs = load_legs()
-    session_path = legs[-1]['path'] if legs else []
-    int_path = [x['way_id'] for x in session_path if isinstance(x, dict) and 'way_id' in x]
-    result = find_next_choices(way_id, total_path=int_path)
-    highlight = request.args.get('highlight', type=int)
-    all_coords = []
-    for wid in result['path']:
-        nodes = way_to_nodes.get(wid, [])
-        coords = [node_coords[n] for n in nodes if n in node_coords]
-        all_coords.extend(coords)
-    if highlight:
-        nodes = way_to_nodes.get(highlight, [])
-        coords = [node_coords[n] for n in nodes if n in node_coords]
-        all_coords.extend(coords)
-    center = [(map_bounds[0][i] + map_bounds[1][i]) / 2 for i in range(2)] if map_bounds else [0, 0]
-    if all_coords:
-        center = all_coords[0]
-    m = folium.Map(location=center, zoom_start=8)
-    # 蓝色链路
-    for wid in result['path']:
-        nodes = way_to_nodes.get(wid, [])
-        coords = [node_coords[n] for n in nodes if n in node_coords]
-        if len(coords) >= 2:
-            folium.PolyLine(coords, color='blue', tooltip=f"{wid}").add_to(m)
-    # 仅高亮悬停轨道
-    if highlight:
-        nodes = way_to_nodes.get(highlight, [])
-        coords = [node_coords[n] for n in nodes if n in node_coords]
-        if len(coords) >= 2:
-            folium.PolyLine(coords, color='red', tooltip=f'可选:{highlight}').add_to(m)
-    # 自动缩放
-    if all_coords:
-        m.fit_bounds(all_coords)
-    return m._repr_html_()
 
 if __name__ == '__main__':
     app.run(debug=True, port=5050)

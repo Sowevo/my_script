@@ -191,6 +191,8 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="{{ url_for('static', filename='track_styles.js') }}"></script>
   <script src="{{ url_for('static', filename='journey_export.js') }}"></script>
+  <script src="{{ url_for('static', filename='journey_engine.js') }}"></script>
+  <script src="{{ url_for('static', filename='journey_api.js') }}"></script>
   <script src="{{ url_for('static', filename='journey_cut.js') }}"></script>
   <script src="{{ url_for('static', filename='preview_arrows.js') }}"></script>
   <script src="{{ url_for('static', filename='journey_start.js') }}"></script>
@@ -221,6 +223,15 @@
     let cutControl = null;
     let startControl = null;
     let selectedStartWay = null;
+    const journeyApi = createJourneyApi({
+      getData: () => lastData,
+      datasetVersion: {{ dataset_version | tojson }},
+      onDatasetChanged: message => {
+        const status = document.getElementById('query-status');
+        status.classList.add('text-danger');
+        status.textContent = message;
+      }
+    });
     const previewArrows = initPreviewArrows(map, {enabled:true});
 
     // 在线地名定位独立于本地轨道探索，只有提交表单才发送查询。
@@ -408,13 +419,7 @@
     });
 
     async function fetchWays(way_id, reset=false, options={}) {
-      const params = new URLSearchParams();
-      if (reset) params.set('reset', '1');
-      if (options.transfer) params.set('transfer', '1');
-      const res = await fetch(`/ways/${way_id}?${params}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || '轨道加载失败，请重试。');
-      return data;
+      return journeyApi.advance({way_id:Number(way_id), reset, transfer:Boolean(options.transfer)});
     }
 
     function highlightChoice(data, id) {
@@ -668,10 +673,7 @@
       stationRequest = controller;
       try {
         if (!endpoints.length) throw new Error('没有可查询的轨迹端点。');
-        const response = await fetch('/stations/nearby', {method:'POST',
-          headers:{'Content-Type':'application/json'}, body:JSON.stringify({endpoints}), signal:controller.signal});
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || '车站查询失败，请手动填写站名。');
+        const data = await journeyApi.postData('/stations/nearby', {endpoints}, {signal:controller.signal});
         if (controller.signal.aborted || !kmlDialog.open) return;
         rows.forEach(({input, list, hint}, index) => {
           const candidates = data.stations[index];
@@ -733,14 +735,13 @@
     };
 
     async function selectWay(way_id, reset=false, options={}) {
-      let data = await fetchWays(way_id, reset, options);
-      while (data.choices.length === 1) {
-        data = await fetchWays(data.choices[0]);
-      }
+      // 自动推进统一由本地行程引擎处理，页面只提交一次选择动作。
+      const data = await fetchWays(way_id, reset, options);
       clearNearbyQuery();
       clearPreview();
       document.getElementById('element-detail').replaceChildren();
       renderWays(data);
+      if (data.manual_confirmation_required) document.getElementById('query-status').textContent = data.stop_reason;
       return data;
     }
 
@@ -835,9 +836,7 @@
     }
 
     async function showElement(kind, id) {
-      const response = await fetch(`/elements/${kind}/${id}`);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || '要素加载失败。');
+      const data = await journeyApi.read(`/elements/${kind}/${id}`);
       if (kind === 'way') selectedStartWay = Number(id);
       // 两个附近列表各自保留选择；继续查看关系时不丢失刚才选中的轨道。
       document.querySelectorAll('#query-results button[data-element-type]').forEach(button => {
@@ -963,9 +962,7 @@
       if (queryCircle) map.removeLayer(queryCircle);
       queryMarker = L.circleMarker(latlng, {radius:5, color:'#333', fillOpacity:1}).addTo(map);
       queryCircle = L.circle(latlng, {radius, color:'#666', weight:1, fillOpacity:0.06}).addTo(map);
-      const response = await fetch(`/nearby?lat=${latlng.lat}&lon=${latlng.lng}&radius=${radius}`);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || '附近要素查询失败。');
+      const data = await journeyApi.read(`/nearby?lat=${latlng.lat}&lon=${latlng.lng}&radius=${radius}`);
       document.getElementById('query-status').textContent =
         `附近 ${radius} 米：${data.total} 段轨道、${data.relations.length} 个所属关系。` +
         (data.total > data.ways.length ? `仅显示最近 ${data.ways.length} 段，请减小查询半径或调整查询位置。` : '') +
@@ -982,6 +979,50 @@
         items.forEach(item => group.appendChild(elementButton(item)));
         container.appendChild(group);
       });
+    }
+
+    function disabledMenuItem(button, reason, menu) {
+      const container = document.createElement('div');
+      container.tabIndex = 0;
+      let disabledReason = reason;
+      const reasonTip = document.createElement('div');
+      reasonTip.id = button.id + '-disabled-reason';
+      reasonTip.setAttribute('role', 'tooltip');
+      Object.assign(reasonTip.style, {position:'fixed', zIndex:'10000', maxWidth:'240px',
+        padding:'6px 9px', borderRadius:'5px', background:'#334155', color:'#fff',
+        fontSize:'12px', lineHeight:'1.5', pointerEvents:'none'});
+      reasonTip.hidden = true;
+      document.body.appendChild(reasonTip);
+      container.setAttribute('aria-describedby', reasonTip.id);
+      let hovering = false;
+      const showReason = () => {
+        if (!button.disabled || !disabledReason) { reasonTip.hidden = true; return; }
+        reasonTip.textContent = disabledReason;
+        reasonTip.hidden = false;
+        const rect = container.getBoundingClientRect();
+        const width = reasonTip.offsetWidth, height = reasonTip.offsetHeight;
+        const left = rect.right + width + 16 < window.innerWidth ? rect.right + 8 : rect.left - width - 8;
+        reasonTip.style.left = `${Math.max(8, Math.min(left, window.innerWidth - width - 8))}px`;
+        reasonTip.style.top = `${Math.max(8, Math.min(rect.top, window.innerHeight - height - 8))}px`;
+      };
+      container.onmouseenter = () => { hovering = true; showReason(); };
+      container.onmouseleave = () => { hovering = false; reasonTip.hidden = true; };
+      container.onfocus = () => { if (button.disabled) showReason(); else button.focus(); };
+      container.onblur = () => { reasonTip.hidden = true; };
+      const removeReason = event => {
+        if (event.popup.getContent() !== menu) return;
+        reasonTip.remove();
+        map.off('popupclose', removeReason);
+      };
+      map.on('popupclose', removeReason);
+      container.appendChild(button);
+      return {container, update(reason, allowed) {
+        button.disabled = !allowed;
+        button.setAttribute('aria-disabled', String(!allowed));
+        disabledReason = reason;
+        container.tabIndex = allowed ? -1 : 0;
+        if (hovering || document.activeElement === container) showReason();
+      }};
     }
 
     map.on('contextmenu', event => {
@@ -1019,50 +1060,15 @@
         cut.innerHTML = '<i class="bi bi-stop-circle me-1" aria-hidden="true"></i>在此结束本段';
         cut.disabled = true;
         cut.setAttribute('aria-disabled', 'true');
-        const cutContainer = document.createElement('div');
-        cutContainer.tabIndex = 0;
-        let disabledReason = '正在检查当前位置…';
-        const reasonTip = document.createElement('div');
-        reasonTip.id = 'cut-disabled-reason';
-        reasonTip.setAttribute('role', 'tooltip');
-        Object.assign(reasonTip.style, {position:'fixed', zIndex:'10000', maxWidth:'240px',
-          padding:'6px 9px', borderRadius:'5px', background:'#334155', color:'#fff',
-          fontSize:'12px', lineHeight:'1.5', pointerEvents:'none'});
-        reasonTip.hidden = true;
-        document.body.appendChild(reasonTip);
-        cutContainer.setAttribute('aria-describedby', reasonTip.id);
-        let hovering = false;
-        const showReason = () => {
-          if (!cut.disabled || !disabledReason) { reasonTip.hidden = true; return; }
-          reasonTip.textContent = disabledReason;
-          reasonTip.hidden = false;
-          const rect = cutContainer.getBoundingClientRect();
-          const width = reasonTip.offsetWidth, height = reasonTip.offsetHeight;
-          const left = rect.right + width + 16 < window.innerWidth ? rect.right + 8 : rect.left - width - 8;
-          reasonTip.style.left = `${Math.max(8, Math.min(left, window.innerWidth - width - 8))}px`;
-          reasonTip.style.top = `${Math.max(8, Math.min(rect.top, window.innerHeight - height - 8))}px`;
-        };
-        cutContainer.onmouseenter = () => { hovering = true; showReason(); };
-        cutContainer.onmouseleave = () => { hovering = false; reasonTip.hidden = true; };
-        cutContainer.onfocus = () => { if (cut.disabled) showReason(); else cut.focus(); };
-        cutContainer.onblur = () => { reasonTip.hidden = true; };
-        const removeReason = event => {
-          if (event.popup.getContent() !== menu) return;
-          reasonTip.remove();
-          map.off('popupclose', removeReason);
-        };
-        map.on('popupclose', removeReason);
-        cutContainer.appendChild(cut);
+        cut.id = 'end-here';
+        const cutHint = disabledMenuItem(cut, '正在检查当前位置…', menu);
+        const cutContainer = cutHint.container;
         cut.onclick = () => { map.closePopup(); cutControl.open(point); };
         menu.appendChild(cutContainer);
         buttons.push(cutContainer);
         cutControl.check(point).then(({allowed, reason}) => {
           if (!menu.isConnected) return;
-          cut.disabled = !allowed;
-          cut.setAttribute('aria-disabled', String(!allowed));
-          disabledReason = reason;
-          cutContainer.tabIndex = allowed ? -1 : 0;
-          if (hovering || document.activeElement === cutContainer) showReason();
+          cutHint.update(reason, allowed);
         });
       }
       if (startControl?.active || selectedStartWay !== null || lastData?.current_way) {
@@ -1080,8 +1086,12 @@
             runTrackAction(() => startControl.select(wid, point, {replaceCurrent}));
           }
         };
-        menu.appendChild(start);
-        buttons.push(start);
+        start.id = 'start-here';
+        const reason = startControl.active ? '' : startRestriction(lastData, selectedStartWay);
+        const startHint = disabledMenuItem(start, reason, menu);
+        startHint.update(reason, !reason);
+        menu.appendChild(startHint.container);
+        buttons.push(startHint.container);
       }
       // 支持键盘选择；点击地图其他位置或按 Escape 关闭菜单。
       menu.onkeydown = e => {
@@ -1104,6 +1114,7 @@
 
     cutControl = initJourneyCut(map, {
       getData: () => lastData,
+      api: journeyApi,
       runAction: runTrackAction,
       status: text => { document.getElementById('query-status').textContent = text; },
       onChanged: data => {
@@ -1116,6 +1127,7 @@
     });
 
     startControl = initJourneyStart(map, {
+      api: journeyApi,
       previewArrows,
       list: document.getElementById('ways-list'),
       restoreList: () => {
@@ -1138,9 +1150,8 @@
     });
 
     document.getElementById('clear-journey').onclick = () => runTrackAction(async () => {
-      const response = await fetch('/journey/clear', {method:'POST'});
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || '清空失败，请重试。');
+      const data = await journeyApi.clear();
+      stationMap.refresh();
       clearPreview();
       clearNearbyQuery();
       document.getElementById('element-detail').replaceChildren();
@@ -1149,10 +1160,7 @@
     });
 
     const stepJourney = (action, wayId) => runTrackAction(async () => {
-      const response = await fetch(`/journey/${action}-way`, {method:'POST',
-        headers:{'Content-Type':'application/json'}, body:JSON.stringify(wayId === undefined ? {} : {way_id:wayId})});
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || '轨道更新失败，请重试。');
+      const data = await journeyApi[action](wayId === undefined ? {} : {way_id:Number(wayId)});
       clearNearbyQuery();
       document.getElementById('element-detail').replaceChildren();
       clearPreview();
@@ -1176,7 +1184,7 @@
     };
 
 
-    initStationMap(map);
+    const stationMap = initStationMap(map, {read: journeyApi.read});
   </script>
 
 </body>

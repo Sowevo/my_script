@@ -66,7 +66,9 @@ function groupedStationNames(entries) {
   const groups = [];
   for (const entry of entries) {
     const previous = groups.at(-1);
-    if (previous && previous.group === entry.group) previous.names.push(entry.name);
+    if (previous && previous.group === entry.group) {
+      if (!previous.names.includes(entry.name)) previous.names.push(entry.name);
+    }
     else groups.push({group:entry.group, names:[entry.name]});
   }
   return groups.map(({names}) => names.length > 1 ? `${names[0]}（${names.slice(1).join('、')}）` : names[0]);
@@ -85,6 +87,6 @@ function stationEndpoints(data, scope) {
     const points = journeyEndpoints(data, String(index));
     if (!points) return [];
     const ids = leg.path.map(item => item.way_id);
-    return [{point:points[0], way_ids:ids}, {point:points[1], way_ids:[...ids].reverse()}];
+    return [{point:points[0], way_ids:[ids[0]]}, {point:points[1], way_ids:[ids.at(-1)]}];
   });
 }
