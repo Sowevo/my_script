@@ -16,7 +16,7 @@ const control=context.initJourneyCut({},{
   assert.equal(calls.length,1);
   assert.equal(calls[0].url,'/journey/cut');
   assert.equal(calls[0].body.revision,'current');
-  assert.equal(changed.legs.length,1);assert.match(message,/退回一步/);
+  assert.equal(changed.legs.length,1);assert.equal(message,'已结束本段。');
   changed=null;ok=false;
   await assert.rejects(control.open({lat:35,lng:139}),/尚未确定行进方向/);
   assert.equal(changed,null);

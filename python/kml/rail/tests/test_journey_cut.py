@@ -1,4 +1,4 @@
-"""截断方向、停车点吸附、部分轨道继续及统一撤销。"""
+"""截断方向、停车点吸附、部分轨道继续及逐条退回。"""
 from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
@@ -25,18 +25,18 @@ class CutTests(unittest.TestCase):
     def candidate(self, legs, longitude):
         return self.cut.preview(legs, [35,longitude])['candidates'][0]
 
-    def test_last_way_cut_and_undo_preserves_prior_ways(self):
+    def test_last_way_cut_then_retreat_removes_retained_way(self):
         before = deepcopy(self.legs)
         candidate = self.candidate(self.legs,139.0045)
         result = self.cut.apply(self.legs,candidate)
         self.assertEqual(len(result[0]['path']),2)
         self.assertAlmostEqual(self.cut.item_coords(result[0]['path'][-1])[-1][1],139.0045)
-        self.assertEqual(self.cut.undo_preview(result)['kind'],'cut')
-        self.assertEqual(self.explorer.undo_way(result)[0],before)
+        self.assertEqual(self.cut.undo_preview(result)['kind'],'way')
+        self.assertEqual(self.explorer.undo_way(result)[0],self.explorer.undo_way(before)[0])
         self.assertEqual(self.legs,before)
         self.assertNotEqual(revision(result),revision(before))
 
-    def test_continue_remainder_then_undo_way_then_undo_cut(self):
+    def test_continue_remainder_then_retreat_shrinks_each_time(self):
         cut = self.cut.apply(self.legs,self.candidate(self.legs,139.0045))
         self.assertEqual(self.explorer.choices(cut[-1])[0],[2])
         continued,_ = self.explorer.forward_way(cut,2)
@@ -46,14 +46,23 @@ class CutTests(unittest.TestCase):
         self.assertEqual(self.cut.item_coords(remainder)[-1],list(self.coords[5]))
         self.assertEqual(self.cut.undo_preview(continued)['kind'],'way')
         self.assertEqual(self.explorer.undo_way(continued)[0],cut)
-        self.assertEqual(self.explorer.undo_way(cut)[0],self.legs)
+        self.assertEqual(self.explorer.undo_way(cut)[0],self.explorer.undo_way(self.legs)[0])
 
-    def test_transfer_and_nested_cuts_restore_in_order(self):
+    def test_transfer_and_nested_cuts_retreat_without_restoring(self):
         cut1 = self.cut.apply(self.legs,self.candidate(self.legs,139.0045))
         cut2 = self.cut.apply(cut1,self.candidate(cut1,139.0035))
-        self.assertEqual(self.explorer.undo_way(cut2)[0],cut1)
+        self.assertEqual(self.explorer.undo_way(cut2)[0],self.explorer.undo_way(self.legs)[0])
         transferred,_ = self.explorer.advance(cut2,8,transfer=True,max_steps=1)
         self.assertEqual(self.explorer.undo_way(transferred)[0],cut2)
+
+    def test_old_restore_snapshots_do_not_change_retreat_behavior(self):
+        for key, saved in [('trim_restore', {'leg': deepcopy(self.legs), 'side': 'end'}),
+                           ('cut_restore', deepcopy(self.legs[-1]['path']))]:
+            cut = self.cut.apply(self.legs,self.candidate(self.legs,139.0045))
+            self.assertNotIn(key, cut[-1]['path'][-1])
+            cut[-1]['path'][-1][key] = saved
+            self.assertEqual(self.cut.undo_preview(cut)['kind'], 'way')
+            self.assertEqual(self.explorer.undo_way(cut)[0],self.explorer.undo_way(self.legs)[0])
 
     def test_reverse_direction_and_single_way_direction_choice(self):
         legs,_ = self.explorer.advance([],4,max_steps=2)
@@ -78,12 +87,35 @@ class CutTests(unittest.TestCase):
         with self.assertRaises(ValueError):self.cut.preview([],[35,139])
         with self.assertRaises(ValueError):self.cut.preview(self.legs,list(self.coords[6]))
 
-    def test_earlier_way_does_not_participate_in_projection(self):
-        with self.assertRaisesRegex(ValueError,'最后一条轨道'):
-            self.cut.preview(self.legs,[35,139.001])
-        candidate=self.candidate(self.legs,139.0045)
+    def test_middle_way_cut_then_retreat_does_not_restore_later_ways(self):
+        legs, _ = self.explorer.forward_way(self.legs, 3)
+        candidate=self.candidate(legs,139.0045)
         self.assertEqual(candidate['path_index'],1)
         self.assertEqual(candidate['way_id'],2)
+        result=self.cut.apply(legs,candidate)
+        self.assertEqual([i['way_id'] for i in result[-1]['path']],[1,2])
+        self.assertAlmostEqual(self.cut.item_coords(result[-1]['path'][-1])[-1][1],139.0045)
+        self.assertEqual(len(candidate['removed']),2)
+        self.assertEqual(self.cut.undo_preview(result)['coords'],[self.cut.item_coords(result[-1]['path'][-1])])
+        self.assertEqual(self.explorer.undo_way(result)[0],self.explorer.undo_way(self.legs)[0])
+
+    def test_first_way_and_shared_endpoint_can_end_journey(self):
+        candidate=self.candidate(self.legs,139.002)
+        self.assertEqual(candidate['path_index'],0)
+        result=self.cut.apply(self.legs,candidate)
+        self.assertEqual(len(result[-1]['path']),1)
+        endpoint=self.candidate(self.legs,139.003)
+        self.assertEqual(endpoint['path_index'],0)
+        self.assertEqual(endpoint['span'],[0,2])
+        self.assertEqual(self.explorer.undo_way(self.cut.apply(self.legs,endpoint))[0],[])
+
+    def test_projection_only_searches_current_leg_and_retained_spans(self):
+        transferred,_=self.explorer.advance(self.legs,8,transfer=True,max_steps=1)
+        with self.assertRaisesRegex(ValueError,'超过 150 米'):
+            self.candidate(transferred,139.002)
+        trimmed=self.cut.apply(self.legs,self.candidate(self.legs,139.004))
+        with self.assertRaisesRegex(ValueError,'本段终点'):
+            self.candidate(trimmed,139.0045)
 
     def test_one_way_keep_middle_from_confirmed_start_and_direction(self):
         started=[{'name':'测试','start_way':1,'current_way':1,'directed':True,
@@ -92,12 +124,12 @@ class CutTests(unittest.TestCase):
         coords=self.cut.item_coords(result[0]['path'][0])
         self.assertAlmostEqual(coords[0][1],139.0015)
         self.assertAlmostEqual(coords[-1][1],139.0025)
-        self.assertEqual(self.explorer.undo_way(result)[0],started)
+        self.assertEqual(self.explorer.undo_way(result)[0],[])
         reverse=[{'name':'测试','start_way':1,'current_way':1,'directed':True,
                   'path':[{'way_id':1,'type':'manual','span':[1.5,0]}]}]
         result=self.cut.apply(reverse,self.candidate(reverse,139.0015))
         self.assertGreater(result[0]['path'][0]['span'][0],result[0]['path'][0]['span'][1])
-        self.assertEqual(self.explorer.undo_way(result)[0],reverse)
+        self.assertEqual(self.explorer.undo_way(result)[0],[])
 
     def test_point_start_offers_two_halves_and_endpoint_only_one(self):
         whole=self.cut.start_preview(2)

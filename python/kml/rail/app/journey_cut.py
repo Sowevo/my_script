@@ -105,92 +105,74 @@ class JourneyCut:
         if not legs:
             raise ValueError('请先选择轨道。')
         path = legs[-1]['path']
-        index = len(path) - 1
+        cosine = math.cos(math.radians(point[0]))
+        projections = []
+        for index, item in enumerate(path):
+            points = self.raw_coords(item)
+            if len(points) < 2 or len(points) != len(self.ways[item['way_id']]):
+                continue
+            low, high = sorted(self.directions(path, index)[0])
+            for segment in range(math.floor(low), min(math.ceil(high), len(points) - 1)):
+                a, b = points[segment:segment + 2]
+                dx, dy = (b[1] - a[1]) * cosine, b[0] - a[0]
+                length = dx * dx + dy * dy
+                if not length:
+                    continue
+                t = ((point[1] - a[1]) * cosine * dx + (point[0] - a[0]) * dy) / length
+                position = max(low, min(high, segment + max(0, min(1, t))))
+                projections.append((distance(point, interpolate(points, position)), index, position))
+        if not projections or min(projections)[0] > self.MAX_DISTANCE:
+            raise ValueError('点击位置距本段已选轨道超过 150 米，请靠近本段轨迹选择终点。')
+        # 等距时选择较早的经过位置，连接点优先落在前一条的末端。
+        metres, index, position = min(projections)
         item = path[index]
         points = self.raw_coords(item)
-        if len(points) < 2 or len(points) != len(self.ways[item['way_id']]):
-            raise ValueError('最后一条轨道缺少完整坐标。')
         spans = self.directions(path, index)
         if len(spans) != 1:
             raise ValueError('尚未确定行进方向，请先用“从此开始本段”选择起点和方向。')
         start, end = spans[0]
         low, high = sorted((start, end))
-        cosine = math.cos(math.radians(point[0]))
-        projections = []
-        for segment in range(math.floor(low), min(math.ceil(high), len(points) - 1)):
-            a, b = points[segment:segment + 2]
-            dx, dy = (b[1] - a[1]) * cosine, b[0] - a[0]
-            length = dx * dx + dy * dy
-            if not length:
-                continue
-            t = ((point[1] - a[1]) * cosine * dx + (point[0] - a[0]) * dy) / length
-            position = max(low, min(high, segment + max(0, min(1, t))))
-            projections.append((distance(point, interpolate(points, position)), position))
-        if not projections or min(projections)[0] > self.MAX_DISTANCE:
-            raise ValueError('点击位置距最后一条轨道超过 150 米；若要结束在更早的轨道，请先退回。')
-        metres, position = min(projections)
         stops = [(distance(interpolate(points, position), self.coords[n]), i)
                  for i, n in enumerate(self.ways[item['way_id']])
                  if n in self.stops and low <= i <= high]
         snapped = bool(stops and min(stops)[0] <= self.SNAP_DISTANCE)
         if snapped:
             position = min(stops)[1]
+        if abs(position - start) < 1e-9 and index:
+            previous_points = self.raw_coords(path[index - 1])
+            previous_spans = self.directions(path, index - 1)
+            if (len(previous_spans) == 1 and
+                    distance(interpolate(previous_points, previous_spans[0][1]),
+                             interpolate(points, position)) < .1):
+                index -= 1
+                item, points = path[index], previous_points
+                start, end = previous_spans[0]
+                position = end
         if abs(position - start) < 1e-9:
-            raise ValueError('终点落在这条轨道的起点，请用“退回一步”移除整条轨道。')
-        if abs(position - end) < 1e-9:
+            raise ValueError('终点落在本段起点，请用“退回一条轨道”缩短行程。')
+        if abs(position - end) < 1e-9 and index == len(path) - 1:
             raise ValueError('此处已经是本段终点。')
         return {'revision': revision(legs), 'candidates': [{
             'id': 0, 'path_index': index, 'way_id': item['way_id'], 'side': 'end',
             'span': [start, position], 'point': interpolate(points, position),
-            'removed': [slice_coords(points, position, end)],
+            'removed': [line for line in [slice_coords(points, position, end)] +
+                        [self.item_coords(i) for i in path[index + 1:]] if len(line) >= 2],
             'snapped': snapped, 'distance': round(metres, 1)}]}
 
     def apply(self, legs, candidate):
         updated = deepcopy(legs)
         leg = updated[-1]
         index = candidate['path_index']
-        original = deepcopy(leg)
         item = leg['path'][index]
         item['span'] = candidate['span']
         side = candidate.get('side', 'end')
         leg['path'] = leg['path'][index:] if side == 'start' else leg['path'][:index + 1]
         leg['start_way'] = leg['path'][0]['way_id']
         leg['current_way'] = leg['path'][-1]['way_id']
-        # 撤销标记放在操作结束处；后来添加的轨道先逐条退回，再恢复整个修剪操作。
-        leg['path'][-1]['trim_restore'] = {'leg': original, 'side': side,
-                                         'index': index, 'span': candidate['span']}
         return updated
 
     def undo_preview(self, legs):
         if not legs:
             return {'kind': 'way', 'coords': []}
         item = legs[-1]['path'][-1]
-        if 'trim_restore' in item:
-            saved = item['trim_restore']
-            original = saved['leg']['path']
-            if saved['side'] == 'restart':
-                return {'kind': 'cut', 'side': 'start',
-                        'coords': [self.item_coords(i) for i in original]}
-            index = saved['index']
-            target = original[index]
-            spans = self.directions(original, index)
-            span = saved['span']
-            forward = span[1] > span[0]
-            start, end = next((s for s in spans if (s[1] > s[0]) == forward), spans[0])
-            if saved['side'] == 'start':
-                lines = [self.item_coords(i) for i in original[:index]]
-                lines.append(slice_coords(self.raw_coords(target), start, span[0]))
-            else:
-                lines = [slice_coords(self.raw_coords(target), span[1], end)]
-                lines.extend(self.item_coords(i) for i in original[index + 1:])
-            return {'kind': 'cut', 'side': saved['side'], 'coords': [line for line in lines if len(line) >= 2]}
-        if 'cut_restore' not in item:
-            return {'kind': 'way', 'coords': [self.item_coords(item)]}
-        original = item['cut_restore']
-        end = original[0].get('span', self.directions(original, 0)[0])[1]
-        # 截断前单条轨道没有方向时，沿已确认的截断方向恢复剩余区间。
-        if 'span' not in original[0]:
-            end = len(self.ways[item['way_id']]) - 1 if item['span'][1] > item['span'][0] else 0
-        lines = [slice_coords(self.raw_coords(item), item['span'][1], end)]
-        lines.extend(self.item_coords(i) for i in original[1:])
-        return {'kind': 'cut', 'coords': [line for line in lines if len(line) >= 2]}
+        return {'kind': 'way', 'coords': [self.item_coords(item)]}

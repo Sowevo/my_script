@@ -150,7 +150,7 @@
       <div id="total-path" hidden>
         <div id="path-summary" class="fw-bold">尚未选择轨道</div>
         <div id="journey-legs" class="mb-2"></div>
-        <button id="undo-way" class="btn btn-outline-secondary btn-sm w-100 mb-2" type="button"><i class="bi bi-chevron-double-left me-1" aria-hidden="true"></i>退回一步</button>
+        <button id="undo-way" class="btn btn-outline-secondary btn-sm w-100 mb-2" type="button"><i class="bi bi-chevron-double-left me-1" aria-hidden="true"></i>退回一条轨道</button>
         <button id="clear-journey" class="btn btn-outline-danger btn-sm w-100 mb-2" type="button"><i class="bi bi-trash me-1" aria-hidden="true"></i>清空全部</button>
         <details id="export-panel">
           <summary><i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>导出行程</summary>
@@ -189,8 +189,10 @@
     </form>
   </dialog>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="{{ url_for('static', filename='track_styles.js') }}"></script>
   <script src="{{ url_for('static', filename='journey_export.js') }}"></script>
   <script src="{{ url_for('static', filename='journey_cut.js') }}"></script>
+  <script src="{{ url_for('static', filename='preview_arrows.js') }}"></script>
   <script src="{{ url_for('static', filename='journey_start.js') }}"></script>
   <script src="{{ url_for('static', filename='choice_viewport.js') }}"></script>
   <script src="{{ url_for('static', filename='station_map.js') }}"></script>
@@ -219,6 +221,7 @@
     let cutControl = null;
     let startControl = null;
     let selectedStartWay = null;
+    const previewArrows = initPreviewArrows(map, {enabled:true});
 
     // 在线地名定位独立于本地轨道探索，只有提交表单才发送查询。
     let placeMarker = null;
@@ -237,6 +240,16 @@
         const historyKey = 'rail.placeSearchHistory.v1';
         const historyPanel = box.querySelector('#place-history');
         const searchInput = box.querySelector('input');
+        let activePlaceItem = null;
+        let restoringSearchFocus = false;
+        function selectPlaceItem(item) {
+          if (activePlaceItem) activePlaceItem.classList.remove('active');
+          activePlaceItem = item;
+          if (item) {
+            item.classList.add('active');
+            item.scrollIntoView({block:'nearest'});
+          }
+        }
         let history = [];
         try {
           const saved = JSON.parse(localStorage.getItem(historyKey) || '[]');
@@ -247,11 +260,13 @@
           try { localStorage.setItem(historyKey, JSON.stringify(history)); } catch (_) {}
         }
         function hideHistory() {
+          selectPlaceItem(null);
           historyPanel.hidden = true;
           box.querySelector('#place-results').style.display = '';
         }
         function showHistory() {
-          if (searchInput.disabled) return;
+          if (searchInput.disabled || restoringSearchFocus) return;
+          selectPlaceItem(null);
           const query = searchInput.value.trim().toLocaleLowerCase();
           const matches = history.filter(value => value.toLocaleLowerCase().includes(query));
           historyPanel.replaceChildren();
@@ -287,7 +302,23 @@
         searchInput.addEventListener('focus', showHistory);
         searchInput.addEventListener('click', showHistory);
         searchInput.addEventListener('input', showHistory);
-        box.addEventListener('keydown', event => { if (event.key === 'Escape') hideHistory(); });
+        box.addEventListener('keydown', event => {
+          if (event.isComposing || event.keyCode === 229) return;
+          if (event.key === 'Escape') { hideHistory(); return; }
+          const panel = historyPanel.hidden ? box.querySelector('#place-results') : historyPanel;
+          const items = [...panel.querySelectorAll('.list-group-item')];
+          if (!items.length) return;
+          if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            const current = items.indexOf(activePlaceItem);
+            const next = current < 0 ? (event.key === 'ArrowDown' ? 0 : items.length - 1)
+              : (current + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+            selectPlaceItem(items[next]);
+          } else if (event.key === 'Enter' && items.includes(activePlaceItem)) {
+            event.preventDefault();
+            activePlaceItem.click();
+          }
+        });
         document.addEventListener('pointerdown', event => { if (!box.contains(event.target)) hideHistory(); });
         box.querySelector('form').onsubmit = async event => {
           event.preventDefault();
@@ -317,6 +348,7 @@
               item.className = 'list-group-item list-group-item-action small';
               item.textContent = place.name;
               item.onclick = () => {
+                selectPlaceItem(null);
                 map.closePopup();
                 if (place.bounds) map.fitBounds(place.bounds, {padding:[30,30], maxZoom:17});
                 else map.setView([place.lat, place.lon], 16);
@@ -336,6 +368,9 @@
             status.textContent = error.message || '地点搜索失败，请重试。';
           } finally {
             input.disabled = button.disabled = false;
+            restoringSearchFocus = true;
+            input.focus({preventScroll:true});
+            restoringSearchFocus = false;
           }
         };
         return box;
@@ -383,14 +418,17 @@
     }
 
     function highlightChoice(data, id) {
+      previewArrows.clear('choice-highlight');
       if (redLayer) { map.removeLayer(redLayer); redLayer = null; }
       const choice = data.choice_coords.find(item => item.id == id);
       if (choice?.coords.length >= 2) {
-        redLayer = L.polyline(choice.coords, {color: 'red', weight: 5}).addTo(map);
+        redLayer = L.polyline(choice.coords, TRACK_STYLES.highlight).addTo(map);
+        previewArrows.showTracks('choice-highlight', [choice], TRACK_STYLES.highlight);
       }
     }
 
     function updateUndoPreview() {
+      previewArrows.clear('undo');
       if (undoPreviewLayer) {
         map.removeLayer(undoPreviewLayer);
         undoPreviewLayer = null;
@@ -399,9 +437,11 @@
       if (!button.matches(':hover') && !button.matches(':focus-visible')) return;
       const undo = lastData?.undo;
       if (undo?.coords.length) {
-        // 红色表示移除，绿色表示撤销截断后恢复；不移动地图。
+        // 红色预览即将移除的末尾轨道；不移动地图。
         undoPreviewLayer = L.polyline(undo.coords,
-          {color: undo.kind === 'cut' ? '#16a34a' : 'red', weight: 6, interactive: false}).addTo(map);
+          {...TRACK_STYLES.highlight, interactive:false}).addTo(map);
+        const lastTrack = lastData.total_path_coords.at(-1);
+        if (lastTrack) previewArrows.showTracks('undo', [lastTrack], TRACK_STYLES.highlight);
       }
     }
 
@@ -433,16 +473,20 @@
       data.total_path_coords.forEach(item => {
         if (item.coords?.length >= 2) {
           blueLayers.push(L.polyline(item.coords,
-            {color: journeyColour(data.legs[item.leg], item.leg)}).addTo(map));
+            {...TRACK_STYLES.journey, color:journeyColour(data.legs[item.leg], item.leg)}).addTo(map));
         }
       });
       // 候选完整绘制，仅默认缩放范围截取局部。
       data.choice_coords.forEach(item => {
         if (item.coords?.length >= 2) {
           blueLayers.push(L.polyline(item.coords,
-            {color: '#64748b', weight: 4, opacity: 0.7, dashArray: '6 5'}).addTo(map));
+            TRACK_STYLES.candidate).addTo(map));
         }
       });
+      previewArrows.showTracks('journey', data.total_path_coords.map(item => ({
+        ...item, color:journeyColour(data.legs[item.leg], item.leg)
+      })));
+      previewArrows.showTracks('choices', data.choice_coords, TRACK_STYLES.candidate);
       updateUndoPreview();
       if (!preserveViewport) fitChoices(data);
     }
@@ -511,10 +555,8 @@
     function updateUndoButton() {
       const button = document.getElementById('undo-way');
       button.disabled = trackActionPending || !lastData?.legs?.length;
-      button.title = lastData?.undo?.kind === 'cut'
-        ? (lastData.undo.side === 'start' ? '撤销起点调整，恢复之前轨迹' : '撤销截断，恢复截断前轨迹')
-        : '退回一条轨道';
-      button.setAttribute('aria-label', `退回一步：${button.title}`);
+      button.title = '移除末尾一条轨道（截断后移除保留部分）';
+      button.setAttribute('aria-label', '退回一条轨道');
     }
 
     function journeyDistance(data, legIndex) {
@@ -740,6 +782,7 @@
     }
 
     function clearPreview() {
+      previewArrows.clear('nearby');
       if (previewLayer) map.removeLayer(previewLayer);
       previewLayer = null;
     }
@@ -805,7 +848,14 @@
       });
       clearPreview();
       previewLayer = L.featureGroup(data.geometry.map(coords =>
-        L.polyline(coords, {color:'#f08c00', weight:6, opacity:0.85}))).addTo(map);
+        L.polyline(coords, TRACK_STYLES.preview))).addTo(map);
+      const previewDirection = kind === 'way' ? railPreviewDirection(data.tags) : null;
+      previewArrows.showTracks('nearby', data.geometry.map((coords, index) => ({
+        coords, meta:data.geometry_meta[index]
+      })));
+      if (previewDirection) {
+        previewLayer.bindTooltip(`箭头：${previewDirection.label}`);
+      }
       const panel = document.getElementById('element-detail');
       panel.replaceChildren();
       const heading = document.createElement('h6');
@@ -1066,6 +1116,7 @@
     });
 
     startControl = initJourneyStart(map, {
+      previewArrows,
       list: document.getElementById('ways-list'),
       restoreList: () => {
         if (lastData) renderWays(lastData, true);

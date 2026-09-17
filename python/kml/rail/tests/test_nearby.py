@@ -55,6 +55,15 @@ class NearbyTests(unittest.TestCase):
         self.assertFalse(members[0]['available'])
         self.assertTrue(members[1]['available'])
 
+    def test_relation_geometry_keeps_each_way_direction_tags(self):
+        self.index.metadata[1]['tags']['oneway'] = 'yes'
+        self.index.metadata[2]['tags']['oneway'] = '-1'
+        self.relations[10]['members'].append({'type':'w','ref':2,'role':''})
+        detail = self.index.detail('relation',11)
+        self.assertEqual(len(detail['geometry_meta']),len(detail['geometry']))
+        self.assertEqual([meta['tags']['oneway'] for meta in detail['geometry_meta']],['yes','-1'])
+        self.assertEqual(self.index.detail('way',3)['geometry_meta'],[])
+
     def test_direct_memberships_do_not_inherit_parent_direction(self):
         self.relations[10]['tags'].update({'from': 'A', 'to': 'B'})
         self.relations[11]['tags']['from'] = 'Network label'

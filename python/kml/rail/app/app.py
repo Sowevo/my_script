@@ -156,6 +156,7 @@ def journey_response(legs, result):
         for wid in result['path']]
     result['total_path_coords'] = [
         {'id': item['way_id'], 'coords': journey_cut.item_coords(item),
+         'reversed': 'span' in item and item['span'][1] < item['span'][0],
          'meta': way_to_meta.get(item['way_id'], {}), 'type': item['type'], 'leg': index}
         for index, leg in enumerate(legs) for item in leg['path']]
     if legs and 'span' in legs[-1]['path'][-1]:
@@ -165,6 +166,7 @@ def journey_response(legs, result):
                 start, end = item['span']
                 terminal = len(way_to_nodes[item['way_id']]) - 1 if end > start else 0
                 choice['coords'] = journey_cut.item_coords(dict(item, span=[end, terminal]))
+                choice['reversed'] = end > terminal
     recommended = recommend_way(
         legs[-1]['path'] if legs else [], result['choices'],
         way_to_nodes, node_coords, way_to_meta)
@@ -341,7 +343,6 @@ def start_journey():
                'path': [{'way_id': wid, 'type': 'manual', 'span': selected['span']}]}
         if replace_current:
             leg['transfer_label'] = legs[-1].get('transfer_label', '')
-            leg['path'][-1]['trim_restore'] = {'leg': legs[-1], 'side': 'restart'}
             legs = [*legs[:-1], leg]
         else:
             legs = [*legs, leg]

@@ -6,10 +6,12 @@ function initJourneyStart(map, options) {
     if (highlight) map.removeLayer(highlight);
     if (endpoint) map.removeLayer(endpoint);
     highlight = endpoint = null;
+    if (draft) options.previewArrows?.showTracks('start', draft.geometry.map(coords => ({coords,tags:draft.tags})));
   }
   function cancel() {
     const active = Boolean(draft);
     clearHighlight();
+    options.previewArrows?.clear('start');
     if (base) map.removeLayer(base);
     if (marker) map.removeLayer(marker);
     base = marker = draft = null;
@@ -26,7 +28,11 @@ function initJourneyStart(map, options) {
   }
   function showHighlight(direction) {
     clearHighlight();
-    highlight = L.polyline(direction.coords, {color:'red',weight:6,interactive:false}).addTo(map);
+    highlight = L.polyline(direction.coords, {...TRACK_STYLES.highlight,interactive:false}).addTo(map);
+    options.previewArrows?.showTracks('start', draft.directions.map(side => ({
+      coords:side.coords, tags:draft.tags, reversed:side.span[1] < side.span[0],
+      color:side.id === direction.id ? TRACK_STYLES.highlight.color : TRACK_STYLES.preview.color
+    })));
     endpoint = L.circleMarker(direction.coords.at(-1), {radius:6,color:'red',interactive:false}).addTo(map);
     const label = document.createElement('span');
     label.textContent = '前进至此';
@@ -39,6 +45,7 @@ function initJourneyStart(map, options) {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || '起点预览失败');
     if (draft !== current) return;
+    current.directions = data.directions;
     clearHighlight();
     if (marker) map.removeLayer(marker);
     marker = data.point ? L.circleMarker(data.point,
@@ -96,8 +103,12 @@ function initJourneyStart(map, options) {
     if (!response.ok) throw new Error(data.error || '轨道加载失败');
     if (!data.geometry?.length) throw new Error('这条轨道没有可用坐标。');
     options.clearReference();
-    draft = {wid:Number(wid),name:data.tags?.name || '未命名',reset:!options.hasJourney(),replaceCurrent};
-    base = L.polyline(data.geometry, {color:'#f08c00',weight:6,opacity:0.6}).addTo(map);
+    draft = {wid:Number(wid),name:data.tags?.name || '未命名',tags:data.tags || {},geometry:data.geometry,
+      reset:!options.hasJourney(),replaceCurrent};
+    base = L.polyline(data.geometry, TRACK_STYLES.preview).addTo(map);
+    if (options.previewArrows) {
+      options.previewArrows.showTracks('start', data.geometry.map(coords => ({coords, tags:draft.tags})));
+    }
     await preview(draft, point);
   }
   function choosePoint(point) {

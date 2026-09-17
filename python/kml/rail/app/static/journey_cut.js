@@ -1,4 +1,4 @@
-// 结束仅作用于最后一条 way，直接提交；错误交给原状态栏，恢复使用“退回一步”。
+// 在当前段已选轨迹上结束，直接提交；错误交给原状态栏。
 function initJourneyCut(map, options) {
   let checkRequest = null;
   async function check(point) {
@@ -27,7 +27,7 @@ function initJourneyCut(map, options) {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || '截断失败，请重试。');
       options.onChanged(result);
-      options.status('已结束本段，可用“退回一步”恢复。');
+      options.status('已结束本段。');
     });
   }
   return {open, check, cancel() {checkRequest?.abort();}};

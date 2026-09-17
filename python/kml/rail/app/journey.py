@@ -139,11 +139,7 @@ class JourneyExplorer:
     def undo_way(self, legs):
         updated = deepcopy(legs)
         if updated:
-            last = updated[-1]['path'].pop()
-            if 'trim_restore' in last:
-                updated[-1] = last['trim_restore']['leg']
-            elif 'cut_restore' in last:
-                updated[-1]['path'].extend(last['cut_restore'])
+            updated[-1]['path'].pop()
             if not updated[-1]['path']:
                 updated.pop()
         if updated:

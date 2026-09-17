@@ -115,6 +115,7 @@ class NearbyIndex:
                         pending.append(member['ref'])
         way_ids = list(dict.fromkeys(way_ids))
         geometry = []
+        geometry_meta = []
         for wid in way_ids:
             line = []
             for node in self.ways[wid]:
@@ -123,10 +124,12 @@ class NearbyIndex:
                 else:
                     if len(line) > 1:
                         geometry.append(line)
+                        geometry_meta.append(self.metadata.get(wid, {}))
                     line = []
             if len(line) > 1:
                 geometry.append(line)
-        result.update(tags=meta.get('tags', {}), geometry=geometry,
+                geometry_meta.append(self.metadata.get(wid, {}))
+        result.update(tags=meta.get('tags', {}), geometry=geometry, geometry_meta=geometry_meta,
                       memberships=self.memberships(kind, element_id),
                       members=[{**member, 'available':
                                 (member['type'] == 'w' and member['ref'] in self.ways) or
