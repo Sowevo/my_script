@@ -46,11 +46,30 @@
       max-width: 500px;
       background: #f5f7fa;
       border-right: 1px solid #e0e0e0;
-      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
       box-sizing: border-box;
-      overflow-y: auto;
+      overflow: hidden;
       font-family: Arial, sans-serif;
     }
+    .panel-header { flex-shrink:0; padding:18px 18px 0; overflow-y:auto; scrollbar-gutter:stable; }
+    .current-track { display:grid; grid-template-columns:minmax(0, 1fr) auto; grid-template-rows:22px 44px; align-items:center; gap:4px 8px; height:70px; padding:0 9px; margin-bottom:6px; }
+    .current-track[hidden], #track-card:has(#ways-list[hidden]) { display:none; }
+    #current-track-heading { grid-column:1 / -1; font-size:14px; font-weight:bold; color:#333; }
+    #current-track-title { min-width:0; overflow:hidden; overflow-wrap:anywhere; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; font-size:15px; line-height:22px; color:#334155; }
+    .panel-content { flex:1; min-height:0; overflow-y:auto; padding:0 18px 18px; scrollbar-gutter:stable; }
+    .journey-actions { position:relative; flex-shrink:0; padding:12px 18px; border-top:1px solid #dce2ea; background:#f5f7fa; }
+    #export-status { position:absolute; bottom:calc(100% + 8px); left:18px; right:18px; width:auto; z-index:10; }
+    #query-copy-status { position:absolute; bottom:60px; left:16px; right:16px; width:auto; z-index:10; }
+    .export-actions { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:6px; }
+    .export-actions > * { min-width:0; }
+    .export-actions button { padding:5px 6px; font-size:12px; }
+    .export-actions .form-select { padding:5px 24px 5px 6px; font-size:12px; background-position:right 6px center; }
+    .journey-actions button { white-space:nowrap; }
+    #more-actions { margin:0; padding:6px; border:1px solid #dce2ea; border-radius:8px; background:#fff; box-shadow:0 4px 16px #0002; max-width:calc(100vw - 24px); }
+    #more-actions button { white-space:nowrap; text-align:left; }
+    #more-actions::backdrop { background:transparent; }
     .right-panel {
       flex: 1;
       min-width: 0;
@@ -68,7 +87,7 @@
     .choice-way { border:0; background:transparent; padding:0; font:inherit; text-align:left; cursor:pointer; text-decoration:none; color:#334155; margin-right:8px; }
     #ways-list li { display:flex; align-items:center; }
     #ways-list .choice-way { min-width:0; overflow-wrap:anywhere; }
-    #ways-list .choice-actions { display:flex; align-items:center; gap:4px; margin-left:auto; flex-shrink:0; }
+    .choice-actions { display:flex; align-items:center; gap:4px; margin-left:auto; flex-shrink:0; }
     .choice-way:hover, .choice-way:focus-visible { color:#0d6efd; text-decoration:underline; }
     #total-path { background:#fff; border:1px solid #dce2ea; border-radius:8px; padding:14px; }
     #overpass-query { width:100%; font:12px/1.5 monospace; resize:vertical; }
@@ -78,7 +97,7 @@
       margin: 18px 0 10px 0;
       color: #333;
     }
-    #ways-list { margin-bottom: 18px; }
+    #track-card { margin-bottom:18px; }
     #way-form { margin-bottom: 18px; }
     .place-search { background:#fff; padding:10px; border-radius:6px; width:320px; max-width:calc(100vw - 80px); box-shadow:0 1px 5px #0004; }
     .place-search-results { max-height:240px; overflow-y:auto; overflow-wrap:anywhere; }
@@ -88,11 +107,8 @@
     details[open] > summary::before { transform:rotate(90deg); }
     .btn .bi { font-size:1em; }
     .track-locate:disabled { opacity:.35; cursor:default; }
-    #ways-list { background:#fff; border:1px solid #dce2ea; border-radius:8px; padding:12px; }
+    #track-card { background:#fff; border:1px solid #dce2ea; border-radius:8px; padding:12px; }
     #ways-list .list-group-item { padding:8px; }
-    #export-panel { border-top:1px solid #e2e8f0; padding-top:10px; }
-    #export-panel > summary { color:#334155; font-weight:600; }
-    #export-panel > .export-content { padding-top:12px; }
     @media (hover:hover) and (pointer:fine) {
       #ways-list .choice-actions { opacity:.4; }
       #ways-list li:hover .choice-actions, #ways-list li:focus-within .choice-actions { opacity:1; }
@@ -127,7 +143,7 @@
     }
     @media (max-width: 900px) {
       .main-layout { flex-direction: column; }
-      .left-panel { width: 100%; min-width: 0; max-width: none; flex-shrink: 0; padding: 18px; border-right: none; border-bottom: 1px solid #e0e0e0; }
+      .left-panel { width: 100%; min-width: 0; max-width: none; height:50vh; flex-shrink: 0; border-right: none; border-bottom: 1px solid #e0e0e0; }
       .right-panel { min-height: 400px; }
     }
   </style>
@@ -135,6 +151,7 @@
 <body>
   <div class="main-layout">
     <div class="left-panel">
+      <div class="panel-header">
       <div class="section-title">轨道操作</div>
       <form id="way-form" class="mb-3">
         <div class="input-group">
@@ -143,38 +160,72 @@
         </div>
         <div class="form-text">右键地图查找附近轨道，或输入 ID；已有行程时追加新段。</div>
       </form>
+      </div>
+      <div class="panel-content">
+      <div id="track-card">
+        <div id="current-track-row" class="current-track" hidden>
+          <div id="current-track-heading"></div>
+          <div id="current-track-title"></div>
+          <span id="current-track-actions" hidden>
+            <span class="choice-actions">
+              <button id="undo-way" class="track-locate" type="button" title="退回一条轨道" aria-label="退回一条轨道"><i class="bi bi-chevron-double-left" aria-hidden="true"></i></button>
+              <button id="fit-choices" class="track-locate" type="button" title="显示当前轨道与相连候选" aria-label="显示当前轨道与相连候选"><i class="bi bi-crosshair" aria-hidden="true"></i></button>
+            </span>
+          </span>
+        </div>
       <div id="ways-list" hidden><b>可选相连轨道:</b><ul class="list-group mt-2"></ul></div>
+      </div>
       <div id="query-status" class="small mb-2" role="status" aria-live="polite"></div>
       <div id="query-results" class="list-group mb-3" style="max-height:320px;overflow-y:auto;"></div>
       <div id="element-detail" class="mb-3" style="overflow-wrap:anywhere;"></div>
       <div id="total-path" hidden>
         <div id="path-summary" class="fw-bold">尚未选择轨道</div>
         <div id="journey-legs" class="mb-2"></div>
-        <button id="undo-way" class="btn btn-outline-secondary btn-sm w-100 mb-2" type="button"><i class="bi bi-chevron-double-left me-1" aria-hidden="true"></i>退回一条轨道</button>
-        <button id="clear-journey" class="btn btn-outline-danger btn-sm w-100 mb-2" type="button"><i class="bi bi-trash me-1" aria-hidden="true"></i>清空全部</button>
-        <details id="export-panel">
-          <summary><i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>导出行程</summary>
-          <div class="export-content">
-        <label for="export-scope" class="small">导出范围</label>
-        <select id="export-scope" class="form-select form-select-sm mb-2" aria-label="导出范围"><option value="all">全部行程</option></select>
-        <div class="d-grid gap-2">
-          <button id="download-kml" type="button" class="btn btn-primary btn-sm"><i class="bi bi-download me-1" aria-hidden="true"></i>下载 KML</button>
-          <button id="copy-query" type="button" class="btn btn-outline-secondary btn-sm" disabled><i class="bi bi-clipboard me-1" aria-hidden="true"></i>复制 Overpass 查询</button>
+      </div>
+      </div>
+      <div id="journey-actions" class="journey-actions" hidden>
+        <div class="export-actions">
+          <select id="export-scope" class="form-select form-select-sm" aria-label="导出范围" title="选择导出范围"><option value="all">全部行程</option></select>
+          <button id="download-kml" type="button" class="btn btn-primary btn-sm" title="下载 KML" aria-label="下载 KML"><i class="bi bi-download me-1" aria-hidden="true"></i>下载 KML</button>
+          <button id="clear-journey" class="btn btn-outline-danger btn-sm" type="button" title="清空全部行程" aria-label="清空全部行程"><i class="bi bi-trash me-1" aria-hidden="true"></i>清空</button>
+          <button id="more-actions-button" type="button" class="btn btn-outline-secondary btn-sm" popovertarget="more-actions" aria-expanded="false">更多 <i class="bi bi-three-dots" aria-hidden="true"></i></button>
         </div>
-        <div id="export-status" class="small mt-2" role="status" aria-live="polite"></div>
-        <div id="partial-export-note" class="small text-muted mt-2" hidden>行程含截断轨道，请直接导出 KML 保留准确终点；Overpass 查询仍返回完整 way。</div>
-        <details id="query-preview" class="mt-2">
-          <summary class="small">查看查询内容</summary>
-          <textarea id="overpass-query" class="form-control mt-2" rows="7" readonly aria-label="Overpass 查询内容"></textarea>
-        </details>
+        <div id="export-status" class="toast" role="status" aria-live="polite" aria-atomic="true">
+          <div class="d-flex align-items-center">
+            <div class="toast-body"></div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="关闭提示"></button>
           </div>
-        </details>
+        </div>
       </div>
     </div>
     <div class="right-panel">
       <div id="map"></div>
     </div>
   </div>
+  <div id="more-actions" popover="auto" aria-label="更多操作">
+    <button id="copy-query" type="button" class="btn btn-light btn-sm w-100" disabled><i class="bi bi-clipboard me-1" aria-hidden="true"></i>复制 Overpass 查询</button>
+    <button id="view-query" type="button" class="btn btn-light btn-sm w-100"><i class="bi bi-code-slash me-1" aria-hidden="true"></i>查看查询内容</button>
+  </div>
+  <dialog id="query-preview" class="border rounded p-3" style="width:480px;max-width:90vw;" aria-labelledby="query-preview-title">
+    <div id="query-preview-title" class="fw-bold mb-2">Overpass 查询内容</div>
+    <textarea id="overpass-query" class="form-control mb-3" rows="12" readonly aria-label="Overpass 查询内容"></textarea>
+    <div id="query-copy-status" class="toast" role="status" aria-live="polite" aria-atomic="true">
+          <div class="d-flex align-items-center">
+            <div class="toast-body"></div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="关闭提示"></button>
+          </div>
+        </div>
+    <form method="dialog" class="d-flex gap-2 justify-content-end">
+      <button id="copy-query-preview" type="button" class="btn btn-primary btn-sm"><i class="bi bi-clipboard me-1" aria-hidden="true"></i>复制</button>
+      <button class="btn btn-secondary btn-sm"><i class="bi bi-x-lg me-1" aria-hidden="true"></i>关闭</button>
+    </form>
+  </dialog>
+  <dialog id="overpass-copy-dialog" class="border rounded p-3" style="width:360px;max-width:90vw;" aria-labelledby="overpass-copy-title">
+    <div id="overpass-copy-title" class="fw-bold mb-2">复制 Overpass 查询</div>
+    <div id="overpass-copy-result" class="small mb-2"></div>
+    <p class="small">行程含截断轨道，请直接导出 KML 保留准确终点；Overpass 查询仍返回完整 way。</p>
+    <form method="dialog" class="text-end"><button class="btn btn-primary btn-sm">知道了</button></form>
+  </dialog>
   <dialog id="kml-dialog" class="border rounded p-3" style="width:360px;max-width:90vw;">
     <form id="kml-form">
       <div class="fw-bold mb-2">导出 KML</div>
@@ -188,6 +239,7 @@
       </div>
     </form>
   </dialog>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="{{ url_for('static', filename='track_styles.js') }}"></script>
   <script src="{{ url_for('static', filename='journey_export.js') }}"></script>
@@ -499,9 +551,14 @@
     function renderWays(data, preserveViewport = false) {
       const list = document.getElementById('ways-list');
       list.hidden = !data.legs.length;
-      let html = `<b>第 ${data.legs.length} 段 · 当前way:</b> ${data.current_way}
-        <button type="button" class="track-locate" id="fit-choices"
-          title="显示当前轨道与相连候选" aria-label="显示当前轨道与相连候选"><i class="bi bi-crosshair" aria-hidden="true"></i></button><br>`;
+      document.getElementById('current-track-heading').textContent = `第 ${data.legs.length} 段行程 · 当前轨道`;
+      const title = document.getElementById('current-track-title');
+      const currentName = data.total_path_coords.at(-1)?.meta?.tags?.name || '未命名';
+      title.textContent = data.legs.length ? `${data.current_way}（${currentName}）` : '';
+      title.title = title.textContent;
+      document.getElementById('current-track-row').hidden = !data.legs.length;
+      document.getElementById('current-track-actions').hidden = !data.legs.length;
+      let html = '<b>可选相连轨道:</b>';
       if (data.choices.length === 0) {
         html += '<div class="small text-muted mt-1">' +
           (data.stop_reason?.includes('接回') ? '已接回本段走过的轨迹，本段结束。' : '暂无相连轨道') + '</div>';
@@ -512,7 +569,7 @@
           let [rec] = sortedChoices.splice(idx, 1);
           sortedChoices.unshift(rec);
         }
-        html += '<b>可选相连轨道:</b><ul class="list-group mt-2">' + sortedChoices.map(w => {
+        html += '<ul class="list-group mt-2">' + sortedChoices.map(w => {
           let name = w.meta && w.meta.tags && w.meta.tags.name ? `（${w.meta.tags.name}）` : '（未命名）';
           let star = w.recommend ? '<span class="star" title="推荐接续轨道" aria-label="推荐接续轨道">⭐</span>' : '';
           let liClass = w.recommend ? 'list-group-item active-choice' : 'list-group-item';
@@ -587,10 +644,10 @@
         row.style.setProperty('border-left-color', journeyColour(leg, index), 'important');
         const title = document.createElement('div');
         title.className = 'fw-bold';
-        title.textContent = `第 ${index + 1} 段 · ${leg.name}`;
+        title.textContent = `第 ${index + 1} 段行程 · ${leg.name}`;
         const info = document.createElement('div');
         info.className = 'text-muted';
-        info.textContent = `轨道长度约 ${journeyDistance(data, index)}`;
+        info.textContent = `${leg.path.length} 条轨道 · ${journeyDistance(data, index)}`;
         row.append(title, info);
         list.appendChild(row);
         scope.add(new Option(`第 ${index + 1} 段`, String(index)));
@@ -605,12 +662,14 @@
       const path = scope === 'all' ? data.total_path : data.legs[Number(scope)].path;
       const ids = [...new Set(path.map(item => item.way_id))];
       document.getElementById('total-path').hidden = ids.length === 0;
+      document.getElementById('journey-actions').hidden = ids.length === 0;
       document.getElementById('path-summary').textContent = `全部行程 · 约 ${journeyDistance(data)}`;
       const query = ids.length ? `[out:json][timeout:25];\n(\n${ids.map(id => `  way(${id});`).join('\n')}\n);\n(._;>;);\nout body;` : '';
       document.getElementById('overpass-query').value = query;
       document.getElementById('copy-query').disabled = !query;
-      document.getElementById('partial-export-note').hidden = !path.some(item => item.span);
-      document.getElementById('export-status').textContent = '';
+      if (!query) document.getElementById('more-actions').hidePopover();
+      document.getElementById('copy-query').dataset.partial = String(path.some(item => item.span));
+      clearCopyNotices();
     }
 
     const kmlDialog = document.getElementById('kml-dialog');
@@ -719,20 +778,81 @@
       kmlDialog.close();
     };
 
-    document.getElementById('copy-query').onclick = async () => {
+    const moreActions = document.getElementById('more-actions');
+    const moreButton = document.getElementById('more-actions-button');
+    moreActions.addEventListener('beforetoggle', event => {
+      if (event.newState !== 'open') return;
+      const rect = moreButton.getBoundingClientRect();
+      moreActions.style.left = 'auto';
+      moreActions.style.top = 'auto';
+      moreActions.style.right = Math.max(12, window.innerWidth - rect.right) + 'px';
+      moreActions.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
+    });
+    moreActions.addEventListener('toggle', event => {
+      moreButton.setAttribute('aria-expanded', String(event.newState === 'open'));
+    });
+    window.addEventListener('resize', () => moreActions.hidePopover());
+
+    document.getElementById('view-query').onclick = () => {
+      moreActions.hidePopover();
+      document.getElementById('query-preview').showModal();
+    };
+
+    const queryPreview = document.getElementById('query-preview');
+    let queryBackdropPressed = false;
+    function outsideQueryDialog(event) {
+      const rect = queryPreview.getBoundingClientRect();
+      return event.target === queryPreview &&
+        (event.clientX < rect.left || event.clientX > rect.right ||
+         event.clientY < rect.top || event.clientY > rect.bottom);
+    }
+    queryPreview.addEventListener('pointerdown', event => {
+      queryBackdropPressed = outsideQueryDialog(event);
+    });
+    queryPreview.addEventListener('click', event => {
+      if (queryBackdropPressed && outsideQueryDialog(event)) queryPreview.close();
+      queryBackdropPressed = false;
+    });
+    queryPreview.addEventListener('close', () => { queryBackdropPressed = false; });
+
+    function clearCopyNotices() {
+      for (const id of ['export-status', 'query-copy-status']) {
+        bootstrap.Toast.getInstance(document.getElementById(id))?.hide();
+      }
+    }
+    function showCopyNotice(message, copied) {
+      const id = queryPreview.open ? 'query-copy-status' : 'export-status';
+      const element = document.getElementById(id);
+      bootstrap.Toast.getInstance(element)?.dispose();
+      element.querySelector('.toast-body').textContent = message;
+      new bootstrap.Toast(element, {autohide:copied, delay:3000}).show();
+    }
+    async function copyOverpassQuery() {
+      moreActions.hidePopover();
       const query = document.getElementById('overpass-query');
       if (!query.value) return;
-      const status = document.getElementById('export-status');
+      const partial = document.getElementById('copy-query').dataset.partial === 'true';
+      clearCopyNotices();
+      let message, copied = false;
       try {
         await navigator.clipboard.writeText(query.value);
-        status.textContent = '已复制 Overpass 查询。';
+        message = '已复制 Overpass 查询。';
+        copied = true;
       } catch (_) {
-        document.getElementById('query-preview').open = true;
+        document.getElementById('query-preview').showModal();
         query.focus();
         query.select();
-        status.textContent = '无法自动复制，已选中查询内容，请按 Ctrl+C / ⌘C 复制。';
+        message = '无法自动复制，已选中查询内容，请按 Ctrl+C / ⌘C 复制。';
       }
-    };
+      if (partial) {
+        document.getElementById('overpass-copy-result').textContent = message;
+        document.getElementById('overpass-copy-dialog').showModal();
+      } else {
+        showCopyNotice(message, copied);
+      }
+    }
+    document.getElementById('copy-query').onclick = copyOverpassQuery;
+    document.getElementById('copy-query-preview').onclick = copyOverpassQuery;
 
     async function selectWay(way_id, reset=false, options={}) {
       // 自动推进统一由本地行程引擎处理，页面只提交一次选择动作。
