@@ -517,6 +517,7 @@ services:
       - TZ=Asia/Shanghai
     volumes:
       - /vol3/1000/docker_volume/homeassistant/config:/config
+      - /vol2/1000/personal_volume/software/HomeAssistant:/backup
       - /etc/localtime:/etc/localtime:ro
 
   # 3D打印耗材管理 - Spoolman
