@@ -4,10 +4,11 @@ services:
   # 方便做流量控制
 #  moviepilot-v2
   moviepilot-v2:
-    image: jxxghp/moviepilot-v2:latest
+    image: jxxghp/moviepilot-v3:latest
     container_name: moviepilot-v2
     hostname: moviepilot-v2
     restart: always
+    stop_grace_period: 120s
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
