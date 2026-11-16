@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         少数派「编辑部的新玩意」上一篇 / 下一篇
 // @namespace    local.sspai.new-things
-// @version      1.3.4
+// @version      1.3.5
 // @description  在栏目文章页显示相邻文章导航，支持历史文章、目录缓存和站内路由切换。
 // @match        https://sspai.com/*
 // @run-at       document-start
@@ -150,6 +150,38 @@
     });
   }
 
+  let positionFrame = 0;
+  function positionPanel() {
+    if (!host?.isConnected) return;
+    let bottom = window.innerWidth <= 600 ? 12 : 24;
+    let anchor = null;
+    // 工具栏不存在、被隐藏或改名时，保留默认位置与自适应宽度。
+    for (const toolbar of document.querySelectorAll('.app_toolbar')) {
+      const box = toolbar.getBoundingClientRect();
+      const style = getComputedStyle(toolbar);
+      if (!box.width || !box.height || box.top >= window.innerHeight || box.bottom <= 0 ||
+          box.right <= 0 || box.left >= window.innerWidth ||
+          style.visibility === 'hidden' || style.visibility === 'collapse' || Number(style.opacity) === 0) continue;
+      anchor = box;
+    }
+    if (anchor) {
+      host.style.setProperty('--sspai-nav-width', `${anchor.width}px`);
+      host.style.setProperty('--sspai-nav-right', `${Math.max(0, window.innerWidth - anchor.right)}px`);
+      bottom = Math.max(bottom, window.innerHeight - anchor.top + 12);
+    } else {
+      host.style.removeProperty('--sspai-nav-width');
+      host.style.removeProperty('--sspai-nav-right');
+    }
+    host.style.setProperty('--sspai-nav-bottom', `${bottom}px`);
+  }
+  function schedulePosition() {
+    if (positionFrame) return;
+    positionFrame = requestAnimationFrame(() => {
+      positionFrame = 0;
+      positionPanel();
+    });
+  }
+
   function createPanel() {
     host?.remove();
     host = document.createElement('div');
@@ -157,22 +189,23 @@
     const root = host.attachShadow({ mode: 'open' });
     const style = document.createElement('style');
     style.textContent = `
-      :host { position:fixed; right:20px; bottom:24px; z-index:9999;
+      :host { position:fixed; right:var(--sspai-nav-right,20px); bottom:var(--sspai-nav-bottom,24px); z-index:9999;
         font:14px/1.5 system-ui,sans-serif; color:#222; }
-      nav { box-sizing:border-box; width:max-content; max-width:calc(100vw - 40px); padding:8px; border:1px solid #ddd;
+      nav { box-sizing:border-box; width:var(--sspai-nav-width,max-content); max-width:calc(100vw - 40px); padding:8px; border:1px solid #ddd;
         border-radius:8px; background:#fff; box-shadow:0 4px 22px #0002; }
       header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px; }
-      header a { color:#777; font-size:12px; }
+      header a { color:#777; font-size:12px; white-space:nowrap; }
+      header button { font-size:12px; padding:2px; }
       a { color:#bd392d; text-decoration:none; } a:hover { text-decoration:underline; }
       .content { display:grid; grid-template-columns:minmax(0,1fr); gap:6px; }
-      .entry { display:block; min-width:0; padding:10px; border-radius:6px; background:#f6f6f6; }
+      .entry { display:block; min-width:0; padding:10px 8px; border-radius:6px; background:#f6f6f6; }
       .entry span { display:block; max-width:160px; margin-top:4px; font-size:12px; color:#666; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
       .disabled { color:#999; }
       button { border:0; background:transparent; color:#777; cursor:pointer; font:inherit; padding:4px; }
       footer:empty { display:none; }
       footer { max-width:160px; grid-column:1 / -1; display:flex; align-items:center; justify-content:space-between; font-size:12px; color:#777; }
       nav.collapsed .content { display:none; }
-      @media(max-width:600px) { :host { right:10px; bottom:12px; } }
+      @media(max-width:600px) { :host { right:var(--sspai-nav-right,10px); bottom:var(--sspai-nav-bottom,12px); } }
     `;
     const nav = document.createElement('nav');
     nav.setAttribute('aria-label', `${TAG}文章导航`);
@@ -196,6 +229,7 @@
     nav.append(header, content);
     root.append(style, nav);
     document.body.append(host);
+    schedulePosition();
     return content;
   }
 
@@ -252,9 +286,26 @@
     render();
   }
   function start() {
+    const tracked = new WeakSet();
+    const toolbarResize = new ResizeObserver(schedulePosition);
+    const toolbarChanges = new MutationObserver(schedulePosition);
+    function watchToolbars() {
+      for (const toolbar of document.querySelectorAll('.app_toolbar')) {
+        if (tracked.has(toolbar)) continue;
+        tracked.add(toolbar);
+        toolbarResize.observe(toolbar);
+        toolbar.addEventListener('transitionend', schedulePosition);
+        toolbar.addEventListener('animationend', schedulePosition);
+        toolbarChanges.observe(toolbar, { attributes: true, subtree: true,
+          attributeFilter: ['class', 'style', 'hidden'] });
+      }
+    }
+    watchToolbars();
     readTagDom();
     checkRoute();
     setInterval(checkRoute, 800);
+    window.addEventListener('resize', schedulePosition);
+    window.addEventListener('scroll', schedulePosition, { passive: true });
     // 站内切换后的文章标签可能稍晚才渲染完成。
     let scheduled = false;
     new MutationObserver(() => {
@@ -262,6 +313,8 @@
       scheduled = true;
       setTimeout(() => {
         scheduled = false;
+        watchToolbars();
+        schedulePosition();
         if (!document.getElementById('sspai-new-things-nav') && /^\/post\/\d+/.test(location.pathname)) render();
       }, 300);
     }).observe(document.body, { childList: true, subtree: true });
