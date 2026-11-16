@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         少数派「编辑部的新玩意」上一篇 / 下一篇
 // @namespace    local.sspai.new-things
-// @version      1.2.2
+// @version      1.3.0
 // @description  在栏目文章页显示相邻文章导航，支持历史文章、目录缓存和站内路由切换。
 // @match        https://sspai.com/*
 // @run-at       document-start
@@ -112,13 +112,42 @@
   async function resolveNeighbor(id, direction) {
     let index = cache.items.findIndex(x => x.id === id);
     if (index >= 0 && cache.items[index + direction]) return cache.items[index + direction];
-    if (direction !== 1) return null;
-    // 仅上一篇缓存缺失时查询栏目第一页，不继续请求历史分页。
-    const page = await requestPage(0);
-    if (!page.items.length) throw new Error('栏目第一页未返回文章，缓存未更新');
-    updateFirst(page.items, page.total);
-    index = cache.items.findIndex(x => x.id === id);
-    return index >= 0 ? cache.items[index + direction] || null : null;
+    if (index >= 0 && direction === 1 && cache.complete) return null;
+    // 没有相邻文章时，从首页定位当前文章，逐页查询至找到目标或目录结束。
+    // 重新定位可避免新一期发布后，沿用旧 offset 导致文章错位。
+    const items = [];
+    const seen = new Set();
+    for (let pageNumber = 0; pageNumber < 100; pageNumber++) {
+      const page = await requestPage(items.length);
+      if (!page.items.length && (!items.length ||
+          (Number.isFinite(page.total) && items.length < page.total))) {
+        throw new Error('目录返回为空，未能完成查询');
+      }
+      for (const item of page.items) {
+        if (seen.has(item.id)) throw new Error('目录在查询期间发生变化，请重试');
+        seen.add(item.id);
+      }
+      items.push(...page.items);
+      const complete = !page.items.length || (Number.isFinite(page.total) && items.length >= page.total);
+      cache = { items: [...items], total: page.total, complete };
+      save();
+      index = items.findIndex(x => x.id === id);
+      if (index >= 0 && items[index + direction]) return items[index + direction];
+      if (index === 0 && direction === -1) return null;
+      if (complete) {
+        if (index < 0) throw new Error('未在该栏目中找到当前文章');
+        return null;
+      }
+    }
+    throw new Error('目录查询未完成，请重试');
+  }
+
+  function isColumnArticle(id) {
+    if (cache.items.some(item => item.id === id)) return true;
+    return [...document.querySelectorAll('a[href]')].some(a => {
+      try { return decodeURIComponent(new URL(a.href).pathname).replace(/\/$/, '') === `/tag/${TAG}`; }
+      catch (_) { return false; }
+    });
   }
 
   function createPanel() {
@@ -174,16 +203,12 @@
     if (!match) return;
     const id = match[1];
     const index = cache.items.findIndex(x => x.id === id);
-    const tagged = [...document.querySelectorAll('a[href]')].some(a => {
-      try { return decodeURIComponent(new URL(a.href).pathname).replace(/\/$/, '') === `/tag/${TAG}`; }
-      catch (_) { return false; }
-    });
-    if (index < 0 && !tagged && !document.title.includes('新玩意')) return;
+    if (!isColumnArticle(id)) return;
     const content = createPanel();
     content.replaceChildren();
     let busy = false;
     const status = document.createElement('footer');
-    status.textContent = `已缓存 ${cache.items.length} 篇 · 目录首页自动同步`;
+    status.textContent = '';
     for (const [label, direction] of [['← 上一篇（更早）', 1], ['下一篇（更新） →', -1]]) {
       const item = index >= 0 ? cache.items[index + direction] : null;
       const el = document.createElement('a');
@@ -191,24 +216,20 @@
       el.href = item ? `/post/${item.id}` : '#';
       el.textContent = label;
       const title = document.createElement('span');
-      title.textContent = item ? item.title : direction === 1 ? '缓存中暂无，点击查询第一页' : '缓存中没有下一篇';
+      title.textContent = item ? item.title : '点击自动查找';
       el.append(title);
       el.addEventListener('click', async event => {
         if (item) return;
         event.preventDefault();
-        if (direction !== 1) {
-          status.textContent = '缓存中没有下一篇，可打开栏目目录同步缓存';
-          return;
-        }
         if (busy) return;
         busy = true;
-        status.textContent = '正在加载栏目第一页…';
+        status.textContent = '正在查找相邻文章…';
         try {
           const target = await resolveNeighbor(id, direction);
           if (token !== generation) return;
           if (target) location.assign(`/post/${target.id}`);
           else {
-            title.textContent = '刷新第一页后仍未找到上一篇';
+            title.textContent = direction === 1 ? '已经是最早一篇' : '已经是最新一篇';
             status.textContent = '';
           }
         } catch (error) {
