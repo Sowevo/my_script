@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         少数派「编辑部的新玩意」上一篇 / 下一篇
 // @namespace    local.sspai.new-things
-// @version      1.3.3
+// @version      1.3.4
 // @description  在栏目文章页显示相邻文章导航，支持历史文章、目录缓存和站内路由切换。
 // @match        https://sspai.com/*
 // @run-at       document-start
@@ -159,18 +159,18 @@
     style.textContent = `
       :host { position:fixed; right:20px; bottom:24px; z-index:9999;
         font:14px/1.5 system-ui,sans-serif; color:#222; }
-      nav { box-sizing:border-box; width:160px; padding:8px; border:1px solid #ddd;
+      nav { box-sizing:border-box; width:max-content; max-width:calc(100vw - 40px); padding:8px; border:1px solid #ddd;
         border-radius:8px; background:#fff; box-shadow:0 4px 22px #0002; }
-      header { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+      header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px; }
       header a { color:#777; font-size:12px; }
       a { color:#bd392d; text-decoration:none; } a:hover { text-decoration:underline; }
       .content { display:grid; grid-template-columns:minmax(0,1fr); gap:6px; }
       .entry { display:block; min-width:0; padding:10px; border-radius:6px; background:#f6f6f6; }
-      .entry span { display:block; margin-top:4px; font-size:12px; color:#666; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .entry span { display:block; max-width:160px; margin-top:4px; font-size:12px; color:#666; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
       .disabled { color:#999; }
       button { border:0; background:transparent; color:#777; cursor:pointer; font:inherit; padding:4px; }
       footer:empty { display:none; }
-      footer { grid-column:1 / -1; display:flex; align-items:center; justify-content:space-between; font-size:12px; color:#777; }
+      footer { max-width:160px; grid-column:1 / -1; display:flex; align-items:center; justify-content:space-between; font-size:12px; color:#777; }
       nav.collapsed .content { display:none; }
       @media(max-width:600px) { :host { right:10px; bottom:12px; } }
     `;
@@ -179,7 +179,8 @@
     const header = document.createElement('header');
     const label = document.createElement('a');
     label.href = TAG_URL;
-    label.textContent = TAG;
+    label.textContent = '新玩意';
+    label.title = TAG;
     const toggle = document.createElement('button');
     toggle.textContent = '收起';
     toggle.setAttribute('aria-expanded', 'true');
