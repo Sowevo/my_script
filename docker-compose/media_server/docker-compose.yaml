@@ -2,11 +2,10 @@ services:
   # 使用macvlan的网络,使得容器获得独立的ip
   # ip范围10.0.0.51~10.0.0.100
   # 方便做流量控制
-#  moviepilot-v2
-  moviepilot-v2:
+  moviepilot-v3:
     image: jxxghp/moviepilot-v3:latest
-    container_name: moviepilot-v2
-    hostname: moviepilot-v2
+    container_name: moviepilot-v3
+    hostname: moviepilot-v3
     restart: always
     stop_grace_period: 120s
     labels:
@@ -78,14 +77,15 @@ services:
     mac_address: 10:00:00:00:00:57
     environment:
       # 时区
-      - TZ=Asia/Shanghai
+      TZ: Asia/Shanghai
+      REDISCLI_AUTH: &moviepilot-redis-password password
     ports:
       - "6379:6379"
     volumes:
       - /vol3/1000/docker_volume/redis/data:/data
-    command: redis-server --save 600 1 --requirepass password
+    command: ["redis-server", "--save", "600", "1", "--requirepass", *moviepilot-redis-password]
     healthcheck:
-      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      test: ["CMD", "redis-cli", "-e", "--raw", "PING"]
       interval: 10s
       timeout: 5s
       retries: 5
